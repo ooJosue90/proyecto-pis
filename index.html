@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Sistema de gestión agrícola para SEMBRIEXPORT." />
+    <title>SEMBRIEXPORT - Gestión agrícola</title>
+    <link rel="icon" type="image/x-icon" href="assets/mango.ico" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/dashboard.css?v=20260605-home-footer" rel="stylesheet">
+</head>
+<body class="public-page home-page">
+    <nav class="navbar navbar-expand-lg public-nav">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <span class="public-brand-mark"><i class="fas fa-seedling"></i></span>
+                SEMBRIEXPORT
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation" aria-controls="mainNavigation" aria-expanded="false" aria-label="Abrir navegación">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavigation">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link active" href="index.html">Bienvenido</a></li>
+                    <li class="nav-item"><a class="nav-link" href="products.html">Productos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="about.html">Acerca de</a></li>
+                    <li class="nav-item"><a class="btn btn-primary ms-lg-2" href="login.html"><i class="fas fa-arrow-right-to-bracket"></i> Iniciar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="public-hero home-hero">
+            <div class="public-container public-hero-grid">
+                <div class="public-hero-copy">
+                    <span class="public-kicker"><i class="fas fa-chart-line"></i> Plataforma agrícola</span>
+                    <h1 class="public-title">Gestión agrícola de exportación</h1>
+                    <p class="public-subtitle">Producción, control y comercialización de mango Tommy Atkins con procesos trazables, información ordenada y una experiencia administrativa moderna.</p>
+                    <div class="public-actions">
+                        <a href="#compromisos" class="btn btn-primary btn-lg"><i class="fas fa-arrow-down"></i> Conocer más</a>
+                        <a href="products.html" class="btn btn-outline-primary btn-lg"><i class="fas fa-box-open"></i> Ver productos</a>
+                    </div>
+                    <div class="home-hero-metrics" aria-label="Indicadores de SEMBRIEXPORT">
+                        <div>
+                            <strong>Tommy Atkins</strong>
+                            <span>Mango de exportación</span>
+                        </div>
+                        <div>
+                            <strong>Trazabilidad</strong>
+                            <span>Lotes, cultivos e insumos</span>
+                        </div>
+                        <div>
+                            <strong>Control total</strong>
+                            <span>Operación agrícola</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="public-hero-media">
+                    <img src="assets/img/intro.jpg" alt="Mango Tommy Atkins de exportación">
+                </div>
+            </div>
+        </section>
+
+        <section id="compromisos" class="public-section public-band">
+            <div class="public-container">
+                <div class="public-section-heading">
+                    <span class="public-kicker"><i class="fas fa-handshake"></i> Nuestro compromiso</span>
+                    <h2 class="public-title">Calidad en toda la cadena productiva</h2>
+                    <p class="public-subtitle">Trabajamos con foco en clientes, agricultores, sostenibilidad e innovación para sostener una operación confiable.</p>
+                </div>
+                <div class="public-card-grid">
+                    <article class="public-card">
+                        <span class="public-card-icon"><i class="fas fa-leaf"></i></span>
+                        <h3>Clientes</h3>
+                        <p>Productos frescos, confiables y alineados a estándares internacionales de calidad.</p>
+                    </article>
+                    <article class="public-card">
+                        <span class="public-card-icon"><i class="fas fa-globe-americas"></i></span>
+                        <h3>Ambiente</h3>
+                        <p>Prácticas agrícolas sostenibles para cuidar suelo, agua y biodiversidad.</p>
+                    </article>
+                    <article class="public-card">
+                        <span class="public-card-icon"><i class="fas fa-users"></i></span>
+                        <h3>Agricultores</h3>
+                        <p>Desarrollo local, capacitación y mejores condiciones para la cadena productiva.</p>
+                    </article>
+                    <article class="public-card">
+                        <span class="public-card-icon"><i class="fas fa-microchip"></i></span>
+                        <h3>Innovación</h3>
+                        <p>Tecnología para mejorar la eficiencia en siembra, cosecha y exportación.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="public-footer home-footer">
+        <div class="public-container home-footer-shell">
+            <div class="home-footer-grid">
+                <section class="home-footer-newsletter" aria-labelledby="footer-newsletter-title">
+                    <a class="home-footer-brand" href="index.html">
+                        <span class="public-brand-mark"><i class="fas fa-seedling"></i></span>
+                        <span>SEMBRIEXPORT</span>
+                    </a>
+                    <h2 id="footer-newsletter-title">Mantente conectado</h2>
+                    <p>Conoce nuestras novedades sobre producción, trazabilidad y exportación agrícola.</p>
+                    <form class="home-footer-form">
+                        <label class="visually-hidden" for="footerEmail">Correo electrónico</label>
+                        <input id="footerEmail" type="email" placeholder="Ingresa tu correo" autocomplete="email">
+                        <button type="button" aria-label="Enviar correo"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </section>
+
+                <nav class="home-footer-column" aria-labelledby="footer-links-title">
+                    <h3 id="footer-links-title">Enlaces rápidos</h3>
+                    <a href="index.html">Inicio</a>
+                    <a href="#compromisos">Nuestro compromiso</a>
+                    <a href="products.html">Productos</a>
+                    <a href="about.html">Acerca de</a>
+                    <a href="login.html">Iniciar sesión</a>
+                </nav>
+
+                <section class="home-footer-column home-footer-contact" aria-labelledby="footer-contact-title">
+                    <h3 id="footer-contact-title">Contáctanos</h3>
+                    <p><i class="fas fa-location-dot"></i><span>Guayaquil, Ecuador</span></p>
+                    <p><i class="fas fa-phone"></i><a href="tel:+593000000000">+593 00 000 0000</a></p>
+                    <p><i class="fas fa-envelope"></i><a href="mailto:info@sembriexport.com">info@sembriexport.com</a></p>
+                    <p><i class="fas fa-clock"></i><span>Lun - Vie, 08:00 - 17:00</span></p>
+                </section>
+
+                <section class="home-footer-column" aria-labelledby="footer-social-title">
+                    <h3 id="footer-social-title">Síguenos</h3>
+                    <p class="home-footer-social-copy">Acompaña el crecimiento de nuestra comunidad agrícola.</p>
+                    <div class="home-footer-socials">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                    <div class="home-footer-certification">
+                        <i class="fas fa-leaf"></i>
+                        <span>Producción responsable y trazable</span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="home-footer-bottom">
+                <p>&copy; 2026 SEMBRIEXPORT. Todos los derechos reservados.</p>
+                <div>
+                    <a href="#">Política de privacidad</a>
+                    <a href="#">Términos de uso</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

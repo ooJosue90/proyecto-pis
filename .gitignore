@@ -1,0 +1,40 @@
+# Configuracion privada
+.env
+.env.*
+!.env.example
+
+# Dependencias instaladas por Composer
+/vendor/
+
+# Respaldos y scripts de base de datos
+*.sql
+*.sql.gz
+*.dump
+
+# Datos locales y temporales de ejecucion
+/cookies/
+/storage/*
+!/storage/.gitkeep
+!/storage/sessions/
+/storage/sessions/*
+!/storage/sessions/.gitkeep
+
+# Logs, cache y archivos temporales
+*.log
+*.tmp
+*.temp
+*.cache
+.phpunit.cache/
+.phpunit.result.cache
+
+# Editores e IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+Desktop.ini
