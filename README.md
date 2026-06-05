@@ -1,5 +1,6 @@
 # SembriExport
 
+A ver cabrones sigan las instrucciones y si la cagan son pendejos 
 Sistema web para la gestión agrícola de cultivos de mango, lotes, monitoreo,
 plagas, producción, solicitudes de insumos, inventario, proveedores, facturas y
 reportes. Incluye a ADA, un asistente virtual conectado con Gemini que responde
