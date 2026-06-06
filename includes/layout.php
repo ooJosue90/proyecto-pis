@@ -12,6 +12,22 @@ function render_head(string $title, array $extraStyles = [], array $extraScripts
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title); ?> | <?= e($appName); ?></title>
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('appTheme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var preference = ['light', 'dark', 'night', 'auto'].indexOf(savedTheme) >= 0 ? savedTheme : 'auto';
+                document.documentElement.dataset.themePreference = preference;
+                document.documentElement.dataset.theme = preference === 'auto'
+                    ? (prefersDark ? 'dark' : 'light')
+                    : preference;
+            } catch (error) {
+                document.documentElement.dataset.theme = 'light';
+                document.documentElement.dataset.themePreference = 'auto';
+            }
+        })();
+    </script>
     <link rel="icon" type="image/x-icon" href="assets/mango.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -20,6 +36,7 @@ function render_head(string $title, array $extraStyles = [], array $extraScripts
     <?php foreach ($extraStyles as $href): ?>
         <link href="<?= e($href); ?>" rel="stylesheet">
     <?php endforeach; ?>
+    <link href="css/theme.css?v=<?= filemtime(__DIR__ . '/../css/theme.css'); ?>" rel="stylesheet">
     <?php foreach ($extraScripts as $src): ?>
         <script src="<?= e($src); ?>"></script>
     <?php endforeach; ?>
@@ -128,6 +145,42 @@ function render_app_nav(string $icon, string $label, array $actions = []): void
             <span><?= e(app_config('app.name', 'SembriExport')); ?></span>
             <i class="fas fa-chevron-right"></i>
             <span><?= e($role); ?></span>
+        </div>
+        <div class="app-appearance" data-app-appearance>
+            <button type="button"
+                    class="app-appearance-toggle"
+                    data-app-theme-toggle
+                    aria-label="Cambiar apariencia"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <i class="fas fa-circle-half-stroke" data-app-theme-icon aria-hidden="true"></i>
+                <span class="app-appearance-label">Apariencia</span>
+                <span class="app-appearance-current" data-app-theme-label>Automático</span>
+                <i class="fas fa-chevron-down app-appearance-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="app-appearance-menu" data-app-theme-menu role="menu" aria-label="Seleccionar apariencia">
+                <span class="app-appearance-menu-title">Apariencia</span>
+                <button type="button" class="app-theme-option" data-theme-value="light" role="menuitemradio" aria-checked="false">
+                    <span class="app-theme-option-icon app-theme-option-icon--light"><i class="fas fa-sun"></i></span>
+                    <span><strong>Claro</strong><small>Diseño actual y luminoso</small></span>
+                    <i class="fas fa-check app-theme-check"></i>
+                </button>
+                <button type="button" class="app-theme-option" data-theme-value="dark" role="menuitemradio" aria-checked="false">
+                    <span class="app-theme-option-icon app-theme-option-icon--dark"><i class="fas fa-moon"></i></span>
+                    <span><strong>Oscuro</strong><small>Grises oscuros y contraste suave</small></span>
+                    <i class="fas fa-check app-theme-check"></i>
+                </button>
+                <button type="button" class="app-theme-option" data-theme-value="night" role="menuitemradio" aria-checked="false">
+                    <span class="app-theme-option-icon app-theme-option-icon--night"><i class="fas fa-star"></i></span>
+                    <span><strong>Noche</strong><small>Negro profundo y verde agrícola</small></span>
+                    <i class="fas fa-check app-theme-check"></i>
+                </button>
+                <button type="button" class="app-theme-option" data-theme-value="auto" role="menuitemradio" aria-checked="false">
+                    <span class="app-theme-option-icon app-theme-option-icon--auto"><i class="fas fa-circle-half-stroke"></i></span>
+                    <span><strong>Automático</strong><small>Usar la apariencia del sistema</small></span>
+                    <i class="fas fa-check app-theme-check"></i>
+                </button>
+            </div>
         </div>
         <div class="app-user-chip">
             <span class="app-avatar"><?= e($initials); ?></span>

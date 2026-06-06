@@ -885,14 +885,16 @@ function buildSupplyInsumoOptions() {
 }
 
 const ctx = document.getElementById('etapaChart').getContext('2d');
-new Chart(ctx,{
+const etapaChart = new Chart(ctx,{
     type:'doughnut',
     data:{
         labels:['Siembra','Riego','Cosecha'],
         datasets:[{
             data:[<?php echo $etapas['Siembra'].','.$etapas['Riego'].','.$etapas['Cosecha']; ?>],
             backgroundColor:['#08752b','#145ee8','#ffb43b'],
-            borderColor:'#ffffff',
+            borderColor: document.documentElement.dataset.theme === 'light'
+                ? '#ffffff'
+                : (document.documentElement.dataset.theme === 'night' ? '#080d0a' : '#172033'),
             borderWidth:3,
             hoverOffset:5
         }]
@@ -908,6 +910,13 @@ new Chart(ctx,{
             padding:4
         }
     }
+});
+
+window.addEventListener('app:themechange', function(event) {
+    etapaChart.data.datasets[0].borderColor = event.detail.theme === 'light'
+        ? '#ffffff'
+        : (event.detail.theme === 'night' ? '#080d0a' : '#172033');
+    etapaChart.update('none');
 });
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1166,6 +1175,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php render_ada_chat(); ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/app-ui.js"></script>
 </body>
 </html>

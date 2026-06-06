@@ -580,7 +580,10 @@ $facturasRecientes = $tablesReady
                                 <i class="fas fa-floppy-disk"></i>
                                 <span>Registrar factura</span>
                             </button>
-                            <a href="bodeguero.php" class="purchase-invoice-cancel">Cancelar y volver</a>
+                            <a href="bodeguero.php" class="purchase-invoice-cancel">
+                                <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                                <span>Cancelar y volver</span>
+                            </a>
                         </aside>
                     </div>
                 </form>

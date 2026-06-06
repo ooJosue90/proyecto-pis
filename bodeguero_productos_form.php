@@ -40,7 +40,9 @@ require_auth('Bodeguero');
                 <label>Observaciones:</label>
                 <textarea name="observaciones" class="form-control" rows="2"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Registrar Producto</button>
+            <button type="submit" class="btn btn-success w-100 warehouse-receipt-button">
+                Registrar Producto
+            </button>
         </form>
     </div>
 </div>

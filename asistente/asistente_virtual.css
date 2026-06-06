@@ -531,3 +531,22 @@
         display: none;
     }
 }
+/* El panel de ADA acompaña el tema global de la aplicación. */
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-chat__window,
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-chat__form,
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-welcome-card,
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-quick-actions button,
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-chat__input {
+    border-color: var(--app-border, #2b3547);
+    background: var(--app-surface, #111827);
+    color: var(--app-text, #e5e7eb);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-chat__messages {
+    background: var(--app-bg, #0f172a);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-message--assistant .ada-message__bubble {
+    background: var(--app-surface-soft, #1f2937);
+    color: var(--app-text, #e5e7eb);
+}

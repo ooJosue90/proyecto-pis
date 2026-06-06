@@ -27,6 +27,67 @@
     --app-sidebar-collapsed: 86px;
     --app-topbar-height: 76px;
     --app-font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --app-motion-fast: 160ms;
+    --app-motion-base: 220ms;
+    --app-motion-slow: 360ms;
+    --app-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --app-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+    --bg-body: var(--app-bg);
+    --bg-card: var(--app-surface);
+    --bg-sidebar: var(--app-sidebar);
+    --bg-navbar: rgba(246, 247, 251, 0.84);
+    --text-main: var(--app-text);
+    --text-muted: var(--app-muted);
+    --border-color: var(--app-border);
+    --accent-green: var(--app-primary);
+    --input-bg: #ffffff;
+    --table-bg: var(--app-surface);
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --app-bg: #0b1120;
+    --app-surface: #111827;
+    --app-surface-soft: #172033;
+    --app-sidebar: #080d18;
+    --app-sidebar-hover: #172033;
+    --app-sidebar-active: #163524;
+    --app-primary: #4ade80;
+    --app-primary-dark: #22c55e;
+    --app-primary-strong: #86efac;
+    --app-text: #e5e7eb;
+    --app-muted: #9ca3af;
+    --app-border: #2b3547;
+    --app-ring: rgba(74, 222, 128, 0.22);
+    --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+    --app-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    --app-shadow-lg: 0 22px 60px rgba(0, 0, 0, 0.42);
+    --bg-navbar: rgba(11, 17, 32, 0.88);
+    --input-bg: #0f172a;
+    --table-bg: #111827;
+}
+
+:root[data-theme="night"] {
+    color-scheme: dark;
+    --app-bg: #020604;
+    --app-surface: #080d0a;
+    --app-surface-soft: #0d1711;
+    --app-sidebar: #010302;
+    --app-sidebar-hover: #102218;
+    --app-sidebar-active: #123c24;
+    --app-primary: #4ade80;
+    --app-primary-dark: #22c55e;
+    --app-primary-strong: #86efac;
+    --app-text: #f3f7f4;
+    --app-muted: #9aaba0;
+    --app-border: #1d3024;
+    --app-ring: rgba(74, 222, 128, 0.26);
+    --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --app-shadow: 0 14px 38px rgba(0, 0, 0, 0.55);
+    --app-shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.68);
+    --bg-navbar: rgba(2, 6, 4, 0.92);
+    --input-bg: #050a07;
+    --table-bg: #080d0a;
 }
 
 * {
@@ -48,6 +109,13 @@ body {
     font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 14px;
     line-height: 1.5;
+}
+
+:root[data-theme="dark"] body {
+    background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.09), transparent 34rem),
+        radial-gradient(circle at bottom right, rgba(20, 83, 45, 0.12), transparent 34rem),
+        var(--app-bg);
 }
 
 body.app-shell-ready {
@@ -943,6 +1011,162 @@ small.text-muted {
 
 .app-clickable {
     cursor: pointer;
+}
+
+/* Tema oscuro */
+:root[data-theme="dark"] .app-topbar {
+    background: rgba(11, 17, 32, 0.88);
+    border-bottom-color: rgba(43, 53, 71, 0.9);
+}
+
+:root[data-theme="dark"] .app-theme-toggle {
+    color: #facc15;
+}
+
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .card.text-white,
+:root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .dropdown-menu,
+:root[data-theme="dark"] .list-group-item,
+:root[data-theme="dark"] .accordion-item,
+:root[data-theme="dark"] .offcanvas,
+:root[data-theme="dark"] .app-table-tools {
+    border-color: var(--app-border) !important;
+    background: var(--app-surface) !important;
+    color: var(--app-text) !important;
+}
+
+:root[data-theme="dark"] .card-header,
+:root[data-theme="dark"] .card-header.bg-primary,
+:root[data-theme="dark"] .card-header.bg-success,
+:root[data-theme="dark"] .card-header.bg-warning,
+:root[data-theme="dark"] .card-header.bg-danger,
+:root[data-theme="dark"] .card-header.bg-info,
+:root[data-theme="dark"] .card-header.bg-secondary,
+:root[data-theme="dark"] .modal-header,
+:root[data-theme="dark"] .modal-footer {
+    border-color: var(--app-border) !important;
+    background: linear-gradient(180deg, #172033, #111827) !important;
+    color: var(--app-text) !important;
+}
+
+:root[data-theme="dark"] .form-label,
+:root[data-theme="dark"] label,
+:root[data-theme="dark"] .table td,
+:root[data-theme="dark"] .text-dark {
+    color: var(--app-text) !important;
+}
+
+:root[data-theme="dark"] .text-muted {
+    color: var(--app-muted) !important;
+}
+
+:root[data-theme="dark"] .form-control,
+:root[data-theme="dark"] .form-select,
+:root[data-theme="dark"] .input-group-text,
+:root[data-theme="dark"] .page-link {
+    border-color: var(--app-border);
+    background-color: #0f172a;
+    color: var(--app-text);
+}
+
+:root[data-theme="dark"] .form-control::placeholder {
+    color: #718096;
+}
+
+:root[data-theme="dark"] .form-control:disabled,
+:root[data-theme="dark"] .form-select:disabled,
+:root[data-theme="dark"] .form-control[readonly] {
+    background-color: #1f2937;
+    color: var(--app-muted);
+}
+
+:root[data-theme="dark"] .nav-tabs {
+    background: #0f172a;
+}
+
+:root[data-theme="dark"] .nav-tabs .nav-link:hover,
+:root[data-theme="dark"] .nav-tabs .nav-link.active {
+    background: var(--app-surface);
+    color: var(--app-text);
+}
+
+:root[data-theme="dark"] .table-responsive {
+    background: var(--app-surface);
+}
+
+:root[data-theme="dark"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.025);
+    --bs-table-hover-bg: rgba(74, 222, 128, 0.065);
+    color: var(--app-text);
+}
+
+:root[data-theme="dark"] .table thead th,
+:root[data-theme="dark"] .table th {
+    background: #172033 !important;
+    color: #cbd5e1 !important;
+}
+
+:root[data-theme="dark"] .table td {
+    border-color: var(--app-border) !important;
+}
+
+:root[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.025);
+}
+
+:root[data-theme="dark"] .table-hover tbody tr:hover,
+:root[data-theme="dark"] .table tbody tr:hover {
+    background-color: rgba(74, 222, 128, 0.065);
+}
+
+:root[data-theme="dark"] .btn-outline-light,
+:root[data-theme="dark"] .btn-outline-primary,
+:root[data-theme="dark"] .btn-outline-danger,
+:root[data-theme="dark"] .btn-outline-info {
+    border-color: var(--app-border) !important;
+    background: #172033 !important;
+    color: var(--app-text) !important;
+}
+
+:root[data-theme="dark"] .alert-success {
+    background: #10291c;
+    color: #86efac;
+}
+
+:root[data-theme="dark"] .alert-danger {
+    background: #351419;
+    color: #fca5a5;
+}
+
+:root[data-theme="dark"] .alert-warning {
+    background: #35250d;
+    color: #fde68a;
+}
+
+:root[data-theme="dark"] .alert-info {
+    background: #102a35;
+    color: #a5f3fc;
+}
+
+:root[data-theme="dark"] .app-notification {
+    border-color: rgba(148, 163, 184, 0.2);
+    background: rgba(17, 24, 39, 0.96);
+    color: var(--app-text);
+}
+
+:root[data-theme="dark"] .app-notification__title {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .app-notification__message {
+    color: #cbd5e1;
+}
+
+:root[data-theme="dark"] .app-notification__close {
+    background: #263244;
+    color: #cbd5e1;
 }
 
 .app-fade-in {
@@ -1940,6 +2164,130 @@ body.app-sidebar-collapsed .app-sidebar-user {
 .farmer-dashboard-page .farmer-submit:focus-visible {
     outline: 4px solid rgba(22, 163, 74, 0.2);
     outline-offset: 3px;
+}
+
+/*
+ * Acciones verdes compartidas por Administrador y Bodeguero.
+ * Conservan las dimensiones de cada modulo y usan el acabado del Agricultor.
+ */
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info),
+.warehouse-dashboard :is(.btn-primary, .btn-success, .btn-info),
+.admin-dashboard-page :is(.warehouse-modal-confirm, .purchase-invoice-submit),
+.warehouse-dashboard-page :is(
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit
+) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 13px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #fff !important;
+    font-weight: 850;
+    letter-spacing: 0.01em;
+    box-shadow:
+        0 12px 25px rgba(7, 95, 29, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    transition:
+        transform 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        filter 180ms ease;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info)::before,
+.warehouse-dashboard :is(.btn-primary, .btn-success, .btn-info)::before,
+.admin-dashboard-page :is(.warehouse-modal-confirm, .purchase-invoice-submit)::before,
+.warehouse-dashboard-page :is(
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit
+)::before {
+    position: absolute;
+    top: -70%;
+    left: -35%;
+    z-index: -1;
+    width: 28%;
+    height: 240%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    content: "";
+    pointer-events: none;
+    transform: rotate(20deg);
+    transition: left 480ms ease;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus, :focus-visible),
+.warehouse-dashboard :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus, :focus-visible),
+.admin-dashboard-page :is(.warehouse-modal-confirm, .purchase-invoice-submit):is(:hover, :focus, :focus-visible),
+.warehouse-dashboard-page :is(
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit
+):is(:hover, :focus, :focus-visible) {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 42%),
+        linear-gradient(135deg, #18743a, #0a431f) !important;
+    color: #fff !important;
+    box-shadow:
+        0 17px 34px rgba(7, 95, 29, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    filter: brightness(1.04);
+    transform: translateY(-2px);
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus-visible)::before,
+.warehouse-dashboard :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus-visible)::before,
+.admin-dashboard-page :is(.warehouse-modal-confirm, .purchase-invoice-submit):is(:hover, :focus-visible)::before,
+.warehouse-dashboard-page :is(
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit
+):is(:hover, :focus-visible)::before {
+    left: 115%;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):active,
+.warehouse-dashboard :is(.btn-primary, .btn-success, .btn-info):active,
+.admin-dashboard-page :is(.warehouse-modal-confirm, .purchase-invoice-submit):active,
+.warehouse-dashboard-page :is(
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit
+):active {
+    box-shadow: 0 8px 18px rgba(7, 95, 29, 0.22) !important;
+    transform: translateY(0) scale(0.99);
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):focus-visible,
+.warehouse-dashboard :is(.btn-primary, .btn-success, .btn-info):focus-visible,
+.admin-dashboard-page :is(.warehouse-modal-confirm, .purchase-invoice-submit):focus-visible,
+.warehouse-dashboard-page :is(
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit
+):focus-visible {
+    outline: 4px solid rgba(22, 163, 74, 0.2);
+    outline-offset: 3px;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):disabled,
+.warehouse-dashboard :is(.btn-primary, .btn-success, .btn-info):disabled,
+.admin-dashboard-page :is(.warehouse-modal-confirm, .purchase-invoice-submit):disabled,
+.warehouse-dashboard-page :is(
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit
+):disabled {
+    box-shadow: none !important;
+    filter: grayscale(0.25);
+    opacity: 0.58;
+    transform: none;
 }
 
 .farmer-dashboard-page .farmer-add-button {
@@ -3060,6 +3408,588 @@ body.app-sidebar-collapsed .app-sidebar-user {
 
     .admin-dashboard .admin-lot-history-action .btn {
         width: 100%;
+    }
+}
+
+/* Motion system: restrained feedback for state, hierarchy and navigation. */
+.app-sidebar-link {
+    position: relative;
+}
+
+.app-sidebar-link::before {
+    content: "";
+    position: absolute;
+    inset: 11px auto 11px 0;
+    width: 3px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0;
+    transform: scaleY(0.35);
+    transition:
+        opacity var(--app-motion-fast) var(--app-ease-standard),
+        transform var(--app-motion-base) var(--app-ease-emphasized);
+}
+
+.app-sidebar-link.active::before {
+    opacity: 0.85;
+    transform: scaleY(1);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active,
+.app-icon-button:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn[data-app-ripple],
+.app-icon-button[data-app-ripple] {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.app-button-ripple {
+    position: absolute;
+    z-index: 0;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.16;
+    pointer-events: none;
+    transform: scale(0);
+    animation: appButtonRipple var(--app-motion-slow) ease-out forwards;
+}
+
+.form-control.is-valid,
+.form-select.is-valid,
+.form-control.is-invalid,
+.form-select.is-invalid {
+    animation: appFieldState var(--app-motion-base) var(--app-ease-standard);
+}
+
+.invalid-feedback,
+.valid-feedback,
+.alert {
+    animation: appFeedbackIn var(--app-motion-base) var(--app-ease-emphasized) both;
+}
+
+.table tbody tr {
+    transition:
+        background-color var(--app-motion-fast) var(--app-ease-standard),
+        box-shadow var(--app-motion-fast) var(--app-ease-standard);
+}
+
+.table tbody tr:hover {
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--app-primary) 68%, transparent);
+}
+
+.modal.fade .modal-dialog {
+    transform: translateY(12px) scale(0.975);
+    transition: transform var(--app-motion-base) var(--app-ease-emphasized);
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.modal-backdrop.show {
+    opacity: 0.48;
+    backdrop-filter: blur(4px);
+}
+
+.app-fade-in {
+    animation: appFadeIn var(--app-motion-slow) var(--app-ease-emphasized) both;
+    animation-delay: var(--app-stagger-delay, 0ms);
+}
+
+.app-view-enter {
+    animation: appViewIn var(--app-motion-slow) var(--app-ease-emphasized) both;
+}
+
+.app-row-enter {
+    animation: appRowIn var(--app-motion-base) var(--app-ease-emphasized) both;
+    animation-delay: var(--app-row-delay, 0ms);
+}
+
+.app-loading-state {
+    position: relative;
+    min-height: 112px;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 8px;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+}
+
+.app-loading-state::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        105deg,
+        transparent 30%,
+        color-mix(in srgb, var(--app-primary) 8%, transparent) 48%,
+        transparent 66%
+    );
+    transform: translateX(-100%);
+    animation: appLoadingSweep 1.4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes appViewIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes appRowIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes appButtonRipple {
+    to {
+        opacity: 0;
+        transform: scale(1);
+    }
+}
+
+@keyframes appFieldState {
+    50% {
+        transform: translateY(-1px);
+    }
+}
+
+@keyframes appFeedbackIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes appLoadingSweep {
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    .card:hover,
+    .btn:hover,
+    .app-icon-button:hover,
+    .app-sidebar-link:hover {
+        transform: none !important;
+    }
+}
+
+/* Appearance selector and final theme layer */
+.app-appearance {
+    position: relative;
+    z-index: 2;
+    pointer-events: auto;
+}
+
+.app-appearance-toggle {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--app-border);
+    border-radius: 13px;
+    background: var(--app-surface);
+    color: var(--app-text);
+    box-shadow: var(--app-shadow-sm);
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.18s ease;
+}
+
+.app-appearance-toggle:hover,
+.app-appearance.open .app-appearance-toggle {
+    border-color: color-mix(in srgb, var(--app-primary) 50%, var(--app-border));
+    transform: translateY(-1px);
+}
+
+.app-appearance-current {
+    color: var(--app-primary-strong);
+    font-size: 12px;
+}
+
+.app-appearance-chevron {
+    color: var(--app-muted);
+    font-size: 10px;
+    transition: transform 0.18s ease;
+}
+
+.app-appearance.open .app-appearance-chevron {
+    transform: rotate(180deg);
+}
+
+.app-appearance-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 2205;
+    width: min(340px, calc(100vw - 24px));
+    display: none;
+    padding: 10px;
+    border: 1px solid var(--app-border);
+    border-radius: 18px;
+    background: var(--app-surface);
+    box-shadow: var(--app-shadow-lg);
+    pointer-events: auto;
+}
+
+.app-appearance.open .app-appearance-menu {
+    display: block;
+    animation: appAppearanceIn 0.18s ease both;
+}
+
+.app-appearance-menu-title {
+    display: block;
+    padding: 5px 9px 9px;
+    color: var(--app-muted);
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.app-theme-option {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 0;
+    border-radius: 13px;
+    background: transparent;
+    color: var(--app-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    transition: background-color 0.18s ease;
+}
+
+.app-theme-option:hover,
+.app-theme-option.active {
+    background: var(--app-surface-soft);
+}
+
+.app-theme-option > span:nth-child(2) {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.app-theme-option strong {
+    font-size: 13px;
+}
+
+.app-theme-option small {
+    color: var(--app-muted);
+    font-size: 11px;
+}
+
+.app-theme-option-icon {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    border: 1px solid var(--app-border);
+    border-radius: 11px;
+    place-items: center;
+}
+
+.app-theme-option-icon--light {
+    background: #fff8dc;
+    color: #d97706;
+}
+
+.app-theme-option-icon--dark {
+    background: #273449;
+    color: #cbd5e1;
+}
+
+.app-theme-option-icon--night {
+    background: #020604;
+    color: #4ade80;
+}
+
+.app-theme-option-icon--auto {
+    background: linear-gradient(135deg, #ffffff 50%, #111827 50%);
+    color: #22c55e;
+}
+
+.app-theme-check {
+    visibility: hidden;
+    color: var(--app-primary);
+}
+
+.app-theme-option.active .app-theme-check {
+    visibility: visible;
+}
+
+body.app-appearance-open .app-topbar {
+    z-index: 2200;
+    overflow: visible;
+}
+
+body.app-appearance-open .app-topbar-actions,
+body.app-appearance-open .app-appearance,
+body.app-appearance-open .app-appearance-menu {
+    overflow: visible;
+    pointer-events: auto;
+}
+
+@keyframes appAppearanceIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+:root[data-theme="night"] body {
+    background:
+        radial-gradient(circle at 8% 0%, rgba(34, 197, 94, 0.1), transparent 30rem),
+        radial-gradient(circle at 100% 100%, rgba(20, 83, 45, 0.11), transparent 32rem),
+        var(--app-bg);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .app-topbar {
+    border-color: var(--app-border);
+    background: var(--bg-navbar);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) :where(
+    .card,
+    .modal-content,
+    .modal-header,
+    .modal-footer,
+    .dropdown-menu,
+    .list-group-item,
+    .accordion-item,
+    .offcanvas,
+    .app-table-tools,
+    .table-responsive,
+    .purchase-invoice-card,
+    .purchase-invoice-history-card,
+    .admin-invoice-card,
+    .purchase-form-section,
+    .purchase-invoice-sidebar,
+    .purchase-new-item,
+    .purchase-inventory-link,
+    .admin-invoice-filters,
+    .report-body
+) {
+    border-color: var(--app-border) !important;
+    background: var(--app-surface) !important;
+    color: var(--app-text) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) :where(
+    .card-header,
+    .warehouse-module-header,
+    .purchase-invoice-card-header,
+    .admin-invoice-header,
+    .purchase-invoice-section-heading,
+    .purchase-form-section-heading
+) {
+    border-color: var(--app-border) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--app-text) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) :where(
+    h1, h2, h3, h4, h5, h6,
+    label,
+    .form-label,
+    .text-dark,
+    .table td,
+    .dropdown-item,
+    .modal-title
+) {
+    color: var(--app-text) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) :where(
+    .text-muted,
+    small.text-muted,
+    .form-text,
+    .purchase-invoice-heading p,
+    .purchase-new-item-heading p,
+    .purchase-inventory-link-copy p
+) {
+    color: var(--app-muted) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) :where(
+    .form-control,
+    .form-select,
+    .input-group-text,
+    .page-link,
+    .purchase-invoice-card .form-control,
+    .purchase-invoice-card .form-select,
+    .purchase-items-table .form-control,
+    .purchase-items-table .form-select
+) {
+    border-color: var(--app-border) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--app-text) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .form-control::placeholder {
+    color: var(--app-muted);
+    opacity: 0.75;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) :where(
+    .form-control:disabled,
+    .form-select:disabled,
+    .form-control[readonly]
+) {
+    background-color: var(--app-surface-soft) !important;
+    color: var(--app-muted) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--app-text);
+    --bs-table-striped-bg: color-mix(in srgb, var(--app-surface-soft) 72%, transparent);
+    --bs-table-striped-color: var(--app-text);
+    --bs-table-hover-bg: rgba(74, 222, 128, 0.07);
+    --bs-table-hover-color: var(--app-text);
+    color: var(--app-text);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .table :where(th, td) {
+    border-color: var(--app-border) !important;
+    color: var(--app-text) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .table thead th {
+    background: var(--app-surface-soft) !important;
+    color: var(--app-muted) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .table tbody tr,
+:root:is([data-theme="dark"], [data-theme="night"]) .table tbody tr:nth-of-type(odd),
+:root:is([data-theme="dark"], [data-theme="night"]) .table tbody tr:nth-child(even) td {
+    background-color: transparent !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .table tbody tr:hover {
+    background-color: rgba(74, 222, 128, 0.07) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) :where(
+    .btn-outline-light,
+    .btn-outline-primary,
+    .btn-outline-danger,
+    .btn-outline-info,
+    .purchase-invoice-cancel
+) {
+    border-color: var(--app-border) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--app-text) !important;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .nav-tabs {
+    border-color: var(--app-border);
+    background: var(--app-bg);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .nav-tabs .nav-link.active {
+    background: var(--app-surface);
+    color: var(--app-text);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .btn-close {
+    filter: invert(1) grayscale(1) brightness(1.8);
+}
+
+body,
+.app-topbar,
+.app-sidebar,
+.card,
+.modal-content,
+.table-responsive,
+.form-control,
+.form-select,
+.input-group-text,
+.app-appearance-toggle,
+.app-appearance-menu {
+    transition:
+        background-color 0.24s ease,
+        border-color 0.24s ease,
+        color 0.24s ease,
+        box-shadow 0.24s ease;
+}
+
+@media (max-width: 991px) {
+    .app-appearance-label,
+    .app-appearance-current,
+    .app-appearance-chevron {
+        display: none;
+    }
+
+    .app-appearance-toggle {
+        width: 40px;
+        min-height: 40px;
+        justify-content: center;
+        padding: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body,
+    .app-topbar,
+    .app-sidebar,
+    .card,
+    .modal-content,
+    .table-responsive,
+    .form-control,
+    .form-select {
+        transition-duration: 0.01ms !important;
     }
 }
 
@@ -8285,15 +9215,36 @@ select optgroup,
 }
 
 .purchase-invoice-cancel {
-    color: #65746b;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px solid #d9e4dc;
+    border-radius: 13px;
+    background: #fff;
+    color: #526158;
     font-size: 13px;
-    font-weight: 750;
+    font-weight: 800;
     text-align: center;
     text-decoration: none;
+    box-shadow: 0 6px 16px rgba(20, 83, 45, 0.05);
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
 
 .purchase-invoice-cancel:hover {
+    border-color: rgba(20, 83, 45, 0.3);
+    background: #edf8f0;
     color: #14532d;
+    transform: translateY(-1px);
+}
+
+.purchase-invoice-cancel:focus-visible {
+    outline: 0;
+    border-color: #166534;
+    box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.16);
 }
 
 .purchase-order-summary {

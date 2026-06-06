@@ -1,0 +1,1903 @@
+/*
+ * Capa global de apariencia.
+ * Se carga despues de los estilos de cada modulo para mantener el tema activo
+ * tambien sobre contenido insertado dinamicamente.
+ */
+
+html[data-theme="dark"] body.app-shell-ready,
+html[data-theme="night"] body.app-shell-ready {
+    background-color: var(--bg-body) !important;
+    color: var(--text-main);
+}
+
+/* Botones de accion principales: misma identidad visual que Agricultor. */
+:is(body.admin-dashboard-page, body.warehouse-dashboard-page)
+    :is(
+        .admin-dashboard,
+        .warehouse-dashboard
+    )
+    :is(.btn-primary, .btn-success, .btn-info),
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm,
+body.warehouse-dashboard-page
+    :is(
+        .warehouse-receipt-button,
+        .purchase-invoice-submit
+    ),
+body.warehouse-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm,
+body.warehouse-report-page .btn-primary {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: #fff !important;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 48%),
+        linear-gradient(135deg, #16a34a 0%, #15803d 52%, #166534 100%) !important;
+    border: 1px solid rgba(134, 239, 172, 0.55) !important;
+    box-shadow:
+        0 10px 22px rgba(21, 128, 61, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    text-shadow: 0 1px 1px rgba(20, 83, 45, 0.35);
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        filter 180ms ease !important;
+}
+
+:is(body.admin-dashboard-page, body.warehouse-dashboard-page)
+    :is(
+        .admin-dashboard,
+        .warehouse-dashboard
+    )
+    :is(.btn-primary, .btn-success, .btn-info)::before,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm::before,
+body.warehouse-dashboard-page
+    :is(
+        .warehouse-receipt-button,
+        .purchase-invoice-submit
+    )::before,
+body.warehouse-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm::before,
+body.warehouse-report-page .btn-primary::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(
+        110deg,
+        transparent 18%,
+        rgba(255, 255, 255, 0.24) 48%,
+        transparent 78%
+    );
+    transform: translateX(-115%);
+    transition: transform 420ms ease;
+    pointer-events: none;
+}
+
+:is(body.admin-dashboard-page, body.warehouse-dashboard-page)
+    :is(
+        .admin-dashboard,
+        .warehouse-dashboard
+    )
+    :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus),
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus),
+body.warehouse-dashboard-page
+    :is(
+        .warehouse-receipt-button,
+        .purchase-invoice-submit
+    ):is(:hover, :focus),
+body.warehouse-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus),
+body.warehouse-report-page .btn-primary:is(:hover, :focus) {
+    color: #fff !important;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 48%),
+        linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%) !important;
+    border-color: rgba(187, 247, 208, 0.8) !important;
+    box-shadow:
+        0 14px 28px rgba(21, 128, 61, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    filter: saturate(1.08);
+    transform: translateY(-2px);
+}
+
+:is(body.admin-dashboard-page, body.warehouse-dashboard-page)
+    :is(
+        .admin-dashboard,
+        .warehouse-dashboard
+    )
+    :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus)::before,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus)::before,
+body.warehouse-dashboard-page
+    :is(
+        .warehouse-receipt-button,
+        .purchase-invoice-submit
+    ):is(:hover, :focus)::before,
+body.warehouse-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus)::before,
+body.warehouse-report-page .btn-primary:is(:hover, :focus)::before {
+    transform: translateX(115%);
+}
+
+:is(body.admin-dashboard-page, body.warehouse-dashboard-page)
+    :is(
+        .admin-dashboard,
+        .warehouse-dashboard
+    )
+    :is(.btn-primary, .btn-success, .btn-info):active,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:active,
+body.warehouse-dashboard-page
+    :is(
+        .warehouse-receipt-button,
+        .purchase-invoice-submit
+    ):active,
+body.warehouse-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:active,
+body.warehouse-report-page .btn-primary:active {
+    transform: translateY(0);
+    box-shadow:
+        0 6px 14px rgba(21, 128, 61, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+:is(body.admin-dashboard-page, body.warehouse-dashboard-page)
+    :is(
+        .admin-dashboard,
+        .warehouse-dashboard
+    )
+    :is(.btn-primary, .btn-success, .btn-info):focus-visible,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:focus-visible,
+body.warehouse-dashboard-page
+    :is(
+        .warehouse-receipt-button,
+        .purchase-invoice-submit
+    ):focus-visible,
+body.warehouse-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:focus-visible,
+body.warehouse-report-page .btn-primary:focus-visible {
+    outline: 3px solid rgba(74, 222, 128, 0.36) !important;
+    outline-offset: 3px;
+}
+
+:is(body.admin-dashboard-page, body.warehouse-dashboard-page)
+    :is(
+        .admin-dashboard,
+        .warehouse-dashboard
+    )
+    :is(.btn-primary, .btn-success, .btn-info):disabled,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:disabled,
+body.warehouse-dashboard-page
+    :is(
+        .warehouse-receipt-button,
+        .purchase-invoice-submit
+    ):disabled,
+body.warehouse-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:disabled,
+body.warehouse-report-page .btn-primary:disabled {
+    box-shadow: none !important;
+    filter: grayscale(0.25);
+    opacity: 0.62;
+    transform: none;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .card,
+    .modal-content,
+    .dropdown-menu,
+    .list-group-item,
+    .accordion-item,
+    .offcanvas,
+    .app-table-tools,
+    .table-responsive,
+    .admin-dashboard-content,
+    .warehouse-dashboard-content,
+    .farmer-dashboard-content,
+    .purchase-invoice-card,
+    .purchase-invoice-history-card,
+    .admin-invoice-card,
+    .purchase-form-section,
+    .purchase-invoice-sidebar,
+    .purchase-new-item,
+    .purchase-inventory-link,
+    .admin-invoice-filters,
+    .report-body
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .card,
+    .modal-content,
+    .dropdown-menu,
+    .list-group-item,
+    .accordion-item,
+    .offcanvas,
+    .app-table-tools,
+    .table-responsive,
+    .admin-dashboard-content,
+    .warehouse-dashboard-content,
+    .farmer-dashboard-content,
+    .purchase-invoice-card,
+    .purchase-invoice-history-card,
+    .admin-invoice-card,
+    .purchase-form-section,
+    .purchase-invoice-sidebar,
+    .purchase-new-item,
+    .purchase-inventory-link,
+    .admin-invoice-filters,
+    .report-body
+) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .card-header,
+    .modal-header,
+    .modal-footer,
+    .warehouse-module-header,
+    .purchase-invoice-card-header,
+    .admin-invoice-header,
+    .purchase-invoice-section-heading,
+    .purchase-form-section-heading
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .card-header,
+    .modal-header,
+    .modal-footer,
+    .warehouse-module-header,
+    .purchase-invoice-card-header,
+    .admin-invoice-header,
+    .purchase-invoice-section-heading,
+    .purchase-form-section-heading
+) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.form-control, .form-select, .input-group-text, .page-link),
+html[data-theme="night"] body.app-shell-ready :is(.form-control, .form-select, .input-group-text, .page-link) {
+    border-color: var(--border-color) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.form-control, .form-select):disabled,
+html[data-theme="dark"] body.app-shell-ready .form-control[readonly],
+html[data-theme="night"] body.app-shell-ready :is(.form-control, .form-select):disabled,
+html[data-theme="night"] body.app-shell-ready .form-control[readonly] {
+    background-color: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(h1, h2, h3, h4, h5, h6, label, .form-label, .text-dark, .modal-title),
+html[data-theme="night"] body.app-shell-ready :is(h1, h2, h3, h4, h5, h6, label, .form-label, .text-dark, .modal-title) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.text-muted, .form-text, small),
+html[data-theme="night"] body.app-shell-ready :is(.text-muted, .form-text, small) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .table,
+html[data-theme="night"] body.app-shell-ready .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-main);
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.025);
+    --bs-table-striped-color: var(--text-main);
+    --bs-table-hover-bg: rgba(74, 222, 128, 0.07);
+    --bs-table-hover-color: var(--text-main);
+    background: var(--table-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .table :is(th, td),
+html[data-theme="night"] body.app-shell-ready .table :is(th, td) {
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .table thead th,
+html[data-theme="night"] body.app-shell-ready .table thead th {
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .table tbody :is(tr, td),
+html[data-theme="night"] body.app-shell-ready .table tbody :is(tr, td) {
+    background-color: transparent !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .table tbody tr:hover,
+html[data-theme="night"] body.app-shell-ready .table tbody tr:hover {
+    background-color: rgba(74, 222, 128, 0.07) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .btn-outline-light,
+    .btn-outline-primary,
+    .btn-outline-danger,
+    .btn-outline-info,
+    .purchase-invoice-cancel
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .btn-outline-light,
+    .btn-outline-primary,
+    .btn-outline-danger,
+    .btn-outline-info,
+    .purchase-invoice-cancel
+) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="night"] body.app-shell-ready .app-sidebar {
+    border-right-color: #122018;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-sidebar-link.active,
+html[data-theme="night"] body.app-shell-ready .app-sidebar-link.active {
+    background: var(--app-sidebar-active);
+    color: var(--app-primary-strong);
+    box-shadow: 0 10px 28px rgba(34, 197, 94, 0.12);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-sidebar-link.active i,
+html[data-theme="night"] body.app-shell-ready .app-sidebar-link.active i {
+    color: var(--app-primary);
+}
+
+html[data-theme="dark"] body.app-shell-ready .alert-success,
+html[data-theme="night"] body.app-shell-ready .alert-success {
+    border-color: rgba(74, 222, 128, 0.22);
+    background: #10291c;
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .alert-danger,
+html[data-theme="night"] body.app-shell-ready .alert-danger {
+    border-color: rgba(248, 113, 113, 0.22);
+    background: #351419;
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] body.app-shell-ready .alert-warning,
+html[data-theme="night"] body.app-shell-ready .alert-warning {
+    border-color: rgba(251, 191, 36, 0.22);
+    background: #35250d;
+    color: #fde68a;
+}
+
+html[data-theme="dark"] body.app-shell-ready .alert-info,
+html[data-theme="night"] body.app-shell-ready .alert-info {
+    border-color: rgba(34, 211, 238, 0.22);
+    background: #102a35;
+    color: #a5f3fc;
+}
+
+html[data-theme="dark"] body.app-shell-ready .badge.bg-secondary,
+html[data-theme="night"] body.app-shell-ready .badge.bg-secondary {
+    background: #293548 !important;
+    color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .badge.bg-primary,
+html[data-theme="dark"] body.app-shell-ready .badge.bg-success,
+html[data-theme="night"] body.app-shell-ready .badge.bg-primary,
+html[data-theme="night"] body.app-shell-ready .badge.bg-success {
+    background: #123c24 !important;
+    color: #86efac !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .btn-close,
+html[data-theme="night"] body.app-shell-ready .btn-close {
+    filter: invert(1) grayscale(1) brightness(1.8);
+}
+
+/* Dashboard de administrador: tarjetas personalizadas que no usan .card. */
+html[data-theme="dark"] body.app-shell-ready .admin-metric-card,
+html[data-theme="dark"] body.app-shell-ready .admin-notification-panel,
+html[data-theme="night"] body.app-shell-ready .admin-metric-card,
+html[data-theme="night"] body.app-shell-ready .admin-notification-panel {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-metric-card::after,
+html[data-theme="night"] body.app-shell-ready .admin-metric-card::after {
+    background: color-mix(in srgb, var(--metric-accent) 13%, transparent) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-metric-tag,
+html[data-theme="dark"] body.app-shell-ready .admin-panel-count,
+html[data-theme="night"] body.app-shell-ready .admin-metric-tag,
+html[data-theme="night"] body.app-shell-ready .admin-panel-count {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-metric-icon,
+html[data-theme="dark"] body.app-shell-ready .admin-panel-icon,
+html[data-theme="night"] body.app-shell-ready .admin-metric-icon,
+html[data-theme="night"] body.app-shell-ready .admin-panel-icon {
+    background: color-mix(in srgb, var(--metric-accent, var(--accent-green)) 16%, var(--app-surface-soft)) !important;
+    color: var(--metric-accent, var(--accent-green)) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .admin-metric-value,
+    .admin-metric-card p,
+    .admin-panel-heading h2,
+    .admin-notification-item p,
+    .admin-empty-state strong
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .admin-metric-value,
+    .admin-metric-card p,
+    .admin-panel-heading h2,
+    .admin-notification-item p,
+    .admin-empty-state strong
+) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .admin-section-eyebrow,
+    .admin-live-status,
+    .admin-metric-detail,
+    .admin-notification-item time,
+    .admin-empty-state span
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .admin-section-eyebrow,
+    .admin-live-status,
+    .admin-metric-detail,
+    .admin-notification-item time,
+    .admin-empty-state span
+) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-metric-detail,
+html[data-theme="night"] body.app-shell-ready .admin-metric-detail {
+    border-top-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-notification-item,
+html[data-theme="dark"] body.app-shell-ready .admin-empty-state,
+html[data-theme="night"] body.app-shell-ready .admin-notification-item,
+html[data-theme="night"] body.app-shell-ready .admin-empty-state {
+    border: 1px solid var(--border-color);
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="night"] body.app-shell-ready .admin-metric-card,
+html[data-theme="night"] body.app-shell-ready .admin-notification-panel {
+    box-shadow:
+        0 0 0 1px rgba(74, 222, 128, 0.035),
+        0 18px 42px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Este panel conserva su tratamiento verde de estado en ambos temas. */
+html[data-theme="dark"] body.app-shell-ready .admin-attention-panel,
+html[data-theme="night"] body.app-shell-ready .admin-attention-panel {
+    border-color: rgba(74, 222, 128, 0.18) !important;
+    background: linear-gradient(145deg, #12351f, #081d11) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-attention-panel :is(h2, p, strong),
+html[data-theme="night"] body.app-shell-ready .admin-attention-panel :is(h2, p, strong) {
+    color: #ffffff !important;
+}
+
+/* Encabezado principal del dashboard administrativo. */
+html[data-theme="dark"] body.app-shell-ready .admin-page-heading {
+    border-color: #2b3547 !important;
+    background:
+        radial-gradient(circle at 82% 12%, rgba(74, 222, 128, 0.08), transparent 28%),
+        linear-gradient(120deg, #172033 0%, #111827 52%, #132036 100%) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+}
+
+html[data-theme="night"] body.app-shell-ready .admin-page-heading {
+    border-color: #1d3024 !important;
+    background:
+        radial-gradient(circle at 82% 12%, rgba(74, 222, 128, 0.1), transparent 28%),
+        linear-gradient(120deg, #0d1711 0%, #080d0a 55%, #07120b 100%) !important;
+    box-shadow:
+        0 0 0 1px rgba(74, 222, 128, 0.025),
+        0 22px 54px rgba(0, 0, 0, 0.55) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-page-heading::after,
+html[data-theme="night"] body.app-shell-ready .admin-page-heading::after {
+    border-color: rgba(74, 222, 128, 0.055) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-heading-copy :is(h1, p),
+html[data-theme="night"] body.app-shell-ready .admin-heading-copy :is(h1, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-heading-copy .farmer-kicker,
+html[data-theme="night"] body.app-shell-ready .admin-heading-copy .farmer-kicker {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-heading-actions .admin-status-chip,
+html[data-theme="night"] body.app-shell-ready .admin-heading-actions .admin-status-chip {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-heading-actions .admin-status-chip:not(.admin-status-chip--warning) i,
+html[data-theme="dark"] body.app-shell-ready .admin-heading-actions .admin-status-chip:not(.admin-status-chip--warning) strong,
+html[data-theme="night"] body.app-shell-ready .admin-heading-actions .admin-status-chip:not(.admin-status-chip--warning) i,
+html[data-theme="night"] body.app-shell-ready .admin-heading-actions .admin-status-chip:not(.admin-status-chip--warning) strong {
+    color: var(--accent-green) !important;
+}
+
+/* Tarjetas del resumen de inventario. */
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-card,
+html[data-theme="night"] body.app-shell-ready .admin-inventory-card {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="night"] body.app-shell-ready .admin-inventory-card {
+    box-shadow:
+        0 0 0 1px rgba(74, 222, 128, 0.03),
+        0 14px 34px rgba(0, 0, 0, 0.46) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-icon,
+html[data-theme="night"] body.app-shell-ready .admin-inventory-icon {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-card--danger .admin-inventory-icon,
+html[data-theme="night"] body.app-shell-ready .admin-inventory-card--danger .admin-inventory-icon {
+    background: rgba(239, 68, 68, 0.14) !important;
+    color: #f87171 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-card--warning .admin-inventory-icon,
+html[data-theme="night"] body.app-shell-ready .admin-inventory-card--warning .admin-inventory-icon {
+    background: rgba(245, 158, 11, 0.14) !important;
+    color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-card div strong,
+html[data-theme="night"] body.app-shell-ready .admin-inventory-card div strong {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-card div span,
+html[data-theme="night"] body.app-shell-ready .admin-inventory-card div span {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-state--ok,
+html[data-theme="night"] body.app-shell-ready .admin-inventory-state--ok {
+    color: #4ade80 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-inventory-state:not(.admin-inventory-state--ok),
+html[data-theme="night"] body.app-shell-ready .admin-inventory-state:not(.admin-inventory-state--ok) {
+    color: #fbbf24 !important;
+}
+
+/*
+ * Contraste general de las secciones administrativas cargadas por AJAX.
+ * Incluye tarjetas Bootstrap, resúmenes, textos heredados y utilidades antiguas.
+ */
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard .card,
+html[data-theme="night"] body.app-shell-ready .admin-dashboard .card {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard .card-header,
+html[data-theme="night"] body.app-shell-ready .admin-dashboard .card-header {
+    border-bottom-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard :is(
+    .card-header h1,
+    .card-header h2,
+    .card-header h3,
+    .card-header h4,
+    .card-header h5,
+    .card-header h6,
+    .card-body h1,
+    .card-body h2,
+    .card-body h3,
+    .card-body h4,
+    .card-body h5,
+    .card-body h6,
+    .card-body p,
+    .card-body strong,
+    .card-body td,
+    .card-body .h1,
+    .card-body .h2,
+    .card-body .h3,
+    .card-body .h4,
+    .card-body .h5,
+    .card-body .h6,
+    .text-gray-800,
+    .text-gray-900
+),
+html[data-theme="night"] body.app-shell-ready .admin-dashboard :is(
+    .card-header h1,
+    .card-header h2,
+    .card-header h3,
+    .card-header h4,
+    .card-header h5,
+    .card-header h6,
+    .card-body h1,
+    .card-body h2,
+    .card-body h3,
+    .card-body h4,
+    .card-body h5,
+    .card-body h6,
+    .card-body p,
+    .card-body strong,
+    .card-body td,
+    .card-body .h1,
+    .card-body .h2,
+    .card-body .h3,
+    .card-body .h4,
+    .card-body .h5,
+    .card-body .h6,
+    .text-gray-800,
+    .text-gray-900
+) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard :is(
+    .card-body small,
+    .card-body .small,
+    .card-body .text-muted,
+    .text-gray-300,
+    .text-gray-400,
+    .text-gray-500,
+    .text-gray-600,
+    .text-gray-700
+),
+html[data-theme="night"] body.app-shell-ready .admin-dashboard :is(
+    .card-body small,
+    .card-body .small,
+    .card-body .text-muted,
+    .text-gray-300,
+    .text-gray-400,
+    .text-gray-500,
+    .text-gray-600,
+    .text-gray-700
+) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard .card.text-white :is(h3, h4, p),
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard .stats-card :is(h3, h4, p),
+html[data-theme="night"] body.app-shell-ready .admin-dashboard .card.text-white :is(h3, h4, p),
+html[data-theme="night"] body.app-shell-ready .admin-dashboard .stats-card :is(h3, h4, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard .text-primary,
+html[data-theme="night"] body.app-shell-ready .admin-dashboard .text-primary {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard [id$="-content"] > .text-center,
+html[data-theme="dark"] body.app-shell-ready .admin-dashboard #historialLoteContent .text-center,
+html[data-theme="night"] body.app-shell-ready .admin-dashboard [id$="-content"] > .text-center,
+html[data-theme="night"] body.app-shell-ready .admin-dashboard #historialLoteContent .text-center {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Selectores, opciones y controles nativos. */
+html[data-theme="dark"] body.app-shell-ready :is(select, .form-select, select.form-control),
+html[data-theme="night"] body.app-shell-ready :is(select, .form-select, select.form-control) {
+    color-scheme: dark;
+    border-color: var(--border-color) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(select, .form-select, select.form-control) option,
+html[data-theme="dark"] body.app-shell-ready :is(select, .form-select, select.form-control) optgroup,
+html[data-theme="night"] body.app-shell-ready :is(select, .form-select, select.form-control) option,
+html[data-theme="night"] body.app-shell-ready :is(select, .form-select, select.form-control) optgroup {
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(select, .form-select, select.form-control) option:checked,
+html[data-theme="night"] body.app-shell-ready :is(select, .form-select, select.form-control) option:checked {
+    background: var(--app-primary) linear-gradient(0deg, var(--app-primary) 0%, var(--app-primary) 100%) !important;
+    color: #06140b !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.form-control, .form-select, select.form-control):focus,
+html[data-theme="night"] body.app-shell-ready :is(.form-control, .form-select, select.form-control):focus {
+    border-color: var(--accent-green) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 0 0 4px var(--app-ring) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.form-control, .form-select, select.form-control):disabled,
+html[data-theme="night"] body.app-shell-ready :is(.form-control, .form-select, select.form-control):disabled {
+    border-color: var(--border-color) !important;
+    background-color: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+    opacity: 1;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.dropdown-item, .dropdown-header),
+html[data-theme="night"] body.app-shell-ready :is(.dropdown-item, .dropdown-header) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .dropdown-item:hover,
+html[data-theme="dark"] body.app-shell-ready .dropdown-item:focus,
+html[data-theme="dark"] body.app-shell-ready .dropdown-item.active,
+html[data-theme="night"] body.app-shell-ready .dropdown-item:hover,
+html[data-theme="night"] body.app-shell-ready .dropdown-item:focus,
+html[data-theme="night"] body.app-shell-ready .dropdown-item.active {
+    background: var(--app-surface-soft) !important;
+    color: var(--accent-green) !important;
+}
+
+/* Panel del bodeguero: fondo, encabezado y métricas personalizadas. */
+html[data-theme="dark"] body.warehouse-dashboard-page,
+html[data-theme="night"] body.warehouse-dashboard-page {
+    background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.08), transparent 34rem),
+        var(--bg-body) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-page-heading {
+    border-color: #2b3547 !important;
+    background:
+        radial-gradient(circle at 76% 12%, rgba(74, 222, 128, 0.08), transparent 27%),
+        linear-gradient(120deg, #172033 0%, #111827 52%, #132036 100%) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+}
+
+html[data-theme="night"] body.app-shell-ready .warehouse-page-heading {
+    border-color: #1d3024 !important;
+    background:
+        radial-gradient(circle at 76% 12%, rgba(74, 222, 128, 0.1), transparent 27%),
+        linear-gradient(120deg, #0d1711 0%, #080d0a 55%, #07120b 100%) !important;
+    box-shadow: 0 22px 54px rgba(0, 0, 0, 0.55) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-page-heading::after,
+html[data-theme="night"] body.app-shell-ready .warehouse-page-heading::after {
+    border-color: rgba(74, 222, 128, 0.055) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-heading-copy :is(h1, p),
+html[data-theme="night"] body.app-shell-ready .warehouse-heading-copy :is(h1, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-heading-copy .farmer-kicker,
+html[data-theme="night"] body.app-shell-ready .warehouse-heading-copy .farmer-kicker {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-hero-status,
+html[data-theme="dark"] body.app-shell-ready .warehouse-heading-actions span,
+html[data-theme="night"] body.app-shell-ready .warehouse-hero-status,
+html[data-theme="night"] body.app-shell-ready .warehouse-heading-actions span {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-hero-status-icon,
+html[data-theme="night"] body.app-shell-ready .warehouse-hero-status-icon {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-hero-status :is(small, strong),
+html[data-theme="night"] body.app-shell-ready .warehouse-hero-status :is(small, strong) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-section-heading :is(h2, span),
+html[data-theme="night"] body.app-shell-ready .warehouse-section-heading :is(h2, span) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-section-heading > small,
+html[data-theme="night"] body.app-shell-ready .warehouse-section-heading > small {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-metric-card,
+html[data-theme="night"] body.app-shell-ready .warehouse-metric-card {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-metric-card::after,
+html[data-theme="night"] body.app-shell-ready .warehouse-metric-card::after {
+    background: color-mix(in srgb, var(--warehouse-accent) 13%, transparent) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-metric-icon,
+html[data-theme="night"] body.app-shell-ready .warehouse-metric-icon {
+    background: color-mix(in srgb, var(--warehouse-accent) 16%, var(--app-surface-soft)) !important;
+    color: var(--warehouse-accent) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-metric-tag,
+html[data-theme="night"] body.app-shell-ready .warehouse-metric-tag {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-metric-card > :is(strong, p),
+html[data-theme="night"] body.app-shell-ready .warehouse-metric-card > :is(strong, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-metric-detail,
+html[data-theme="night"] body.app-shell-ready .warehouse-metric-detail {
+    border-top-color: var(--border-color) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Cards, cabeceras y tablas operativas de bodega. */
+html[data-theme="dark"] body.app-shell-ready .warehouse-dashboard .card,
+html[data-theme="night"] body.app-shell-ready .warehouse-dashboard .card {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-dashboard .warehouse-module-header,
+html[data-theme="dark"] body.app-shell-ready .warehouse-dashboard .card-header,
+html[data-theme="night"] body.app-shell-ready .warehouse-dashboard .warehouse-module-header,
+html[data-theme="night"] body.app-shell-ready .warehouse-dashboard .card-header {
+    border-bottom-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-dashboard :is(
+    .card-header h4,
+    .card-header h5,
+    .card-header h6,
+    .card-body h1,
+    .card-body h2,
+    .card-body h3,
+    .card-body h4,
+    .card-body h5,
+    .card-body h6,
+    .card-body p,
+    .card-body strong,
+    .card.text-white h3,
+    .card.text-white h4,
+    .card.text-white p
+),
+html[data-theme="night"] body.app-shell-ready .warehouse-dashboard :is(
+    .card-header h4,
+    .card-header h5,
+    .card-header h6,
+    .card-body h1,
+    .card-body h2,
+    .card-body h3,
+    .card-body h4,
+    .card-body h5,
+    .card-body h6,
+    .card-body p,
+    .card-body strong,
+    .card.text-white h3,
+    .card.text-white h4,
+    .card.text-white p
+) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-dashboard :is(
+    .warehouse-module-kicker,
+    .card-body small,
+    .card-body .text-muted
+),
+html[data-theme="night"] body.app-shell-ready .warehouse-dashboard :is(
+    .warehouse-module-kicker,
+    .card-body small,
+    .card-body .text-muted
+) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-count,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-count {
+    border: 1px solid var(--border-color);
+    background: var(--bg-card) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-icon,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-icon {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-icon--orders,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-icon--orders {
+    background: rgba(96, 165, 250, 0.14) !important;
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-icon--approved,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-icon--approved {
+    background: rgba(251, 191, 36, 0.14) !important;
+    color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-icon--history,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-icon--history {
+    background: rgba(167, 139, 250, 0.14) !important;
+    color: #a78bfa !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-print-button,
+html[data-theme="night"] body.app-shell-ready .warehouse-print-button {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-card .table-responsive,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-card .table-responsive {
+    border-color: var(--border-color) !important;
+    background: var(--table-bg) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-card .table thead th,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-card .table thead th {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-card .table tbody td,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-card .table tbody td {
+    border-color: var(--border-color) !important;
+    background: transparent !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-module-card .table tbody tr:hover td,
+html[data-theme="night"] body.app-shell-ready .warehouse-module-card .table tbody tr:hover td {
+    background: rgba(74, 222, 128, 0.07) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-dashboard .card-body > p.mb-3,
+html[data-theme="night"] body.app-shell-ready .warehouse-dashboard .card-body > p.mb-3 {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Modal de confirmacion de bodega. */
+html[data-theme="dark"] body.app-shell-ready .warehouse-confirm-modal .modal-content,
+html[data-theme="night"] body.app-shell-ready .warehouse-confirm-modal .modal-content {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-confirm-modal :is(.modal-header, .modal-footer),
+html[data-theme="night"] body.app-shell-ready .warehouse-confirm-modal :is(.modal-header, .modal-footer) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-confirm-modal :is(.modal-title, .modal-body > p),
+html[data-theme="night"] body.app-shell-ready .warehouse-confirm-modal :is(.modal-title, .modal-body > p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-modal-summary > div,
+html[data-theme="night"] body.app-shell-ready .warehouse-modal-summary > div {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-modal-summary span,
+html[data-theme="night"] body.app-shell-ready .warehouse-modal-summary span {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-modal-summary strong,
+html[data-theme="night"] body.app-shell-ready .warehouse-modal-summary strong {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .warehouse-modal-back,
+html[data-theme="night"] body.app-shell-ready .warehouse-modal-back {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+/* Registro e historial de facturas de compra. */
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-heading,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-heading {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .purchase-invoice-card,
+    .purchase-invoice-history-card,
+    .purchase-form-section,
+    .purchase-invoice-sidebar,
+    .purchase-order-summary,
+    .purchase-inventory-link,
+    .purchase-new-item,
+    .purchase-receipt-grid,
+    .purchase-items-wrap,
+    .purchase-history-wrap,
+    .purchase-invoice-submit-panel,
+    .purchase-invoice-total-card
+),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .purchase-invoice-card,
+    .purchase-invoice-history-card,
+    .purchase-form-section,
+    .purchase-invoice-sidebar,
+    .purchase-order-summary,
+    .purchase-inventory-link,
+    .purchase-new-item,
+    .purchase-receipt-grid,
+    .purchase-items-wrap,
+    .purchase-history-wrap,
+    .purchase-invoice-submit-panel,
+    .purchase-invoice-total-card
+) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .purchase-invoice-card-header,
+    .purchase-invoice-section-heading,
+    .purchase-form-section-heading,
+    .purchase-invoice-sidebar-title,
+    .purchase-new-item-heading
+),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .purchase-invoice-card-header,
+    .purchase-invoice-section-heading,
+    .purchase-form-section-heading,
+    .purchase-invoice-sidebar-title,
+    .purchase-new-item-heading
+) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    h1, h2, h3, h4, h5, h6,
+    strong,
+    .purchase-item-subtotal,
+    .purchase-invoice-total-card > strong,
+    .purchase-invoice-submit-panel > strong
+),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    h1, h2, h3, h4, h5, h6,
+    strong,
+    .purchase-item-subtotal,
+    .purchase-invoice-total-card > strong,
+    .purchase-invoice-submit-panel > strong
+) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    p,
+    small,
+    .purchase-invoice-step,
+    .purchase-invoice-checklist,
+    .purchase-invoice-total-card > span,
+    .purchase-invoice-total-card > small,
+    .purchase-invoice-submit-panel > span
+),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    p,
+    small,
+    .purchase-invoice-step,
+    .purchase-invoice-checklist,
+    .purchase-invoice-total-card > span,
+    .purchase-invoice-total-card > small,
+    .purchase-invoice-submit-panel > span
+) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .form-control,
+    .form-select,
+    .input-group-text
+),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .form-control,
+    .form-select,
+    .input-group-text
+) {
+    border-color: var(--border-color) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard .purchase-items-table :is(th, td),
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard .purchase-history-table :is(th, td),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard .purchase-items-table :is(th, td),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard .purchase-history-table :is(th, td) {
+    border-color: var(--border-color) !important;
+    background: transparent !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .purchase-items-table,
+    .purchase-history-table
+) thead th,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard :is(
+    .purchase-items-table,
+    .purchase-history-table
+) thead th {
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-dashboard .purchase-items-table tbody tr:nth-child(even) td,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-dashboard .purchase-items-table tbody tr:nth-child(even) td {
+    background: color-mix(in srgb, var(--app-surface-soft) 55%, transparent) !important;
+}
+
+/* Fondo real del contenido de "Datos de la factura". */
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-card > .card-body,
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-history-card > .card-body,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-card > .card-body,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-history-card > .card-body {
+    background: var(--bg-body) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-workspace,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-workspace {
+    background: transparent !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-checklist,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-checklist {
+    border: 1px solid var(--border-color);
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-checklist span,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-checklist span {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-checklist i,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-checklist i {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-total-card,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-total-card {
+    border-color: rgba(74, 222, 128, 0.18) !important;
+    background: linear-gradient(145deg, #123c24, #0b2917) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-total-card > :is(span, strong, small),
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-total-card > :is(span, strong, small) {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-sidebar-title,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-sidebar-title {
+    border-bottom-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-sidebar-title > span,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-sidebar-title > span {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-cancel,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-cancel {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-cancel:hover,
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-cancel:focus-visible,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-cancel:hover,
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-cancel:focus-visible {
+    border-color: var(--accent-green) !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .purchase-invoice-heading-icon {
+    border-color: rgba(74, 222, 128, 0.24) !important;
+    background:
+        linear-gradient(145deg, rgba(74, 222, 128, 0.16), rgba(34, 197, 94, 0.06)),
+        var(--app-surface-soft) !important;
+    color: #4ade80 !important;
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+html[data-theme="night"] body.app-shell-ready .purchase-invoice-heading-icon {
+    border-color: rgba(74, 222, 128, 0.28) !important;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(74, 222, 128, 0.18), transparent 48%),
+        #07120b !important;
+    color: #86efac !important;
+    box-shadow:
+        0 0 0 1px rgba(74, 222, 128, 0.035),
+        0 14px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Rol Agricultor: dashboard, formularios, solicitudes y calculadora. */
+html[data-theme="dark"] body.farmer-dashboard-page,
+html[data-theme="night"] body.farmer-dashboard-page {
+    --farmer-green: var(--accent-green);
+    --farmer-green-soft: #4ade80;
+    --farmer-border: var(--border-color);
+    background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.08), transparent 34rem),
+        var(--bg-body) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.farmer-dashboard-page .app-topbar,
+html[data-theme="night"] body.farmer-dashboard-page .app-topbar {
+    border-bottom-color: var(--border-color) !important;
+    background: var(--bg-navbar) !important;
+    backdrop-filter: blur(18px);
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-dashboard-hero,
+html[data-theme="night"] body.app-shell-ready .farmer-dashboard-hero {
+    border-color: var(--border-color) !important;
+    background:
+        radial-gradient(circle at 76% 12%, rgba(74, 222, 128, 0.09), transparent 27%),
+        linear-gradient(120deg, var(--app-surface-soft), var(--bg-card)) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-dashboard-hero::after,
+html[data-theme="night"] body.app-shell-ready .farmer-dashboard-hero::after {
+    border-color: rgba(74, 222, 128, 0.055) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-hero-copy :is(h1, p),
+html[data-theme="night"] body.app-shell-ready .farmer-hero-copy :is(h1, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-kicker,
+html[data-theme="night"] body.app-shell-ready .farmer-kicker {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-hero-status,
+html[data-theme="night"] body.app-shell-ready .farmer-hero-status {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-hero-status-icon,
+html[data-theme="night"] body.app-shell-ready .farmer-hero-status-icon {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-hero-status :is(small, strong),
+html[data-theme="night"] body.app-shell-ready .farmer-hero-status :is(small, strong) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-card,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-card {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-card::after,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-card::after {
+    opacity: 0.85;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-status,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-status {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-card :is(strong, p),
+html[data-theme="night"] body.app-shell-ready .farmer-stat-card :is(strong, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-detail,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-detail {
+    border-top-color: var(--border-color) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-card--total .farmer-stat-icon,
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-card--siembra .farmer-stat-icon,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-card--total .farmer-stat-icon,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-card--siembra .farmer-stat-icon {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: #4ade80 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-card--riego .farmer-stat-icon,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-card--riego .farmer-stat-icon {
+    background: rgba(96, 165, 250, 0.14) !important;
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stat-card--cosecha .farmer-stat-icon,
+html[data-theme="night"] body.app-shell-ready .farmer-stat-card--cosecha .farmer-stat-icon {
+    background: rgba(251, 191, 36, 0.14) !important;
+    color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.farmer-main-panel, .farmer-field-card),
+html[data-theme="night"] body.app-shell-ready :is(.farmer-main-panel, .farmer-field-card) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-tabs,
+html[data-theme="night"] body.app-shell-ready .farmer-tabs {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-tabs .nav-link,
+html[data-theme="night"] body.app-shell-ready .farmer-tabs .nav-link {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-tabs .nav-link:is(:hover, .active),
+html[data-theme="night"] body.app-shell-ready .farmer-tabs .nav-link:is(:hover, .active) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--accent-green) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-tabs .nav-link:is(:hover, .active) i,
+html[data-theme="night"] body.app-shell-ready .farmer-tabs .nav-link:is(:hover, .active) i {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-tab-content,
+html[data-theme="night"] body.app-shell-ready .farmer-tab-content {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-form :is(label > span, legend),
+html[data-theme="dark"] body.app-shell-ready .farmer-stage-group > span,
+html[data-theme="night"] body.app-shell-ready .farmer-form :is(label > span, legend),
+html[data-theme="night"] body.app-shell-ready .farmer-stage-group > span {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.record-hero, .pest-hero, .calculator-hero, .supply-hero),
+html[data-theme="night"] body.app-shell-ready :is(.record-hero, .pest-hero, .calculator-hero, .supply-hero) {
+    border-color: var(--border-color) !important;
+    background:
+        linear-gradient(135deg, rgba(74, 222, 128, 0.08), transparent),
+        var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.record-hero, .pest-hero) :is(h2, p),
+html[data-theme="night"] body.app-shell-ready :is(.record-hero, .pest-hero) :is(h2, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.record-hero-icon, .pest-hero-icon),
+html[data-theme="night"] body.app-shell-ready :is(.record-hero-icon, .pest-hero-icon) {
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: var(--accent-green) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.record-field-card, .record-stage-group),
+html[data-theme="night"] body.app-shell-ready :is(.record-field-card, .record-stage-group) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .record-field-card > span,
+html[data-theme="dark"] body.app-shell-ready .record-field-card legend,
+html[data-theme="dark"] body.app-shell-ready .record-stage-group > span,
+html[data-theme="night"] body.app-shell-ready .record-field-card > span,
+html[data-theme="night"] body.app-shell-ready .record-field-card legend,
+html[data-theme="night"] body.app-shell-ready .record-stage-group > span {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .record-stage-group .form-check,
+html[data-theme="night"] body.app-shell-ready .record-stage-group .form-check {
+    border-color: var(--border-color) !important;
+    background: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .record-stage-group .form-check:hover,
+html[data-theme="night"] body.app-shell-ready .record-stage-group .form-check:hover {
+    border-color: var(--accent-green) !important;
+    background: rgba(74, 222, 128, 0.08) !important;
+}
+
+/* Selector agricola personalizado. */
+html[data-theme="dark"] body.app-shell-ready .ag-select-button,
+html[data-theme="night"] body.app-shell-ready .ag-select-button {
+    border-color: var(--border-color) !important;
+    background: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .ag-select-button:hover,
+html[data-theme="dark"] body.app-shell-ready .ag-select.is-open .ag-select-button,
+html[data-theme="night"] body.app-shell-ready .ag-select-button:hover,
+html[data-theme="night"] body.app-shell-ready .ag-select.is-open .ag-select-button {
+    border-color: var(--accent-green) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .ag-select-button i,
+html[data-theme="night"] body.app-shell-ready .ag-select-button i {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .ag-select-menu,
+html[data-theme="night"] body.app-shell-ready .ag-select-menu {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    box-shadow: var(--app-shadow-lg) !important;
+    scrollbar-color: var(--accent-green) var(--app-surface-soft);
+}
+
+html[data-theme="dark"] body.app-shell-ready .ag-select-option,
+html[data-theme="night"] body.app-shell-ready .ag-select-option {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .ag-select-option:is(:hover, :focus-visible, .is-selected),
+html[data-theme="night"] body.app-shell-ready .ag-select-option:is(:hover, :focus-visible, .is-selected) {
+    background: var(--app-surface-soft) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .ag-select-empty,
+html[data-theme="night"] body.app-shell-ready .ag-select-empty {
+    color: var(--text-muted) !important;
+}
+
+/* Solicitud de insumos y filas dinamicas. */
+html[data-theme="dark"] body.app-shell-ready :is(
+    .supply-request-form,
+    .supply-products-panel,
+    .supply-side-summary,
+    .farmer-product-row
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .supply-request-form,
+    .supply-products-panel,
+    .supply-side-summary,
+    .farmer-product-row
+) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .supply-products-panel,
+html[data-theme="night"] body.app-shell-ready .supply-products-panel {
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .supply-side-summary article,
+html[data-theme="night"] body.app-shell-ready .supply-side-summary article {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .supply-side-summary article span,
+html[data-theme="night"] body.app-shell-ready .supply-side-summary article span {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .supply-side-summary article strong,
+html[data-theme="night"] body.app-shell-ready .supply-side-summary article strong {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.supply-side-summary a, .calculator-side-panel a),
+html[data-theme="night"] body.app-shell-ready :is(.supply-side-summary a, .calculator-side-panel a) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.supply-side-summary a, .calculator-side-panel a):hover,
+html[data-theme="night"] body.app-shell-ready :is(.supply-side-summary a, .calculator-side-panel a):hover {
+    border-color: var(--accent-green) !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: var(--accent-green) !important;
+}
+
+/* Monitoreo de plagas. */
+html[data-theme="dark"] body.app-shell-ready .pest-section-heading :is(h2, p),
+html[data-theme="night"] body.app-shell-ready .pest-section-heading :is(h2, p) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-section-heading > span,
+html[data-theme="night"] body.app-shell-ready .pest-section-heading > span {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-card,
+html[data-theme="night"] body.app-shell-ready .pest-card {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-card:hover,
+html[data-theme="night"] body.app-shell-ready .pest-card:hover {
+    border-color: var(--accent-green) !important;
+    background: rgba(74, 222, 128, 0.08) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-card:has(input:checked),
+html[data-theme="night"] body.app-shell-ready .pest-card:has(input:checked) {
+    border-color: var(--accent-green) !important;
+    background: rgba(74, 222, 128, 0.13) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-icon,
+html[data-theme="night"] body.app-shell-ready .pest-icon {
+    border: 1px solid var(--border-color);
+    background: var(--bg-card) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-name,
+html[data-theme="night"] body.app-shell-ready .pest-name {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-severity--bajo,
+html[data-theme="night"] body.app-shell-ready .pest-severity--bajo {
+    border: 1px solid rgba(74, 222, 128, 0.22);
+    background: rgba(34, 197, 94, 0.16) !important;
+    color: #86efac !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-severity--medio,
+html[data-theme="night"] body.app-shell-ready .pest-severity--medio {
+    border: 1px solid rgba(251, 191, 36, 0.24);
+    background: rgba(245, 158, 11, 0.16) !important;
+    color: #fde68a !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-severity--alto,
+html[data-theme="night"] body.app-shell-ready .pest-severity--alto {
+    border: 1px solid rgba(248, 113, 113, 0.24);
+    background: rgba(239, 68, 68, 0.16) !important;
+    color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-severity--bajo::before,
+html[data-theme="night"] body.app-shell-ready .pest-severity--bajo::before {
+    background: #4ade80 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-severity--medio::before,
+html[data-theme="night"] body.app-shell-ready .pest-severity--medio::before {
+    background: #fbbf24 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-severity--alto::before,
+html[data-theme="night"] body.app-shell-ready .pest-severity--alto::before {
+    background: #f87171 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-summary-card,
+html[data-theme="night"] body.app-shell-ready .pest-summary-card {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-summary-heading,
+html[data-theme="night"] body.app-shell-ready .pest-summary-heading {
+    border-bottom-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-summary-heading :is(span, h2),
+html[data-theme="night"] body.app-shell-ready .pest-summary-heading :is(span, h2) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-summary-heading > span,
+html[data-theme="night"] body.app-shell-ready .pest-summary-heading > span {
+    background: rgba(74, 222, 128, 0.1) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-summary-grid div,
+html[data-theme="night"] body.app-shell-ready .pest-summary-grid div {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-summary-grid span,
+html[data-theme="dark"] body.app-shell-ready .pest-summary-date,
+html[data-theme="night"] body.app-shell-ready .pest-summary-grid span,
+html[data-theme="night"] body.app-shell-ready .pest-summary-date {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .pest-summary-grid strong,
+html[data-theme="dark"] body.app-shell-ready .pest-summary-date strong,
+html[data-theme="night"] body.app-shell-ready .pest-summary-grid strong,
+html[data-theme="night"] body.app-shell-ready .pest-summary-date strong {
+    color: var(--text-main) !important;
+}
+
+/* Calculadora de insumos. */
+html[data-theme="dark"] body.app-shell-ready :is(
+    .calculator-main-card,
+    .calculator-results-panel,
+    .calculator-side-panel,
+    .calculator-stage-card,
+    .farmer-calculator-head,
+    .farmer-results-panel
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .calculator-main-card,
+    .calculator-results-panel,
+    .calculator-side-panel,
+    .calculator-stage-card,
+    .farmer-calculator-head,
+    .farmer-results-panel
+) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .calculator-empty-state,
+html[data-theme="night"] body.app-shell-ready .calculator-empty-state {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .calculator-empty-state span,
+html[data-theme="night"] body.app-shell-ready .calculator-empty-state span {
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .calculator-empty-state h2,
+    .calculator-results-header h2,
+    .calculator-stage-heading h3,
+    .calculator-insumo-row strong,
+    .farmer-calculator-head h2
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .calculator-empty-state h2,
+    .calculator-results-header h2,
+    .calculator-stage-heading h3,
+    .calculator-insumo-row strong,
+    .farmer-calculator-head h2
+) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .calculator-results-header > span,
+    .calculator-result-metrics article,
+    .calculator-side-panel article,
+    .calculator-insumo-row
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .calculator-results-header > span,
+    .calculator-result-metrics article,
+    .calculator-side-panel article,
+    .calculator-insumo-row
+) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.calculator-result-metrics span, .calculator-side-panel span),
+html[data-theme="night"] body.app-shell-ready :is(.calculator-result-metrics span, .calculator-side-panel span) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.calculator-result-metrics strong, .calculator-side-panel strong),
+html[data-theme="night"] body.app-shell-ready :is(.calculator-result-metrics strong, .calculator-side-panel strong) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .calculator-stage-heading,
+html[data-theme="night"] body.app-shell-ready .calculator-stage-heading {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .calculator-stage-heading span,
+html[data-theme="night"] body.app-shell-ready .calculator-stage-heading span {
+    background: var(--bg-card) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .calculator-insumo-row span,
+html[data-theme="night"] body.app-shell-ready .calculator-insumo-row span {
+    color: var(--accent-green) !important;
+}
+
+/* Historial, tabla, mapa y panel lateral. */
+html[data-theme="dark"] body.app-shell-ready .farmer-lotes-card,
+html[data-theme="night"] body.app-shell-ready .farmer-lotes-card {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-section-heading h2,
+html[data-theme="dark"] body.app-shell-ready .farmer-field-footer h2,
+html[data-theme="night"] body.app-shell-ready .farmer-section-heading h2,
+html[data-theme="night"] body.app-shell-ready .farmer-field-footer h2 {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-section-heading > span,
+html[data-theme="night"] body.app-shell-ready .farmer-section-heading > span {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-lotes-card .table-responsive,
+html[data-theme="night"] body.app-shell-ready .farmer-lotes-card .table-responsive {
+    border-color: var(--border-color) !important;
+    background: var(--table-bg) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-field-footer,
+html[data-theme="night"] body.app-shell-ready .farmer-field-footer {
+    background: var(--bg-card) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stage-legend,
+html[data-theme="night"] body.app-shell-ready .farmer-stage-legend {
+    border-top-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-stage-legend span,
+html[data-theme="night"] body.app-shell-ready .farmer-stage-legend span {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-map-frame,
+html[data-theme="night"] body.app-shell-ready .farmer-map-frame {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-weather-card,
+html[data-theme="night"] body.app-shell-ready .farmer-weather-card {
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    background: linear-gradient(145deg, #123c24, #0b2917) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-weather-card :is(span, strong, p, i),
+html[data-theme="night"] body.app-shell-ready .farmer-weather-card :is(span, strong, p, i) {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.farmer-add-button, .farmer-map-tab),
+html[data-theme="night"] body.app-shell-ready :is(.farmer-add-button, .farmer-map-tab) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--accent-green) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .farmer-add-button i,
+html[data-theme="night"] body.app-shell-ready .farmer-add-button i {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
