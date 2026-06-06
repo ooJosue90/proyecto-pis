@@ -13,6 +13,13 @@ $total_insumos = (int) db_value($conn, "SELECT COUNT(*) FROM insumos_agricolas",
 $total_facturas_compra = warehouse_table_exists($conn, 'facturas_compra')
     ? (int) db_value($conn, "SELECT COUNT(*) FROM facturas_compra", '', [], 0)
     : 0;
+$total_pedidos_pendientes = (int) db_value(
+    $conn,
+    "SELECT COUNT(*) FROM pedidos WHERE estado = 'Pendiente'",
+    '',
+    [],
+    0
+);
 $total_solicitudes_aprobadas = (int) db_value(
     $conn,
     "SELECT COUNT(*) FROM productos_solicitud WHERE estado = 'Aprobado'",
@@ -26,6 +33,17 @@ $insumos = db_fetch_all($conn, "
     SELECT ia.*
     FROM insumos_agricolas ia
     ORDER BY ia.nombre ASC
+");
+$pedidos_pendientes = db_fetch_all($conn, "
+    SELECT p.id_pedidos, p.id_insumo, p.nombre_producto, p.cantidad, p.unidad_medida,
+           p.fecha, p.estado, pr.Nombre AS proveedor_nombre,
+           u.nombre AS usuario_responsable
+    FROM pedidos p
+    JOIN proveedor pr ON p.id_proveedor = pr.id_proveedor
+    JOIN usuarios u ON p.id_usuario = u.id_usuario
+    LEFT JOIN facturas_compra fc ON fc.id_pedido = p.id_pedidos
+    WHERE p.estado = 'Pendiente' AND fc.id_factura_compra IS NULL
+    ORDER BY p.fecha ASC, p.id_pedidos ASC
 ");
 $solicitudes = db_fetch_all($conn, "
     SELECT ps.*, u.nombre AS agricultor_nombre,
@@ -62,62 +80,141 @@ $solicitudes_procesadas = db_fetch_all($conn, "
 <?php render_flash_messages(); ?>
 
 <section class="farmer-page-heading warehouse-page-heading">
-    <div>
+    <div class="warehouse-heading-copy">
         <span class="farmer-kicker">Bodega agrícola</span>
         <h1>Control de Inventario</h1>
+        <p>Supervisa existencias, recepciones y entregas desde un centro operativo unificado.</p>
     </div>
-    <div class="warehouse-heading-actions">
-        <span><i class="fas fa-flask"></i> <?php echo $total_insumos; ?> insumos</span>
-        <span><i class="fas fa-check-circle"></i> <?php echo $total_solicitudes_aprobadas; ?> aprobadas</span>
+    <div class="warehouse-hero-status">
+        <span class="warehouse-hero-status-icon"><i class="fas fa-warehouse"></i></span>
+        <div>
+            <small>Estado de bodega</small>
+            <strong><i class="fas fa-circle"></i> Operación activa</strong>
+        </div>
     </div>
 </section>
 
 <!-- Dashboard Stats -->
-<div class="row mb-4">
-    <div class="col-md-4 mb-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body text-center">
-                <i class="fas fa-flask fa-2x mb-2"></i>
-                <h4><?php echo $total_insumos; ?></h4>
-                <p class="mb-0">Total Insumos</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card text-white bg-success">
-            <div class="card-body text-center">
-                <i class="fas fa-file-invoice-dollar fa-2x mb-2"></i>
-                <h4><?php echo $total_facturas_compra; ?></h4>
-                <p class="mb-0">Facturas de Compra</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body text-center">
-                <i class="fas fa-check-circle fa-2x mb-2"></i>
-                <h4><?php echo $total_solicitudes_aprobadas; ?></h4>
-                <p class="mb-0">Solicitudes Aprobadas</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+<section class="warehouse-overview" aria-labelledby="warehouse-overview-title">
+    <div class="warehouse-section-heading">
         <div>
-            <h5><i class="fas fa-truck-ramp-box"></i> Recepción de insumos</h5>
-            <p class="mb-0">Registre la factura cuando el proveedor entregue los productos. El stock se actualizará dentro de la misma operación.</p>
+            <span>Vista general</span>
+            <h2 id="warehouse-overview-title">Indicadores de bodega</h2>
         </div>
-        <a href="bodeguero_facturas.php" class="btn btn-primary">
-            <i class="fas fa-file-circle-plus"></i> Nueva factura
-        </a>
+        <small><i class="fas fa-circle"></i> Información actualizada</small>
+    </div>
+
+    <div class="warehouse-metrics-grid">
+        <article class="warehouse-metric-card warehouse-metric-card--inventory">
+            <div class="warehouse-metric-top">
+                <span class="warehouse-metric-icon"><i class="fas fa-flask"></i></span>
+                <span class="warehouse-metric-tag">Inventario</span>
+            </div>
+            <strong><?php echo $total_insumos; ?></strong>
+            <p>Insumos registrados</p>
+            <span class="warehouse-metric-detail">Catálogo disponible en bodega</span>
+        </article>
+
+        <article class="warehouse-metric-card warehouse-metric-card--invoices">
+            <div class="warehouse-metric-top">
+                <span class="warehouse-metric-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <span class="warehouse-metric-tag">Compras</span>
+            </div>
+            <strong><?php echo $total_facturas_compra; ?></strong>
+            <p>Facturas de compra</p>
+            <span class="warehouse-metric-detail">Recepciones documentadas</span>
+        </article>
+
+        <article class="warehouse-metric-card warehouse-metric-card--orders">
+            <div class="warehouse-metric-top">
+                <span class="warehouse-metric-icon"><i class="fas fa-cart-flatbed"></i></span>
+                <span class="warehouse-metric-tag">Pendientes</span>
+            </div>
+            <strong><?php echo $total_pedidos_pendientes; ?></strong>
+            <p>Pedidos por comprobar</p>
+            <span class="warehouse-metric-detail">Requieren comprobante</span>
+        </article>
+
+        <article class="warehouse-metric-card warehouse-metric-card--approved">
+            <div class="warehouse-metric-top">
+                <span class="warehouse-metric-icon"><i class="fas fa-clipboard-check"></i></span>
+                <span class="warehouse-metric-tag">Despacho</span>
+            </div>
+            <strong><?php echo $total_solicitudes_aprobadas; ?></strong>
+            <p>Solicitudes aprobadas</p>
+            <span class="warehouse-metric-detail">Listas para procesar</span>
+        </article>
+    </div>
+</section>
+
+<div class="card mb-4 warehouse-module-card">
+    <div class="card-header warehouse-module-header">
+        <span class="warehouse-module-icon warehouse-module-icon--orders" aria-hidden="true">
+            <i class="fas fa-truck-loading"></i>
+        </span>
+        <div>
+            <span class="warehouse-module-kicker">Recepción de compras</span>
+            <h5 class="mb-0">Pedidos pendientes por comprobar</h5>
+        </div>
+        <span class="warehouse-module-count"><?php echo $total_pedidos_pendientes; ?> pendientes</span>
+    </div>
+    <div class="card-body table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Proveedor</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Fecha del pedido</th>
+                    <th>Usuario responsable</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($pedidos_pendientes): ?>
+                    <?php foreach ($pedidos_pendientes as $pedido): ?>
+                        <tr>
+                            <td><?php echo (int) $pedido['id_pedidos']; ?></td>
+                            <td><?php echo e($pedido['proveedor_nombre']); ?></td>
+                            <td><?php echo e($pedido['nombre_producto']); ?></td>
+                            <td><?php echo e($pedido['cantidad']); ?></td>
+                            <td><?php echo e($pedido['unidad_medida']); ?></td>
+                            <td><?php echo date('d/m/Y H:i', strtotime($pedido['fecha'])); ?></td>
+                            <td><?php echo e($pedido['usuario_responsable']); ?></td>
+                            <td><span class="badge bg-warning text-dark"><?php echo e($pedido['estado']); ?></span></td>
+                            <td>
+                                <a
+                                    class="btn btn-success btn-sm warehouse-receipt-button"
+                                    href="bodeguero_facturas.php?pedido_id=<?php echo (int) $pedido['id_pedidos']; ?>">
+                                    <i class="fas fa-file-circle-plus"></i> Registrar comprobante
+                                </a>
+                                <?php if (empty($pedido['id_insumo'])): ?>
+                                    <small class="d-block text-danger mt-1">Debe relacionar el producto al registrar.</small>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr><td colspan="9" class="app-empty-state">No hay pedidos pendientes por comprobar.</td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <!-- Tabla Solicitudes Aprobadas -->
-<div class="card mt-4">
-    <div class="card-header bg-warning text-white">Solicitudes Aprobadas para Bodega</div>
+<div class="card mt-4 warehouse-module-card">
+    <div class="card-header warehouse-module-header">
+        <span class="warehouse-module-icon warehouse-module-icon--approved"><i class="fas fa-box-open"></i></span>
+        <div>
+            <span class="warehouse-module-kicker">Preparación de entregas</span>
+            <h5 class="mb-0">Solicitudes aprobadas para bodega</h5>
+        </div>
+        <span class="warehouse-module-count"><?php echo $total_solicitudes_aprobadas; ?> por procesar</span>
+    </div>
     <div class="card-body table-responsive">
         <table class="table table-bordered table-hover warehouse-requests-table">
             <thead>
@@ -180,10 +277,14 @@ $solicitudes_procesadas = db_fetch_all($conn, "
 </div>
 
 <!-- Tabla Solicitudes Procesadas -->
-<div class="card mt-4">
-    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-check-circle"></i> Solicitudes Procesadas</h5>
-        <a href="imprimir_solicitudes.php" target="_blank" class="btn btn-light btn-sm" onclick="event.stopPropagation();"><i class="fas fa-print"></i> Imprimir</a>
+<div class="card mt-4 warehouse-module-card">
+    <div class="card-header warehouse-module-header">
+        <span class="warehouse-module-icon warehouse-module-icon--history"><i class="fas fa-clock-rotate-left"></i></span>
+        <div>
+            <span class="warehouse-module-kicker">Historial operativo</span>
+            <h5 class="mb-0">Solicitudes procesadas</h5>
+        </div>
+        <a href="imprimir_solicitudes.php" target="_blank" class="btn btn-light btn-sm warehouse-print-button" onclick="event.stopPropagation();"><i class="fas fa-print"></i> Imprimir</a>
     </div>
     <div class="card-body table-responsive">
         <table class="table table-bordered table-hover">

@@ -7,8 +7,8 @@
     <title>Acerca de - SEMBRIEXPORT</title>
     <link rel="icon" type="image/x-icon" href="assets/mango.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="css/dashboard.css?v=20260605-select-font" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link href="css/dashboard.css?v=20260606-icons-fix" rel="stylesheet">
 </head>
 <body class="public-page public-inner-page">
     <nav class="navbar navbar-expand-lg public-nav public-floating-nav">
@@ -25,66 +25,155 @@
                     <li class="nav-item"><a class="nav-link" href="index.html">Bienvenido</a></li>
                     <li class="nav-item"><a class="nav-link" href="products.html">Productos</a></li>
                     <li class="nav-item"><a class="nav-link active" href="about.html">Acerca de</a></li>
-                    <li class="nav-item"><a class="btn btn-primary ms-lg-2" href="login.html"><i class="fas fa-arrow-right-to-bracket"></i> Iniciar sesión</a></li>
+                    <li class="nav-item"><a class="btn btn-primary ms-lg-2" href="login.html"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main>
-        <section class="public-hero">
-            <div class="public-container public-hero-copy">
-                <span class="public-kicker"><i class="fas fa-building"></i> Nuestra empresa</span>
-                <h1 class="public-title">Procesos agrícolas con visión exportadora</h1>
-                <p class="public-subtitle">SEMBRIEXPORT S.A. trabaja en la producción, procesamiento y exportación de mango con foco en calidad, inocuidad y mejora continua.</p>
+    <main class="premium-inner">
+        <section class="inner-hero inner-hero-about">
+            <div class="inner-hero-media">
+                <img src="assets/img/about.jpg" alt="Equipo y operación agrícola de SEMBRIEXPORT">
             </div>
-        </section>
-
-        <section class="public-section public-band">
-            <div class="public-container public-feature-row">
-                <div class="public-image-frame">
-                    <img src="assets/img/about.jpg" alt="Nuestra empresa">
+            <div class="public-container inner-hero-content">
+                <div class="inner-hero-copy">
+                    <span class="inner-eyebrow"><i class="fas fa-seedling"></i> Desde 1991</span>
+                    <h1>Cultivamos confianza. Exportamos excelencia.</h1>
+                    <p>Más de tres décadas conectando producción agrícola, control de calidad y visión internacional desde Ecuador.</p>
+                    <div class="inner-hero-actions">
+                        <a class="btn btn-primary btn-lg" href="#historia">Nuestra historia</a>
+                        <a class="inner-text-link" href="products.html">Ver nuestros productos <i class="fas fa-arrow-right"></i></a>
+                    </div>
                 </div>
-                <article class="public-info-card">
-                    <span class="public-card-icon"><i class="fas fa-building"></i></span>
-                    <h2>SEMBRIEXPORT S.A.</h2>
-                    <p>Empresa fundada el 13 de septiembre de 1991, orientada a exportar productos de calidad con empaque de excelente presentación e inocuidad.</p>
-                </article>
-            </div>
-        </section>
-
-        <section class="public-section">
-            <div class="public-container public-feature-row">
-                <article class="public-info-card">
-                    <span class="public-card-icon"><i class="fas fa-leaf"></i></span>
-                    <h2>Producción certificada</h2>
-                    <p>La fruta se produce en diferentes haciendas con certificación Global Gap, cumpliendo normas exigidas por el mercado internacional.</p>
-                    <ul class="public-list">
-                        <li><i class="fas fa-check"></i><span>Tommy Atkins</span></li>
-                        <li><i class="fas fa-check"></i><span>Haden, Kent, Keitt, Ataulfo y Madame Francis</span></li>
-                    </ul>
-                </article>
-                <div class="public-image-frame">
-                    <img src="assets/img/about2.jpg" alt="Producción de mango">
+                <div class="inner-hero-trust" aria-label="Datos de SEMBRIEXPORT">
+                    <div><strong>1991</strong><span>Año de fundación</span></div>
+                    <div><strong>+30 años</strong><span>Experiencia agrícola</span></div>
+                    <div><strong>Global</strong><span>Visión exportadora</span></div>
                 </div>
             </div>
         </section>
 
-        <section class="public-section public-band">
+        <section id="historia" class="inner-section about-story">
+            <div class="public-container about-story-grid">
+                <div class="about-story-heading">
+                    <span class="inner-overline">Quiénes somos</span>
+                    <h2>Experiencia que se cultiva con el tiempo</h2>
+                </div>
+                <div class="about-story-copy">
+                    <p class="about-lead">SEMBRIEXPORT S.A. nació el 13 de septiembre de 1991 con una idea clara: llevar fruta ecuatoriana de calidad a mercados internacionales.</p>
+                    <p>Desde entonces, fortalecemos cada etapa del proceso para ofrecer una presentación cuidada, condiciones de inocuidad confiables y una operación orientada a la mejora continua.</p>
+                    <div class="about-values">
+                        <span><i class="fas fa-check"></i> Calidad consistente</span>
+                        <span><i class="fas fa-check"></i> Trazabilidad</span>
+                        <span><i class="fas fa-check"></i> Responsabilidad</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="inner-section about-production">
+            <div class="public-container about-production-grid">
+                <div class="about-production-image">
+                    <img src="assets/img/about2.jpg" alt="Producción certificada de mango">
+                    <div class="about-image-note"><strong>Producción certificada</strong><span>Buenas prácticas desde el origen</span></div>
+                </div>
+                <div class="about-production-copy">
+                    <span class="inner-overline">Del campo al empaque</span>
+                    <h2>Una cadena construida alrededor de la calidad</h2>
+                    <p>Trabajamos con fruta producida en haciendas certificadas bajo GlobalG.A.P. y procesos alineados con las exigencias del comercio internacional.</p>
+                    <div class="process-list">
+                        <article><span>01</span><div><h3>Producción responsable</h3><p>Control agrícola y buenas prácticas en cada hacienda.</p></div></article>
+                        <article><span>02</span><div><h3>Selección especializada</h3><p>Revisión de condición, madurez y presentación comercial.</p></div></article>
+                        <article><span>03</span><div><h3>Empaque seguro</h3><p>Procesos fitosanitarios para proteger la calidad del producto.</p></div></article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="inner-section certification-section">
             <div class="public-container">
-                <article class="public-info-card">
-                    <span class="public-card-icon"><i class="fas fa-certificate"></i></span>
-                    <h2>Procesamiento y certificaciones</h2>
-                    <p>El procesamiento se realiza en la empacadora Dining S.A., bajo normas fitosanitarias APHIS - USDA, Buenas Prácticas de Manufactura y certificación HACCP para garantizar inocuidad en cada fase.</p>
-                </article>
+                <div class="certification-heading">
+                    <div>
+                        <span class="inner-overline">Respaldo y cumplimiento</span>
+                        <h2>Estándares que sostienen nuestra promesa</h2>
+                    </div>
+                    <p>El procesamiento en la empacadora Dining S.A. integra controles reconocidos para cuidar la inocuidad y la confiabilidad de cada envío.</p>
+                </div>
+                <div class="certification-grid">
+                    <article><i class="fas fa-globe-americas"></i><span>Producción</span><h3>GlobalG.A.P.</h3><p>Buenas prácticas agrícolas y producción responsable.</p></article>
+                    <article><i class="fas fa-shield-alt"></i><span>Fitosanitario</span><h3>APHIS - USDA</h3><p>Requisitos para el acceso seguro a mercados de destino.</p></article>
+                    <article><i class="fas fa-clipboard-check"></i><span>Manufactura</span><h3>BPM</h3><p>Orden, higiene y control durante el procesamiento.</p></article>
+                    <article><i class="fas fa-certificate"></i><span>Inocuidad</span><h3>HACCP</h3><p>Prevención y control de riesgos en puntos críticos.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <section class="inner-section about-cta">
+            <div class="public-container about-cta-card">
+                <div><span class="inner-overline">Nuestro producto</span><h2>Conoce el mango que representa nuestro trabajo</h2></div>
+                <a class="btn btn-light btn-lg" href="products.html">Explorar productos <i class="fas fa-arrow-right"></i></a>
             </div>
         </section>
     </main>
 
-    <footer class="public-footer">
-        <div class="public-container">
-            <strong>SEMBRIEXPORT</strong>
-            <span>Empresa agrícola exportadora con procesos certificados.</span>
+    <footer class="public-footer home-footer">
+        <div class="public-container home-footer-shell">
+            <div class="home-footer-grid">
+                <section class="home-footer-newsletter" aria-labelledby="footer-newsletter-title">
+                    <a class="home-footer-brand" href="index.html">
+                        <span class="public-brand-mark"><i class="fas fa-seedling"></i></span>
+                        <span>SEMBRIEXPORT</span>
+                    </a>
+                    <h2 id="footer-newsletter-title">Mantente conectado</h2>
+                    <p>Conoce nuestras novedades sobre producción, trazabilidad y exportación agrícola.</p>
+                    <form class="home-footer-form">
+                        <label class="visually-hidden" for="footerEmail">Correo electrónico</label>
+                        <input id="footerEmail" type="email" placeholder="Ingresa tu correo" autocomplete="email">
+                        <button type="button" aria-label="Enviar correo"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </section>
+
+                <nav class="home-footer-column" aria-labelledby="footer-links-title">
+                    <h3 id="footer-links-title">Enlaces rápidos</h3>
+                    <a href="index.html">Inicio</a>
+                    <a href="index.html#compromisos">Nuestro compromiso</a>
+                    <a href="products.html">Productos</a>
+                    <a href="about.html">Acerca de</a>
+                    <a href="login.html">Iniciar sesión</a>
+                </nav>
+
+                <section class="home-footer-column home-footer-contact" aria-labelledby="footer-contact-title">
+                    <h3 id="footer-contact-title">Contáctanos</h3>
+                    <p><i class="fas fa-map-marker-alt"></i><span>Guayaquil, Ecuador</span></p>
+                    <p><i class="fas fa-phone"></i><a href="tel:+593000000000">+593 00 000 0000</a></p>
+                    <p><i class="fas fa-envelope"></i><a href="mailto:info@sembriexport.com">info@sembriexport.com</a></p>
+                    <p><i class="fas fa-clock"></i><span>Lun - Vie, 08:00 - 17:00</span></p>
+                </section>
+
+                <section class="home-footer-column" aria-labelledby="footer-social-title">
+                    <h3 id="footer-social-title">Síguenos</h3>
+                    <p class="home-footer-social-copy">Acompaña el crecimiento de nuestra comunidad agrícola.</p>
+                    <div class="home-footer-socials">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                    <div class="home-footer-certification">
+                        <i class="fas fa-leaf"></i>
+                        <span>Producción responsable y trazable</span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="home-footer-bottom">
+                <p>&copy; 2026 SEMBRIEXPORT. Todos los derechos reservados.</p>
+                <div>
+                    <a href="#">Política de privacidad</a>
+                    <a href="#">Términos de uso</a>
+                </div>
+            </div>
         </div>
     </footer>
 

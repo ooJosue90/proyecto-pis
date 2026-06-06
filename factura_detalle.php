@@ -13,11 +13,13 @@ $factura = db_fetch_one(
     $conn,
     "SELECT fc.*, p.Nombre AS proveedor_nombre, p.ruc_cedula, p.telefono,
             p.email AS proveedor_email, u.nombre AS bodeguero_nombre,
-            ur.nombre AS revisor_nombre
+            ur.nombre AS revisor_nombre, pe.nombre_producto AS pedido_producto,
+            pe.cantidad AS pedido_cantidad, pe.unidad_medida AS pedido_unidad
      FROM facturas_compra fc
      JOIN proveedor p ON fc.id_proveedor = p.id_proveedor
      JOIN usuarios u ON fc.id_usuario = u.id_usuario
      LEFT JOIN usuarios ur ON fc.id_usuario_revision = ur.id_usuario
+     LEFT JOIN pedidos pe ON fc.id_pedido = pe.id_pedidos
      WHERE fc.id_factura_compra = ?",
     'i',
     [$id]
@@ -51,6 +53,7 @@ $badge = $factura['estado'] === 'Aprobada'
         <h6><i class="fas fa-file-invoice"></i> Factura</h6>
         <table class="table table-sm">
             <tr><th>Número:</th><td><?php echo e($factura['numero_factura']); ?></td></tr>
+            <tr><th>Pedido:</th><td><?php echo $factura['id_pedido'] ? '#' . (int) $factura['id_pedido'] : 'Sin pedido'; ?></td></tr>
             <tr><th>Fecha:</th><td><?php echo date('d/m/Y', strtotime($factura['fecha'])); ?></td></tr>
             <tr><th>Registrada por:</th><td><?php echo e($factura['bodeguero_nombre']); ?></td></tr>
             <tr><th>Total:</th><td><strong>$<?php echo number_format((float) $factura['total'], 2); ?></strong></td></tr>

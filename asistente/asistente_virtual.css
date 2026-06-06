@@ -278,7 +278,7 @@
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     font-size: 14px;
     line-height: 1.52;
-    white-space: pre-line;
+    white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
     animation: adaMessageIn 0.22s ease both;
@@ -290,6 +290,84 @@
     border-bottom-left-radius: 6px;
     background: #fff;
     color: #111827;
+}
+
+.ada-message--bot h4 {
+    margin: 16px 0 7px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(20, 83, 45, 0.12);
+    color: #14532d;
+    font-size: 14px;
+    font-weight: 850;
+    line-height: 1.35;
+}
+
+.ada-message--bot h4:first-child {
+    margin-top: 0;
+}
+
+.ada-message--bot p {
+    margin: 0 0 9px;
+}
+
+.ada-message--bot p:last-child {
+    margin-bottom: 0;
+}
+
+.ada-message--bot ul {
+    margin: 5px 0 11px;
+    padding-left: 19px;
+}
+
+.ada-message--bot ul:last-child {
+    margin-bottom: 0;
+}
+
+.ada-message--bot li {
+    margin: 4px 0;
+    padding-left: 2px;
+}
+
+.ada-message--bot li::marker {
+    color: #16a34a;
+}
+
+.ada-message--bot strong {
+    color: #163d25;
+    font-weight: 850;
+}
+
+.ada-message__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(20, 83, 45, 0.12);
+}
+
+.ada-message__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid rgba(22, 163, 74, 0.24);
+    border-radius: 10px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-decoration: none;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.ada-message__link:hover {
+    border-color: rgba(22, 163, 74, 0.48);
+    background: #dcfce7;
+    color: #14532d;
+    transform: translateY(-1px);
 }
 
 .ada-message--user {

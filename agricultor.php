@@ -381,36 +381,60 @@ foreach ($lotes as $l) {
 <div class="container farmer-dashboard mt-4">
     <?php render_flash_messages(); ?>
 
-    <section class="farmer-page-heading">
-        <div>
-            <span class="farmer-kicker">Overview</span>
+    <section class="farmer-page-heading farmer-dashboard-hero">
+        <div class="farmer-hero-copy">
+            <span class="farmer-kicker">Panel agrícola</span>
             <h1>Resumen de Actividad</h1>
+            <p>Gestiona tus cultivos, lotes y solicitudes desde un solo lugar.</p>
+        </div>
+        <div class="farmer-hero-status">
+            <span class="farmer-hero-status-icon"><i class="fas fa-seedling"></i></span>
+            <div>
+                <small>Estado de operación</small>
+                <strong><i class="fas fa-circle"></i> Jornada activa</strong>
+            </div>
         </div>
     </section>
 
     <section class="farmer-stats-grid" aria-label="Resumen por etapas">
+        <article class="farmer-stat-card farmer-stat-card--total">
+            <div class="farmer-stat-top">
+                <span class="farmer-stat-icon"><i class="fas fa-map-location-dot"></i></span>
+                <span class="farmer-stat-status">Registrados</span>
+            </div>
+            <strong><?php echo $total_lotes; ?></strong>
+            <p>Total de lotes</p>
+            <span class="farmer-stat-detail"><i class="fas fa-layer-group"></i> Superficie bajo gestión</span>
+        </article>
+
         <article class="farmer-stat-card farmer-stat-card--riego">
-            <span class="farmer-stat-icon"><i class="fas fa-droplet"></i></span>
-            <span class="farmer-stat-status">Activo</span>
-            <p>Lot. Riego</p>
+            <div class="farmer-stat-top">
+                <span class="farmer-stat-icon"><i class="fas fa-droplet"></i></span>
+                <span class="farmer-stat-status">Activo</span>
+            </div>
             <strong><?php echo $etapas['Riego']; ?></strong>
-            <span>Lotes</span>
+            <p>Lotes en riego</p>
+            <span class="farmer-stat-detail"><i class="fas fa-water"></i> Etapa hídrica</span>
         </article>
 
         <article class="farmer-stat-card farmer-stat-card--siembra">
-            <span class="farmer-stat-icon"><i class="fas fa-leaf"></i></span>
-            <span class="farmer-stat-status">En progreso</span>
-            <p>Lot. Siembra</p>
+            <div class="farmer-stat-top">
+                <span class="farmer-stat-icon"><i class="fas fa-leaf"></i></span>
+                <span class="farmer-stat-status">En progreso</span>
+            </div>
             <strong><?php echo $etapas['Siembra']; ?></strong>
-            <span>Lotes</span>
+            <p>Lotes en siembra</p>
+            <span class="farmer-stat-detail"><i class="fas fa-seedling"></i> Desarrollo inicial</span>
         </article>
 
         <article class="farmer-stat-card farmer-stat-card--cosecha">
-            <span class="farmer-stat-icon"><i class="fas fa-box-archive"></i></span>
-            <span class="farmer-stat-status">Planificado</span>
-            <p>Lot. Cosecha</p>
+            <div class="farmer-stat-top">
+                <span class="farmer-stat-icon"><i class="fas fa-box"></i></span>
+                <span class="farmer-stat-status">Planificado</span>
+            </div>
             <strong><?php echo $etapas['Cosecha']; ?></strong>
-            <span>Lotes</span>
+            <p>Lotes en cosecha</p>
+            <span class="farmer-stat-detail"><i class="fas fa-calendar-check"></i> Etapa productiva</span>
         </article>
     </section>
 
@@ -418,16 +442,16 @@ foreach ($lotes as $l) {
         <main class="farmer-main-panel">
             <ul class="nav nav-tabs farmer-tabs" id="agricultorTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="cultivo-tab" data-bs-toggle="tab" data-bs-target="#cultivo" type="button" role="tab" aria-controls="cultivo" aria-selected="true">Registrar Cultivo</button>
+                    <button class="nav-link active" id="cultivo-tab" data-bs-toggle="tab" data-bs-target="#cultivo" type="button" role="tab" aria-controls="cultivo" aria-selected="true"><i class="fas fa-seedling"></i> Registrar Cultivo</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="lote-tab" data-bs-toggle="tab" data-bs-target="#lote" type="button" role="tab" aria-controls="lote" aria-selected="false">Registrar Lote</button>
+                    <button class="nav-link" id="lote-tab" data-bs-toggle="tab" data-bs-target="#lote" type="button" role="tab" aria-controls="lote" aria-selected="false"><i class="fas fa-map-location-dot"></i> Registrar Lote</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="plaga-tab" data-bs-toggle="tab" data-bs-target="#plaga" type="button" role="tab" aria-controls="plaga" aria-selected="false">Registrar Plagas</button>
+                    <button class="nav-link" id="plaga-tab" data-bs-toggle="tab" data-bs-target="#plaga" type="button" role="tab" aria-controls="plaga" aria-selected="false"><i class="fas fa-bug"></i> Registrar Plagas</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="insumos-tab" data-bs-toggle="tab" data-bs-target="#insumos" type="button" role="tab" aria-controls="insumos" aria-selected="false">Solicitar Insumos</button>
+                    <button class="nav-link" id="insumos-tab" data-bs-toggle="tab" data-bs-target="#insumos" type="button" role="tab" aria-controls="insumos" aria-selected="false"><i class="fas fa-box-open"></i> Solicitar Insumos</button>
                 </li>
             </ul>
 
@@ -454,7 +478,9 @@ foreach ($lotes as $l) {
                                 <input type="date" name="fecha_siembra" class="form-control" required>
                             </label>
                         </div>
-                        <button type="submit" name="registrar_cultivo" class="btn btn-success w-100 farmer-submit">Registrar</button>
+                        <button type="submit" name="registrar_cultivo" class="btn btn-success w-100 farmer-submit">
+                            <span>Registrar cultivo</span>
+                        </button>
                     </form>
                 </div>
 
@@ -537,7 +563,9 @@ foreach ($lotes as $l) {
                                 <input type="date" name="fecha_fin_cosecha" class="form-control" aria-label="Fin Cosecha">
                             </fieldset>
                         </div>
-                        <button type="submit" name="registrar_lote" class="btn btn-success w-100 farmer-submit">Registrar</button>
+                        <button type="submit" name="registrar_lote" class="btn btn-success w-100 farmer-submit">
+                            <span>Registrar lote</span>
+                        </button>
                     </form>
                 </div>
 
@@ -657,7 +685,9 @@ foreach ($lotes as $l) {
                             </p>
                         </section>
 
-                        <button type="submit" name="registrar_plaga" class="btn btn-success w-100 farmer-submit pest-submit">Registrar monitoreo</button>
+                        <button type="submit" name="registrar_plaga" class="btn btn-success w-100 farmer-submit pest-submit">
+                            <span>Registrar monitoreo</span>
+                        </button>
                     </form>
                 </div>
 
@@ -722,8 +752,7 @@ foreach ($lotes as $l) {
                                 </label>
 
                                 <button type="submit" name="solicitar_insumos_manual" class="btn btn-success w-100 farmer-submit supply-submit">
-                                    <i class="fas fa-paper-plane"></i>
-                                    Enviar solicitud de insumos
+                                    <span>Enviar solicitud de insumos</span>
                                 </button>
                             </form>
 

@@ -23,7 +23,7 @@ function render_head(string $title, array $extraStyles = [], array $extraScripts
     <?php foreach ($extraScripts as $src): ?>
         <script src="<?= e($src); ?>"></script>
     <?php endforeach; ?>
-    <script src="js/app-ui.js?v=20260605-notifications" defer></script>
+    <script src="js/app-ui.js?v=<?= filemtime(__DIR__ . '/../js/app-ui.js'); ?>" defer></script>
 </head>
 <?php
 }
@@ -144,19 +144,19 @@ function render_app_nav(string $icon, string $label, array $actions = []): void
 function render_flash_messages(): void
 {
     $messages = [
-        'mensaje' => ['success', 'fa-circle-check'],
-        'error' => ['danger', 'fa-circle-exclamation'],
-        'error_entrega' => ['warning', 'fa-triangle-exclamation'],
+        'mensaje' => ['success', 'fa-check', 'Operación completada'],
+        'error' => ['danger', 'fa-exclamation', 'No se pudo completar'],
+        'error_entrega' => ['warning', 'fa-exclamation', 'Requiere atención'],
     ];
 
     $notifications = [];
-    foreach ($messages as $key => [$type, $icon]) {
+    foreach ($messages as $key => [$type, $icon, $title]) {
         $message = flash($key);
         if ($message === null) {
             continue;
         }
 
-        $notifications[] = compact('type', 'icon', 'message');
+        $notifications[] = compact('type', 'icon', 'title', 'message');
     }
 
     if (!$notifications) {
@@ -172,11 +172,13 @@ function render_flash_messages(): void
                 <span class="app-notification__icon" aria-hidden="true">
                     <i class="fas <?= e($notification['icon']); ?>"></i>
                 </span>
-                <span class="app-notification__message"><?= e($notification['message']); ?></span>
+                <span class="app-notification__content">
+                    <strong class="app-notification__title"><?= e($notification['title']); ?></strong>
+                    <span class="app-notification__message"><?= e($notification['message']); ?></span>
+                </span>
                 <button class="app-notification__close" type="button" data-app-notification-close aria-label="Cerrar notificación">
                     <i class="fas fa-xmark"></i>
                 </button>
-                <span class="app-notification__progress" aria-hidden="true"></span>
             </div>
         <?php endforeach; ?>
     </div>
@@ -276,7 +278,7 @@ function render_ada_chat(): void
 
             <form class="ada-chat__form" data-ada-form>
                 <input class="ada-chat__input" type="text" data-ada-input placeholder="Ej: ¿Qué insumos tienen stock bajo?" autocomplete="off">
-                <button class="ada-chat__send" type="submit" data-ada-send aria-label="Enviar pregunta">
+                <button class="ada-chat__send" type="submit" data-ada-send data-skip-loading="1" aria-label="Enviar pregunta">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </form>

@@ -37,11 +37,31 @@ Solo restringe el acceso cuando el usuario solicite información interna o accio
 
 Si el usuario no tiene permisos, responde de forma amable indicando qué funciones sí están disponibles para su perfil.
 
-No te presentes en cada respuesta. No empieces con frases como "Soy ADA" o "Hola, soy ADA". Responde directamente con una frase breve de cortesía, por ejemplo "Con gusto, te doy la información:", y luego entrega la información solicitada.
+No te presentes en cada respuesta. No empieces con frases como "Soy ADA" o "Hola, soy ADA". Evita introducciones repetitivas o demasiado ceremoniosas.
 
-Responde de forma profesional, clara y útil.';
+Presenta las respuestas con formato Markdown sencillo y consistente:
 
-function ada_json(bool $success, string $respuesta, int $status = 200, ?string $rol = null): void
+* Empieza con una conclusión o introducción breve de una sola oración.
+* Organiza información extensa con títulos breves usando "###".
+* Usa listas con viñetas para resúmenes y datos relacionados.
+* Para varios registros, usa un subtítulo por registro y agrupa sus datos por tema.
+* Resalta en negrita únicamente etiquetas, estados y cifras importantes.
+* No conviertas cada dato de un registro en una lista principal independiente.
+* Evita repetir "Sin fecha", "sin registros" o estados equivalentes de forma innecesaria; agrúpalos como "Aún no registrado" cuando corresponda.
+* En consultas con varios lotes, conserva todos los registros y resume cada uno en pocas líneas.
+* Cierra con una observación breve solo si aporta valor, por ejemplo una alerta o pendiente relevante.
+* No uses tablas, HTML, emojis ni adornos excesivos.
+
+Responde de forma profesional, clara, concisa y útil.';
+
+function ada_json(
+    bool $success,
+    string $respuesta,
+    int $status = 200,
+    ?string $rol = null,
+    array $enlaces = [],
+    ?array $navegarA = null
+): void
 {
     http_response_code($status);
     echo json_encode([
@@ -49,6 +69,8 @@ function ada_json(bool $success, string $respuesta, int $status = 200, ?string $
         'ok' => $success,
         'rol' => $rol ?? ($_SESSION['rol'] ?? 'Invitado'),
         'respuesta' => $respuesta,
+        'enlaces' => array_values($enlaces),
+        'navegar_a' => $navegarA,
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -87,6 +109,134 @@ function ada_es_consulta_general(string $pregunta): bool
         'ayuda',
         'que puedes hacer',
         'como funciona',
+    ]);
+}
+
+function ada_enlaces_modulos(string $rol, string $pregunta, array $intencion): array
+{
+    $rolNormalizado = ada_normalizar_texto($rol);
+    $temas = array_merge(
+        $intencion['temas'] ?? [],
+        ada_detectar_temas_internos($pregunta)
+    );
+    $texto = ada_normalizar_texto($pregunta);
+
+    if (ada_texto_contiene_alguno($texto, ['resumen', 'general', 'dashboard', 'panel'])) {
+        $temas[] = 'resumen';
+    }
+
+    if (ada_texto_contiene_alguno($texto, ['calculadora', 'calcular insumos', 'calculo de insumos'])) {
+        $temas[] = 'calculadora';
+    }
+
+    if (($intencion['categoria'] ?? '') === ADA_INTENCION_ACCION_ADMINISTRATIVA) {
+        $temas = array_merge($temas, ada_detectar_temas_internos($pregunta));
+    }
+
+    $temas = array_values(array_unique($temas));
+    if (!$temas) {
+        return [];
+    }
+
+    $catalogos = [
+        'administrador' => [
+            'resumen' => ['label' => 'Abrir dashboard', 'href' => 'admin.php#dashboard', 'icon' => 'fas fa-chart-pie'],
+            'usuarios' => ['label' => 'Ir a Usuarios', 'href' => 'admin.php#usuarios', 'icon' => 'fas fa-users'],
+            'solicitudes' => ['label' => 'Ir a Solicitudes', 'href' => 'admin.php#solicitudes', 'icon' => 'fas fa-clipboard-list'],
+            'movimientos' => ['label' => 'Ir a Movimientos', 'href' => 'admin.php#movimientos', 'icon' => 'fas fa-right-left'],
+            'facturas' => ['label' => 'Ir a Facturas', 'href' => 'admin.php#facturas', 'icon' => 'fas fa-file-invoice-dollar'],
+            'reportes' => ['label' => 'Ir a Reportes', 'href' => 'admin.php#reportes', 'icon' => 'fas fa-chart-column'],
+            'cultivos' => ['label' => 'Ir a Cultivos', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-seedling'],
+            'lotes' => ['label' => 'Ir a Cultivos y lotes', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-location-dot'],
+            'produccion' => ['label' => 'Ir a Cultivos y producción', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-box'],
+            'plagas' => ['label' => 'Ir a Cultivos y plagas', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-bug'],
+            'monitoreo' => ['label' => 'Ir a Monitoreo de cultivos', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-magnifying-glass-chart'],
+            'actividades' => ['label' => 'Ir a Actividad agrícola', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-list-check'],
+            'inventario' => ['label' => 'Ir a Pedidos e inventario', 'href' => 'admin.php#pedidos-proveedores', 'icon' => 'fas fa-boxes-stacked'],
+            'proveedores' => ['label' => 'Ir a Proveedores', 'href' => 'admin.php#pedidos-proveedores', 'icon' => 'fas fa-truck'],
+            'pedidos' => ['label' => 'Ir a Pedidos', 'href' => 'admin.php#pedidos-proveedores', 'icon' => 'fas fa-cart-flatbed'],
+        ],
+        'agricultor' => [
+            'resumen' => ['label' => 'Abrir mi panel', 'href' => 'agricultor.php', 'icon' => 'fas fa-chart-pie'],
+            'cultivos' => ['label' => 'Ir a Cultivos', 'href' => 'agricultor.php?tab=cultivo', 'icon' => 'fas fa-seedling'],
+            'lotes' => ['label' => 'Ir a Lotes', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-location-dot'],
+            'produccion' => ['label' => 'Ir a Producción', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-box'],
+            'monitoreo' => ['label' => 'Ir a Monitoreo', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-magnifying-glass-chart'],
+            'actividades' => ['label' => 'Ir a Actividades', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-list-check'],
+            'plagas' => ['label' => 'Registrar plaga', 'href' => 'agricultor.php?tab=plaga', 'icon' => 'fas fa-bug'],
+            'solicitudes' => ['label' => 'Solicitar insumos', 'href' => 'agricultor.php?tab=insumos', 'icon' => 'fas fa-clipboard-list'],
+            'calculadora' => ['label' => 'Abrir calculadora', 'href' => 'calcular_insumos.php', 'icon' => 'fas fa-calculator'],
+        ],
+        'tecnico de campo' => [
+            'resumen' => ['label' => 'Abrir mi panel', 'href' => 'agricultor.php', 'icon' => 'fas fa-chart-pie'],
+            'cultivos' => ['label' => 'Ir a Cultivos', 'href' => 'agricultor.php?tab=cultivo', 'icon' => 'fas fa-seedling'],
+            'lotes' => ['label' => 'Ir a Lotes', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-location-dot'],
+            'plagas' => ['label' => 'Registrar plaga', 'href' => 'agricultor.php?tab=plaga', 'icon' => 'fas fa-bug'],
+        ],
+        'bodeguero' => [
+            'resumen' => ['label' => 'Abrir panel de bodega', 'href' => 'bodeguero.php', 'icon' => 'fas fa-warehouse'],
+            'inventario' => ['label' => 'Ir al Inventario', 'href' => 'bodeguero.php', 'icon' => 'fas fa-boxes-stacked'],
+            'movimientos' => ['label' => 'Ir al Inventario', 'href' => 'bodeguero.php', 'icon' => 'fas fa-right-left'],
+            'proveedores' => ['label' => 'Ir a Pedidos', 'href' => 'bodeguero.php', 'icon' => 'fas fa-truck'],
+            'pedidos' => ['label' => 'Ir a Pedidos', 'href' => 'bodeguero.php', 'icon' => 'fas fa-cart-flatbed'],
+            'facturas' => ['label' => 'Ir a Facturas', 'href' => 'bodeguero_facturas.php', 'icon' => 'fas fa-file-invoice-dollar'],
+            'solicitudes' => ['label' => 'Ir a Solicitudes', 'href' => 'bodeguero.php', 'icon' => 'fas fa-clipboard-check'],
+        ],
+    ];
+
+    $catalogo = $catalogos[$rolNormalizado] ?? [];
+    $enlaces = [];
+    $hrefs = [];
+
+    foreach ($temas as $tema) {
+        if (!isset($catalogo[$tema])) {
+            continue;
+        }
+
+        $enlace = $catalogo[$tema];
+        if (isset($hrefs[$enlace['href']])) {
+            continue;
+        }
+
+        $hrefs[$enlace['href']] = true;
+        $enlaces[] = $enlace;
+
+        if (count($enlaces) >= 3) {
+            break;
+        }
+    }
+
+    return $enlaces;
+}
+
+function ada_es_orden_navegacion(string $pregunta): bool
+{
+    $texto = ada_normalizar_texto($pregunta);
+
+    return ada_texto_contiene_alguno($texto, [
+        'llevame',
+        'dirigeme',
+        'quiero ir',
+        'ir a ',
+        've a ',
+        'abre el modulo',
+        'abrir el modulo',
+        'donde estan',
+        'donde esta el modulo',
+    ]);
+}
+
+function ada_pide_modulo_conocido(string $pregunta): bool
+{
+    if (ada_detectar_temas_internos($pregunta)) {
+        return true;
+    }
+
+    return ada_texto_contiene_alguno(ada_normalizar_texto($pregunta), [
+        'dashboard',
+        'panel',
+        'calculadora',
+        'calcular insumos',
     ]);
 }
 
@@ -737,7 +887,7 @@ function ada_llamar_gemini(string $rol, string $pregunta, string $contexto): str
         ],
         'generationConfig' => [
             'temperature' => 0.2,
-            'maxOutputTokens' => 1000,
+            'maxOutputTokens' => 4096,
         ],
     ];
 
@@ -753,7 +903,7 @@ function ada_llamar_gemini(string $rol, string $pregunta, string $contexto): str
         CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
         CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
         CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_TIMEOUT => 30,
+        CURLOPT_TIMEOUT => 60,
     ]);
 
     $rawResponse = curl_exec($ch);
@@ -810,6 +960,24 @@ if (!ada_intencion_autorizada($rol, $intencion)) {
     ada_json(false, ADA_DENIED_MESSAGE, 403, $rol);
 }
 
+$enlaces = ada_enlaces_modulos($rol, $pregunta, $intencion);
+
+if (ada_es_orden_navegacion($pregunta) && $enlaces) {
+    $destino = $enlaces[0];
+    ada_json(
+        true,
+        'Claro, te llevo a ' . preg_replace('/^(Abrir|Ir a|Registrar)\s+/u', '', $destino['label']) . '.',
+        200,
+        $rol,
+        [$destino],
+        $destino
+    );
+}
+
+if (ada_es_orden_navegacion($pregunta) && ada_pide_modulo_conocido($pregunta)) {
+    ada_json(false, ADA_DENIED_MESSAGE, 403, $rol);
+}
+
 if (!ada_api_key_configurada()) {
     ada_json(false, 'La API Key de Gemini no está configurada. Actualiza asistente/config_gemini.php.', 500, $rol);
 }
@@ -817,7 +985,7 @@ if (!ada_api_key_configurada()) {
 try {
     $contexto = ada_contexto_permitido($conn, $rol, $pregunta, $intencion);
     $respuesta = ada_llamar_gemini($rol, $pregunta, $contexto);
-    ada_json(true, $respuesta, 200, $rol);
+    ada_json(true, $respuesta, 200, $rol, $enlaces);
 } catch (Throwable $exception) {
     error_log('ADA Gemini error: ' . $exception->getMessage());
     ada_json(false, 'No pude comunicarme correctamente con Gemini. ' . $exception->getMessage(), 500, $rol);

@@ -92,47 +92,156 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         case 'crear_pedido':
             $id_proveedor = intval($_POST['id_proveedor']);
             $id_usuario = trim($_POST['id_usuario']);
-            $nombre_producto = trim($_POST['nombre_producto'] ?? '');
+            $id_insumo = intval($_POST['id_insumo'] ?? 0);
             $cantidad = floatval($_POST['cantidad']);
-            $unidad_medida = trim($_POST['unidad_medida'] ?? '');
+            $observaciones = trim($_POST['observaciones'] ?? '');
             
-            if (empty($nombre_producto) || $cantidad <= 0 || $id_proveedor <= 0 || empty($id_usuario)) {
+            if ($cantidad <= 0 || $id_proveedor <= 0 || empty($id_usuario) || $id_insumo <= 0) {
                 echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos y deben ser válidos']);
                 exit;
             }
-            
-            $stmt = $conn->prepare("INSERT INTO pedidos (id_proveedor, id_usuario, nombre_producto, cantidad, unidad_medida, fecha) VALUES (?, ?, ?, ?, ?, NOW())");
-            $stmt->bind_param("issds", $id_proveedor, $id_usuario, $nombre_producto, $cantidad, $unidad_medida);
-            
+
+            $proveedorExiste = (int) db_value(
+                $conn,
+                'SELECT COUNT(*) FROM proveedor WHERE id_proveedor = ?',
+                'i',
+                [$id_proveedor],
+                0
+            );
+            $usuarioExiste = (int) db_value(
+                $conn,
+                'SELECT COUNT(*) FROM usuarios WHERE id_usuario = ?',
+                's',
+                [$id_usuario],
+                0
+            );
+            $insumo = db_fetch_one(
+                $conn,
+                'SELECT id_insumos, nombre, unidad_medida FROM insumos_agricolas WHERE id_insumos = ?',
+                'i',
+                [$id_insumo]
+            );
+
+            if (!$proveedorExiste || !$usuarioExiste || !$insumo) {
+                echo json_encode(['success' => false, 'message' => 'Proveedor, usuario o producto no válido']);
+                exit;
+            }
+
+            $nombre_producto = $insumo['nombre'];
+            $unidad_medida = $insumo['unidad_medida'] ?: 'unid';
+            $stmt = $conn->prepare(
+                "INSERT INTO pedidos (
+                    id_proveedor, id_usuario, id_insumo, nombre_producto, cantidad,
+                    unidad_medida, observaciones, estado, fecha
+                 ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pendiente', NOW())"
+            );
+            $stmt->bind_param(
+                "isisdss",
+                $id_proveedor,
+                $id_usuario,
+                $id_insumo,
+                $nombre_producto,
+                $cantidad,
+                $unidad_medida,
+                $observaciones
+            );
+
             if ($stmt->execute()) {
                 echo json_encode(['success' => true, 'message' => 'Pedido creado exitosamente', 'id' => $conn->insert_id]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Error al crear pedido: ' . $stmt->error]);
             }
             exit;
-            
-        case 'eliminar_pedido':
-            $id = intval($_POST['id_pedido']);
-            
-            // Verificar si está asociado a una factura
-            $check = $conn->prepare("SELECT COUNT(*) as count FROM factura WHERE id_pedidos = ?");
-            $check->bind_param("i", $id);
-            $check->execute();
-            $count = $check->get_result()->fetch_assoc()['count'];
-            
-            if ($count > 0) {
-                echo json_encode(['success' => false, 'message' => "No se puede eliminar: tiene factura(s) asociada(s)"]);
+
+        case 'editar_pedido':
+            $id = intval($_POST['id_pedido'] ?? 0);
+            $id_proveedor = intval($_POST['id_proveedor'] ?? 0);
+            $id_usuario = trim($_POST['id_usuario'] ?? '');
+            $id_insumo = intval($_POST['id_insumo'] ?? 0);
+            $cantidad = floatval($_POST['cantidad'] ?? 0);
+            $observaciones = trim($_POST['observaciones'] ?? '');
+
+            if ($id <= 0 || $cantidad <= 0 || $id_proveedor <= 0 || empty($id_usuario) || $id_insumo <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos y deben ser válidos']);
                 exit;
             }
-            
-            $stmt = $conn->prepare("DELETE FROM pedidos WHERE id_pedidos=?");
-            $stmt->bind_param("i", $id);
-            
-            if ($stmt->execute()) {
-                echo json_encode(['success' => true, 'message' => 'Pedido eliminado exitosamente']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al eliminar: ' . $stmt->error]);
+
+            $insumo = db_fetch_one(
+                $conn,
+                'SELECT nombre, unidad_medida FROM insumos_agricolas WHERE id_insumos = ?',
+                'i',
+                [$id_insumo]
+            );
+
+            if (!$insumo) {
+                echo json_encode(['success' => false, 'message' => 'El producto seleccionado no existe']);
+                exit;
             }
+
+            $proveedorExiste = (int) db_value(
+                $conn,
+                'SELECT COUNT(*) FROM proveedor WHERE id_proveedor = ?',
+                'i',
+                [$id_proveedor],
+                0
+            );
+            $usuarioExiste = (int) db_value(
+                $conn,
+                'SELECT COUNT(*) FROM usuarios WHERE id_usuario = ?',
+                's',
+                [$id_usuario],
+                0
+            );
+            if (!$proveedorExiste || !$usuarioExiste) {
+                echo json_encode(['success' => false, 'message' => 'Proveedor o usuario responsable no válido']);
+                exit;
+            }
+
+            $stmt = $conn->prepare(
+                'UPDATE pedidos
+                 SET id_proveedor = ?, id_usuario = ?, id_insumo = ?, nombre_producto = ?,
+                     cantidad = ?, unidad_medida = ?, observaciones = ?
+                 WHERE id_pedidos = ? AND estado = \'Pendiente\''
+            );
+            $nombre_producto = $insumo['nombre'];
+            $unidad_medida = $insumo['unidad_medida'] ?: 'unid';
+            $stmt->bind_param(
+                'isisdssi',
+                $id_proveedor,
+                $id_usuario,
+                $id_insumo,
+                $nombre_producto,
+                $cantidad,
+                $unidad_medida,
+                $observaciones,
+                $id
+            );
+
+            if ($stmt->execute() && $stmt->affected_rows === 1) {
+                echo json_encode(['success' => true, 'message' => 'Pedido actualizado exitosamente']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Solo se pueden editar pedidos pendientes']);
+            }
+            exit;
+
+        case 'cancelar_pedido':
+            $id = intval($_POST['id_pedido'] ?? 0);
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Pedido inválido']);
+                exit;
+            }
+
+            $actualizados = db_execute(
+                $conn,
+                "UPDATE pedidos SET estado = 'Cancelado'
+                 WHERE id_pedidos = ? AND estado = 'Pendiente'",
+                'i',
+                [$id]
+            );
+
+            echo json_encode($actualizados === 1
+                ? ['success' => true, 'message' => 'Pedido cancelado correctamente']
+                : ['success' => false, 'message' => 'Solo se pueden cancelar pedidos pendientes']);
             exit;
     }
     
@@ -157,13 +266,18 @@ $pedidos = $conn->query("
 
 // Obtener usuarios para el formulario
 $usuarios = $conn->query("SELECT id_usuario, nombre FROM usuarios ORDER BY nombre");
+$insumos = $conn->query("
+    SELECT id_insumos, nombre, unidad_medida, cantidad
+    FROM insumos_agricolas
+    ORDER BY nombre
+");
 
 // Estadísticas
 $stats = $conn->query("
     SELECT 
         (SELECT COUNT(*) FROM proveedor) as total_proveedores,
         (SELECT COUNT(*) FROM pedidos) as total_pedidos,
-        (SELECT COUNT(*) FROM pedidos WHERE DATE(fecha) = CURDATE()) as pedidos_hoy
+        (SELECT COUNT(*) FROM pedidos WHERE estado = 'Pendiente') as pedidos_pendientes
 ")->fetch_assoc();
 ?>
 
@@ -198,8 +312,8 @@ $stats = $conn->query("
                         <div class="card bg-warning text-white">
                             <div class="card-body text-center">
                                 <i class="fas fa-calendar-day fa-2x mb-2"></i>
-                                <h3><?php echo $stats['pedidos_hoy'] ?: 0; ?></h3>
-                                <p class="mb-0">Pedidos Hoy</p>
+                                <h3><?php echo $stats['pedidos_pendientes'] ?: 0; ?></h3>
+                                <p class="mb-0">Pedidos Pendientes</p>
                             </div>
                         </div>
                     </div>
@@ -315,21 +429,12 @@ $stats = $conn->query("
                                             <th>Cantidad</th>
                                             <th>Usuario</th>
                                             <th>Estado</th>
+                                            <th>Observación</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php while ($pedido = $pedidos->fetch_assoc()): ?>
-                                        <?php
-                                        // Verificar si tiene factura
-                                        $facturado = (int) db_value(
-                                            $conn,
-                                            "SELECT COUNT(*) FROM factura WHERE id_pedidos = ?",
-                                            "i",
-                                            [(int) $pedido['id_pedidos']],
-                                            0
-                                        ) > 0;
-                                        ?>
                                         <tr>
                                             <td><?php echo $pedido['id_pedidos']; ?></td>
                                             <td><?php echo date('d/m/Y H:i', strtotime($pedido['fecha'])); ?></td>
@@ -347,16 +452,38 @@ $stats = $conn->query("
                                             </td>
                                             <td><?php echo htmlspecialchars($pedido['usuario_nombre'] ?: 'N/A'); ?></td>
                                             <td>
-                                                <span class="badge bg-<?php echo $facturado ? 'success' : 'warning'; ?>">
-                                                    <?php echo $facturado ? 'Facturado' : 'Pendiente'; ?>
+                                                <?php
+                                                $pedidoBadge = $pedido['estado'] === 'Recibido'
+                                                    ? 'success'
+                                                    : ($pedido['estado'] === 'Cancelado' ? 'secondary' : 'warning');
+                                                ?>
+                                                <span class="badge bg-<?php echo $pedidoBadge; ?>">
+                                                    <?php echo htmlspecialchars($pedido['estado']); ?>
                                                 </span>
                                             </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-danger <?php echo $facturado ? 'disabled' : ''; ?>" 
-                                                        onclick="eliminarPedido(<?php echo $pedido['id_pedidos']; ?>)"
-                                                        <?php echo $facturado ? 'title="No se puede eliminar: tiene factura asociada"' : ''; ?>>
-                                                    <i class="fas fa-trash"></i>
+                                            <td><?php echo htmlspecialchars($pedido['observaciones'] ?: 'Sin observación'); ?></td>
+                                            <td class="text-nowrap">
+                                                <?php if ($pedido['estado'] === 'Pendiente'): ?>
+                                                <button
+                                                        type="button"
+                                                        class="btn btn-sm btn-outline-primary"
+                                                        data-edit-order
+                                                        data-order-id="<?php echo (int) $pedido['id_pedidos']; ?>"
+                                                        data-provider-id="<?php echo (int) $pedido['id_proveedor']; ?>"
+                                                        data-user-id="<?php echo htmlspecialchars($pedido['id_usuario'], ENT_QUOTES); ?>"
+                                                        data-item-id="<?php echo (int) $pedido['id_insumo']; ?>"
+                                                        data-quantity="<?php echo htmlspecialchars($pedido['cantidad'], ENT_QUOTES); ?>"
+                                                        data-observations="<?php echo htmlspecialchars($pedido['observaciones'] ?? '', ENT_QUOTES); ?>"
+                                                        title="Editar pedido">
+                                                    <i class="fas fa-pen"></i> Editar
                                                 </button>
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        onclick="cancelarPedido(<?php echo $pedido['id_pedidos']; ?>)">
+                                                    <i class="fas fa-ban"></i> Cancelar
+                                                </button>
+                                                <?php else: ?>
+                                                    <span class="text-muted">Sin acciones</span>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                         <?php endwhile; ?>
@@ -459,6 +586,80 @@ $stats = $conn->query("
     </div>
 </div>
 
+<!-- Modal Editar Pedido -->
+<div class="modal fade" id="modalEditarPedido" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-pen-to-square"></i> Editar Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="formEditarPedido">
+                <input type="hidden" name="id_pedido" id="edit_pedido_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor *</label>
+                        <select class="form-control" name="id_proveedor" id="edit_pedido_proveedor" required>
+                            <option value="">Seleccionar proveedor</option>
+                            <?php
+                            $proveedores->data_seek(0);
+                            while ($prov = $proveedores->fetch_assoc()):
+                            ?>
+                            <option value="<?php echo $prov['id_proveedor']; ?>">
+                                <?php echo htmlspecialchars($prov['Nombre']); ?>
+                            </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Usuario Responsable *</label>
+                        <select class="form-control" name="id_usuario" id="edit_pedido_usuario" required>
+                            <option value="">Seleccionar usuario</option>
+                            <?php
+                            $usuarios->data_seek(0);
+                            while ($user = $usuarios->fetch_assoc()):
+                            ?>
+                            <option value="<?php echo $user['id_usuario']; ?>">
+                                <?php echo htmlspecialchars($user['nombre']); ?>
+                            </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Producto *</label>
+                        <select class="form-control" name="id_insumo" id="edit_pedido_insumo" required>
+                            <option value="">Seleccionar producto</option>
+                            <?php
+                            $insumos->data_seek(0);
+                            while ($insumo = $insumos->fetch_assoc()):
+                            ?>
+                                <option value="<?php echo (int) $insumo['id_insumos']; ?>">
+                                    <?php echo htmlspecialchars($insumo['nombre']); ?>
+                                    (<?php echo htmlspecialchars($insumo['unidad_medida'] ?: 'sin unidad'); ?>)
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad *</label>
+                        <input type="number" step="0.01" min="0.01" class="form-control" name="cantidad" id="edit_pedido_cantidad" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observación</label>
+                        <textarea class="form-control" name="observaciones" id="edit_pedido_observaciones" rows="3" maxlength="1000"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-floppy-disk"></i> Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Crear Pedido -->
 <div class="modal fade" id="modalCrearPedido" tabindex="-1">
     <div class="modal-dialog">
@@ -487,7 +688,10 @@ $stats = $conn->query("
                         <label class="form-label">Usuario Responsable *</label>
                         <select class="form-control" name="id_usuario" required>
                             <option value="">Seleccionar usuario</option>
-                            <?php while ($user = $usuarios->fetch_assoc()): ?>
+                            <?php
+                            $usuarios->data_seek(0);
+                            while ($user = $usuarios->fetch_assoc()):
+                            ?>
                             <option value="<?php echo $user['id_usuario']; ?>">
                                 <?php echo htmlspecialchars($user['nombre']); ?>
                             </option>
@@ -496,25 +700,27 @@ $stats = $conn->query("
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Producto *</label>
-                        <input type="text" class="form-control" name="nombre_producto" required>
+                        <select class="form-control" name="id_insumo" required>
+                            <option value="">Seleccionar producto</option>
+                            <?php
+                            $insumos->data_seek(0);
+                            while ($insumo = $insumos->fetch_assoc()):
+                            ?>
+                                <option value="<?php echo (int) $insumo['id_insumos']; ?>">
+                                    <?php echo htmlspecialchars($insumo['nombre']); ?>
+                                    (<?php echo htmlspecialchars($insumo['unidad_medida'] ?: 'sin unidad'); ?>,
+                                    stock: <?php echo htmlspecialchars($insumo['cantidad']); ?>)
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Cantidad *</label>
                         <input type="number" step="0.01" min="0.01" class="form-control" name="cantidad" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Unidad de Medida *</label>
-                        <select class="form-control" name="unidad_medida" required>
-                            <option value="">Seleccionar unidad</option>
-                            <option value="kg">Kilogramos</option>
-                            <option value="lb">Libras</option>
-                            <option value="ton">Toneladas</option>
-                            <option value="L">Litros</option>
-                            <option value="gal">Galones</option>
-                            <option value="unid">Unidades</option>
-                            <option value="caja">Cajas</option>
-                            <option value="saco">Sacos</option>
-                        </select>
+                        <label class="form-label">Observación</label>
+                        <textarea class="form-control" name="observaciones" rows="3" maxlength="1000" placeholder="Detalle o instrucción para la recepción"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

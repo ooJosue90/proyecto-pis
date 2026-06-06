@@ -237,6 +237,7 @@ if ($tablesReady) {
                         <table class="table table-striped table-hover align-middle admin-invoice-table">
                             <thead class="table-dark">
                                 <tr>
+                                    <th>Pedido</th>
                                     <th>Número</th>
                                     <th>Fecha</th>
                                     <th>Proveedor</th>
@@ -257,6 +258,7 @@ if ($tablesReady) {
                                                 : ($factura['estado'] === 'Anulada' ? 'secondary' : 'danger'));
                                         ?>
                                         <tr>
+                                            <td><?php echo $factura['id_pedido'] ? '#' . (int) $factura['id_pedido'] : 'Sin pedido'; ?></td>
                                             <td><strong><?php echo e($factura['numero_factura']); ?></strong></td>
                                             <td><?php echo date('d/m/Y', strtotime($factura['fecha'])); ?></td>
                                             <td><?php echo e($factura['proveedor_nombre']); ?></td>
@@ -293,7 +295,7 @@ if ($tablesReady) {
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <tr><td colspan="7" class="app-empty-state">No hay facturas que coincidan con los filtros.</td></tr>
+                                    <tr><td colspan="8" class="app-empty-state">No hay facturas que coincidan con los filtros.</td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>

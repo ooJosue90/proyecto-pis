@@ -7,8 +7,8 @@
     <title>Productos - SEMBRIEXPORT</title>
     <link rel="icon" type="image/x-icon" href="assets/mango.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="css/dashboard.css?v=20260605-select-font" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link href="css/dashboard.css?v=20260606-icons-fix" rel="stylesheet">
 </head>
 <body class="public-page public-inner-page">
     <nav class="navbar navbar-expand-lg public-nav public-floating-nav">
@@ -25,70 +25,156 @@
                     <li class="nav-item"><a class="nav-link" href="index.html">Bienvenido</a></li>
                     <li class="nav-item"><a class="nav-link active" href="products.html">Productos</a></li>
                     <li class="nav-item"><a class="nav-link" href="about.html">Acerca de</a></li>
-                    <li class="nav-item"><a class="btn btn-primary ms-lg-2" href="login.html"><i class="fas fa-arrow-right-to-bracket"></i> Iniciar sesión</a></li>
+                    <li class="nav-item"><a class="btn btn-primary ms-lg-2" href="login.html"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main>
-        <section class="public-hero">
-            <div class="public-container public-hero-copy">
-                <span class="public-kicker"><i class="fas fa-box-open"></i> Producto principal</span>
-                <h1 class="public-title">Mango Tommy Atkins de exportación</h1>
-                <p class="public-subtitle">Fruta seleccionada por firmeza, color, madurez y condiciones de empaque para mercados internacionales.</p>
+    <main class="premium-inner">
+        <section class="inner-hero inner-hero-products">
+            <div class="inner-hero-media">
+                <img src="assets/img/products-00.jpg" alt="Mangos Tommy Atkins seleccionados para exportación">
             </div>
-        </section>
-
-        <section class="public-section public-band">
-            <div class="public-container public-feature-row">
-                <article class="public-info-card">
-                    <span class="public-card-icon"><i class="fas fa-award"></i></span>
-                    <h2>Mango Tommy Atkins</h2>
-                    <p>Variedad comercial reconocida por su resistencia, presentación y consistencia durante el proceso de exportación.</p>
-                </article>
-                <div class="public-image-frame">
-                    <img src="assets/img/products-01.jpg" alt="Mango Tommy Atkins">
+            <div class="public-container inner-hero-content">
+                <div class="inner-hero-copy">
+                    <span class="inner-eyebrow"><i class="fas fa-leaf"></i> Selección de origen ecuatoriano</span>
+                    <h1>Mango que llega más lejos.</h1>
+                    <p>Tommy Atkins seleccionado por color, firmeza y madurez para conservar su calidad desde la finca hasta el mercado internacional.</p>
+                    <div class="inner-hero-actions">
+                        <a class="btn btn-primary btn-lg" href="#calidad">Descubrir el producto</a>
+                        <a class="inner-text-link" href="about.html">Conocer nuestra empresa <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="inner-hero-trust" aria-label="Atributos del producto">
+                    <div><strong>Premium</strong><span>Selección por calidad</span></div>
+                    <div><strong>Firme</strong><span>Óptimo para exportación</span></div>
+                    <div><strong>Trazable</strong><span>Control de cada lote</span></div>
                 </div>
             </div>
         </section>
 
-        <section class="public-section">
-            <div class="public-container public-feature-row">
-                <div class="public-image-frame">
-                    <img src="assets/img/products-02.jpg" alt="Características del mango Tommy Atkins">
+        <section id="calidad" class="inner-section inner-product-intro">
+            <div class="public-container">
+                <div class="inner-section-heading">
+                    <span class="inner-overline">Nuestro producto</span>
+                    <h2>Una variedad creada para destacar</h2>
+                    <p>Una presencia intensa, pulpa consistente y excelente comportamiento poscosecha hacen del Tommy Atkins una elección confiable para cadenas de distribución exigentes.</p>
                 </div>
-                <article class="public-info-card">
-                    <span class="public-card-icon"><i class="fas fa-list-check"></i></span>
-                    <h2>Características</h2>
-                    <ul class="public-list">
-                        <li><i class="fas fa-check"></i><span>Sabor dulce y suave.</span></li>
-                        <li><i class="fas fa-check"></i><span>Pulpa firme por su constitución fibrosa.</span></li>
-                        <li><i class="fas fa-check"></i><span>Color rojizo oscuro con tonos verdes y anaranjados.</span></li>
-                        <li><i class="fas fa-check"></i><span>Forma mediana a grande, ovalada u oblonga.</span></li>
-                    </ul>
-                </article>
+                <div class="product-showcase">
+                    <div class="product-showcase-image">
+                        <img src="assets/img/products-01.jpg" alt="Mango Tommy Atkins de SEMBRIEXPORT">
+                        <span class="image-label"><i class="fas fa-map-marker-alt"></i> Ecuador</span>
+                    </div>
+                    <article class="product-showcase-copy">
+                        <span class="section-number">01</span>
+                        <span class="inner-overline">Tommy Atkins</span>
+                        <h2>Calidad visible en cada fruto</h2>
+                        <p>Seleccionamos fruta con una combinación equilibrada de apariencia, resistencia y sabor. Cada lote es revisado para responder a las condiciones de manejo, transporte y exhibición del mercado de destino.</p>
+                        <div class="product-signature">
+                            <i class="fas fa-award"></i>
+                            <div><strong>Selección especializada</strong><span>Criterios comerciales y fitosanitarios en cada etapa.</span></div>
+                        </div>
+                    </article>
+                </div>
             </div>
         </section>
 
-        <section class="public-section public-band">
-            <div class="public-container public-feature-row">
-                <article class="public-info-card">
-                    <span class="public-card-icon"><i class="fas fa-plane-departure"></i></span>
-                    <h2>Exportando para el mundo</h2>
-                    <p>Nuestras actividades se orientan a exportar fruta de calidad hacia Estados Unidos, Canadá y Europa.</p>
-                </article>
-                <div class="public-image-frame">
-                    <img src="assets/img/products-03.jpg" alt="Exportación de mango">
+        <section class="inner-section product-qualities">
+            <div class="public-container">
+                <div class="qualities-layout">
+                    <div class="qualities-copy">
+                        <span class="inner-overline">Perfil del producto</span>
+                        <h2>Todo lo que exige una fruta de exportación</h2>
+                        <p>El Tommy Atkins combina atributos sensoriales y físicos que favorecen una presentación uniforme y una experiencia consistente.</p>
+                    </div>
+                    <div class="qualities-grid">
+                        <article><span>01</span><i class="fas fa-tint"></i><h3>Sabor equilibrado</h3><p>Dulce, suave y agradable al paladar.</p></article>
+                        <article><span>02</span><i class="fas fa-shield-alt"></i><h3>Pulpa firme</h3><p>Buena resistencia gracias a su constitución fibrosa.</p></article>
+                        <article><span>03</span><i class="fas fa-palette"></i><h3>Color distintivo</h3><p>Rojos intensos con matices verdes y anaranjados.</p></article>
+                        <article><span>04</span><i class="fas fa-expand"></i><h3>Formato comercial</h3><p>Tamaño mediano a grande y forma ovalada.</p></article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="inner-section export-story">
+            <div class="public-container export-story-card">
+                <div class="export-story-image">
+                    <img src="assets/img/products-03.jpg" alt="Preparación de mango para mercados internacionales">
+                </div>
+                <div class="export-story-copy">
+                    <span class="inner-overline">Alcance internacional</span>
+                    <h2>Del campo ecuatoriano al mundo</h2>
+                    <p>Nuestra operación prepara fruta para mercados que valoran la calidad constante, la inocuidad y una cadena logística responsable.</p>
+                    <div class="market-list">
+                        <span><i class="fas fa-circle"></i> Estados Unidos</span>
+                        <span><i class="fas fa-circle"></i> Canadá</span>
+                        <span><i class="fas fa-circle"></i> Europa</span>
+                    </div>
+                    <a class="btn btn-light" href="about.html">Conoce cómo trabajamos <i class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="public-footer">
-        <div class="public-container">
-            <strong>SEMBRIEXPORT</strong>
-            <span>Productos agrícolas de calidad para mercados internacionales.</span>
+    <footer class="public-footer home-footer">
+        <div class="public-container home-footer-shell">
+            <div class="home-footer-grid">
+                <section class="home-footer-newsletter" aria-labelledby="footer-newsletter-title">
+                    <a class="home-footer-brand" href="index.html">
+                        <span class="public-brand-mark"><i class="fas fa-seedling"></i></span>
+                        <span>SEMBRIEXPORT</span>
+                    </a>
+                    <h2 id="footer-newsletter-title">Mantente conectado</h2>
+                    <p>Conoce nuestras novedades sobre producción, trazabilidad y exportación agrícola.</p>
+                    <form class="home-footer-form">
+                        <label class="visually-hidden" for="footerEmail">Correo electrónico</label>
+                        <input id="footerEmail" type="email" placeholder="Ingresa tu correo" autocomplete="email">
+                        <button type="button" aria-label="Enviar correo"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </section>
+
+                <nav class="home-footer-column" aria-labelledby="footer-links-title">
+                    <h3 id="footer-links-title">Enlaces rápidos</h3>
+                    <a href="index.html">Inicio</a>
+                    <a href="index.html#compromisos">Nuestro compromiso</a>
+                    <a href="products.html">Productos</a>
+                    <a href="about.html">Acerca de</a>
+                    <a href="login.html">Iniciar sesión</a>
+                </nav>
+
+                <section class="home-footer-column home-footer-contact" aria-labelledby="footer-contact-title">
+                    <h3 id="footer-contact-title">Contáctanos</h3>
+                    <p><i class="fas fa-map-marker-alt"></i><span>Guayaquil, Ecuador</span></p>
+                    <p><i class="fas fa-phone"></i><a href="tel:+593000000000">+593 00 000 0000</a></p>
+                    <p><i class="fas fa-envelope"></i><a href="mailto:info@sembriexport.com">info@sembriexport.com</a></p>
+                    <p><i class="fas fa-clock"></i><span>Lun - Vie, 08:00 - 17:00</span></p>
+                </section>
+
+                <section class="home-footer-column" aria-labelledby="footer-social-title">
+                    <h3 id="footer-social-title">Síguenos</h3>
+                    <p class="home-footer-social-copy">Acompaña el crecimiento de nuestra comunidad agrícola.</p>
+                    <div class="home-footer-socials">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                    <div class="home-footer-certification">
+                        <i class="fas fa-leaf"></i>
+                        <span>Producción responsable y trazable</span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="home-footer-bottom">
+                <p>&copy; 2026 SEMBRIEXPORT. Todos los derechos reservados.</p>
+                <div>
+                    <a href="#">Política de privacidad</a>
+                    <a href="#">Términos de uso</a>
+                </div>
+            </div>
         </div>
     </footer>
 

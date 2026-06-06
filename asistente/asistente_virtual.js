@@ -24,10 +24,115 @@
         toggle.setAttribute('aria-expanded', 'false');
     }
 
-    function agregarMensaje(texto, tipo, esError) {
+    function agregarTextoConFormato(contenedor, texto) {
+        const fragmento = document.createDocumentFragment();
+        const patron = /\*\*(.+?)\*\*/g;
+        let posicion = 0;
+        let coincidencia;
+
+        while ((coincidencia = patron.exec(texto)) !== null) {
+            fragmento.appendChild(document.createTextNode(texto.slice(posicion, coincidencia.index)));
+
+            const destacado = document.createElement('strong');
+            destacado.textContent = coincidencia[1];
+            fragmento.appendChild(destacado);
+            posicion = coincidencia.index + coincidencia[0].length;
+        }
+
+        fragmento.appendChild(document.createTextNode(
+            texto.slice(posicion).replace(/\*\*/g, '')
+        ));
+        contenedor.appendChild(fragmento);
+    }
+
+    function renderizarRespuesta(contenedor, texto) {
+        const lineas = texto.replace(/\r\n?/g, '\n').split('\n');
+        let lista = null;
+
+        function cerrarLista() {
+            lista = null;
+        }
+
+        lineas.forEach(function (linea) {
+            const contenido = linea.trim();
+
+            if (!contenido) {
+                cerrarLista();
+                return;
+            }
+
+            const titulo = contenido.match(/^#{2,4}\s+(.+)$/);
+            if (titulo) {
+                cerrarLista();
+                const encabezado = document.createElement('h4');
+                agregarTextoConFormato(encabezado, titulo[1]);
+                contenedor.appendChild(encabezado);
+                return;
+            }
+
+            const elementoLista = contenido.match(/^(?:[-*•]|\d+\.)\s+(.+)$/);
+            if (elementoLista) {
+                if (!lista) {
+                    lista = document.createElement('ul');
+                    contenedor.appendChild(lista);
+                }
+
+                const elemento = document.createElement('li');
+                agregarTextoConFormato(elemento, elementoLista[1]);
+                lista.appendChild(elemento);
+                return;
+            }
+
+            cerrarLista();
+            const parrafo = document.createElement('p');
+            agregarTextoConFormato(parrafo, contenido.replace(/^#{1,6}\s*/, ''));
+            contenedor.appendChild(parrafo);
+        });
+    }
+
+    function agregarEnlaces(contenedor, enlaces) {
+        if (!Array.isArray(enlaces) || enlaces.length === 0) return;
+
+        const acciones = document.createElement('div');
+        acciones.className = 'ada-message__links';
+        acciones.setAttribute('aria-label', 'Módulos relacionados');
+
+        enlaces.forEach(function (enlace) {
+            if (!enlace || typeof enlace.href !== 'string' || typeof enlace.label !== 'string') return;
+
+            const accion = document.createElement('a');
+            accion.className = 'ada-message__link';
+            accion.href = enlace.href;
+
+            if (typeof enlace.icon === 'string' && /^fas? fa-[a-z0-9-]+$/.test(enlace.icon)) {
+                const icono = document.createElement('i');
+                icono.className = enlace.icon;
+                icono.setAttribute('aria-hidden', 'true');
+                accion.appendChild(icono);
+            }
+
+            const etiqueta = document.createElement('span');
+            etiqueta.textContent = enlace.label;
+            accion.appendChild(etiqueta);
+            acciones.appendChild(accion);
+        });
+
+        if (acciones.childElementCount > 0) {
+            contenedor.appendChild(acciones);
+        }
+    }
+
+    function agregarMensaje(texto, tipo, esError, enlaces) {
         const mensaje = document.createElement('div');
         mensaje.className = 'ada-message ada-message--' + tipo + (esError ? ' ada-message--error' : '');
-        mensaje.textContent = texto;
+
+        if (tipo === 'bot' && !esError) {
+            renderizarRespuesta(mensaje, texto);
+            agregarEnlaces(mensaje, enlaces);
+        } else {
+            mensaje.textContent = texto;
+        }
+
         messages.appendChild(mensaje);
 
         requestAnimationFrame(function () {
@@ -65,6 +170,14 @@
             : '<i class="fas fa-paper-plane"></i>';
     }
 
+    function navegarADestino(destino) {
+        if (!destino || typeof destino.href !== 'string') return;
+
+        window.setTimeout(function () {
+            window.location.assign(destino.href);
+        }, 650);
+    }
+
     // Envia la pregunta al backend PHP y pinta la respuesta JSON.
     async function enviarPregunta(pregunta) {
         agregarMensaje(pregunta, 'user', false);
@@ -90,7 +203,13 @@
             }
 
             ocultarEscribiendo();
-            agregarMensaje(data.respuesta || 'ADA no recibió una respuesta válida.', 'bot', data.ok === false);
+            agregarMensaje(
+                data.respuesta || 'ADA no recibió una respuesta válida.',
+                'bot',
+                data.ok === false,
+                data.enlaces
+            );
+            navegarADestino(data.navegar_a);
         } catch (error) {
             ocultarEscribiendo();
             agregarMensaje('No pude comunicarme con el servidor. Verifica Apache y vuelve a intentarlo.', 'bot', true);

@@ -49,13 +49,22 @@ $notificaciones = $conn->query("SELECT * FROM notificaciones WHERE leida = 0 ORD
         <?php render_flash_messages(); ?>
 
         <section class="farmer-page-heading admin-page-heading">
-            <div>
+            <div class="admin-heading-copy">
                 <span class="farmer-kicker">Administración</span>
                 <h1>Centro de Control</h1>
+                <p>Resumen general de usuarios, cultivos e inventario de SembriExport.</p>
             </div>
             <div class="admin-heading-actions">
-                <span><i class="fas fa-bell"></i> <?php echo $notificaciones->num_rows; ?> notificaciones</span>
-                <span><i class="fas fa-triangle-exclamation"></i> <?php echo $total_insumos_criticos + $total_productos_bajos; ?> alertas</span>
+                <span class="admin-status-chip">
+                    <i class="fas fa-bell"></i>
+                    <strong><?php echo $notificaciones->num_rows; ?></strong>
+                    notificaciones
+                </span>
+                <span class="admin-status-chip admin-status-chip--warning">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <strong><?php echo $total_insumos_criticos + $total_productos_bajos; ?></strong>
+                    alertas
+                </span>
             </div>
         </section>
 
@@ -63,118 +72,155 @@ $notificaciones = $conn->query("SELECT * FROM notificaciones WHERE leida = 0 ORD
             <!-- Dashboard Tab -->
             <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
                 <!-- Estadísticas Principales -->
-                <div class="row mb-4">
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card card-custom">
-                            <div class="card-body text-center">
-                                <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                                <h4 class="text-primary"><?php echo $total_usuarios; ?></h4>
-                                <p class="mb-0">Total Usuarios</p>
+                <section class="admin-overview-section" aria-labelledby="admin-overview-title">
+                    <div class="admin-section-heading">
+                        <div>
+                            <span class="admin-section-eyebrow">Vista general</span>
+                            <h2 id="admin-overview-title">Indicadores principales</h2>
+                        </div>
+                        <span class="admin-live-status"><i class="fas fa-circle"></i> Datos actualizados</span>
+                    </div>
+
+                    <div class="admin-metrics-grid">
+                        <article class="admin-metric-card admin-metric-card--users">
+                            <div class="admin-metric-top">
+                                <span class="admin-metric-icon"><i class="fas fa-users"></i></span>
+                                <span class="admin-metric-tag">Usuarios</span>
                             </div>
+                            <strong class="admin-metric-value"><?php echo $total_usuarios; ?></strong>
+                            <p>Total de usuarios registrados</p>
+                            <span class="admin-metric-detail"><i class="fas fa-user-tie"></i> <?php echo $agricultores; ?> agricultores activos</span>
+                        </article>
+
+                        <article class="admin-metric-card admin-metric-card--crops">
+                            <div class="admin-metric-top">
+                                <span class="admin-metric-icon"><i class="fas fa-seedling"></i></span>
+                                <span class="admin-metric-tag">Producción</span>
+                            </div>
+                            <strong class="admin-metric-value"><?php echo $total_cultivos; ?></strong>
+                            <p>Cultivos registrados</p>
+                            <span class="admin-metric-detail"><i class="fas fa-leaf"></i> Seguimiento agrícola</span>
+                        </article>
+
+                        <article class="admin-metric-card admin-metric-card--lots">
+                            <div class="admin-metric-top">
+                                <span class="admin-metric-icon"><i class="fas fa-map-location-dot"></i></span>
+                                <span class="admin-metric-tag">Territorio</span>
+                            </div>
+                            <strong class="admin-metric-value"><?php echo $total_lotes; ?></strong>
+                            <p>Lotes activos</p>
+                            <span class="admin-metric-detail"><i class="fas fa-location-dot"></i> Áreas bajo gestión</span>
+                        </article>
+
+                        <article class="admin-metric-card admin-metric-card--farmers">
+                            <div class="admin-metric-top">
+                                <span class="admin-metric-icon"><i class="fas fa-user-tie"></i></span>
+                                <span class="admin-metric-tag">Equipo</span>
+                            </div>
+                            <strong class="admin-metric-value"><?php echo $agricultores; ?></strong>
+                            <p>Agricultores vinculados</p>
+                            <span class="admin-metric-detail"><i class="fas fa-circle-check"></i> Personal registrado</span>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="admin-dashboard-row">
+                    <div class="admin-notification-panel">
+                        <div class="admin-panel-heading">
+                            <span class="admin-panel-icon"><i class="fas fa-bell"></i></span>
+                            <div>
+                                <span class="admin-section-eyebrow">Actividad reciente</span>
+                                <h2>Centro de notificaciones</h2>
+                            </div>
+                            <span class="admin-panel-count"><?php echo $notificaciones->num_rows; ?> nuevas</span>
+                        </div>
+                        <div class="admin-notification-list">
+                            <?php if ($notificaciones->num_rows > 0): ?>
+                                <?php while ($notif = $notificaciones->fetch_assoc()): ?>
+                                    <div class="admin-notification-item">
+                                        <span class="admin-notification-dot"></span>
+                                        <div>
+                                            <p><?php echo htmlspecialchars($notif['mensaje']); ?></p>
+                                            <time datetime="<?php echo htmlspecialchars($notif['fecha']); ?>">
+                                                <i class="far fa-clock"></i> <?php echo htmlspecialchars($notif['fecha']); ?>
+                                            </time>
+                                        </div>
+                                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <div class="admin-empty-state">
+                                    <i class="fas fa-check"></i>
+                                    <div>
+                                        <strong>Todo está al día</strong>
+                                        <span>No tienes notificaciones pendientes.</span>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card card-custom">
-                            <div class="card-body text-center">
-                                <i class="fas fa-leaf fa-2x text-success mb-2"></i>
-                                <h4 class="text-success"><?php echo $total_cultivos; ?></h4>
-                                <p class="mb-0">Cultivos Registrados</p>
+                    <aside class="admin-attention-panel">
+                        <div class="admin-panel-heading">
+                            <span class="admin-panel-icon admin-panel-icon--status" aria-hidden="true">
+                                <i class="fas fa-shield-alt"></i>
+                            </span>
+                            <div>
+                                <span class="admin-section-eyebrow">Estado operativo</span>
+                                <h2>Atención requerida</h2>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card card-custom">
-                            <div class="card-body text-center">
-                                <i class="fas fa-map-marked-alt fa-2x text-warning mb-2"></i>
-                                <h4 class="text-warning"><?php echo $total_lotes; ?></h4>
-                                <p class="mb-0">Lotes Activos</p>
-                            </div>
+                        <strong class="admin-attention-value"><?php echo $total_insumos_criticos + $total_productos_bajos; ?></strong>
+                        <p>elementos requieren revisión de inventario.</p>
+                        <div class="admin-attention-breakdown">
+                            <span><i class="fas fa-flask"></i> Insumos agotados <strong><?php echo $total_insumos_criticos; ?></strong></span>
+                            <span><i class="fas fa-box"></i> Productos bajos <strong><?php echo $total_productos_bajos; ?></strong></span>
                         </div>
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card card-custom">
-                            <div class="card-body text-center">
-                                <i class="fas fa-user-tie fa-2x text-info mb-2"></i>
-                                <h4 class="text-info"><?php echo $agricultores; ?></h4>
-                                <p class="mb-0">Agricultores</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Alertas críticas -->
-                <?php if ($alertas_insumos->num_rows > 0 || $alertas_productos->num_rows > 0): ?>
-                    <div class="row">
-                        <div class="col-12 mb-4">
-                            <div class="alert alert-danger">
-                                <h5><i class="fas fa-exclamation-triangle"></i> Alertas Críticas</h5>
-                                <p>Hay productos o insumos con inventario bajo que requieren atención inmediata.</p>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <!-- notificacion -->
-                <?php if ($notificaciones->num_rows > 0): ?>
-                    <div class="row">
-                        <div class="col-12 mb-4">
-                            <div class="alert alert-info">
-                                <h5><i class="fas fa-bell"></i> Notificaciones</h5>
-                                <ul class="mb-0">
-                                    <?php while ($notif = $notificaciones->fetch_assoc()): ?>
-                                        <li><?php echo htmlspecialchars($notif['mensaje']); ?> <small>(<?php echo $notif['fecha']; ?>)</small></li>
-                                    <?php endwhile; ?>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
+                    </aside>
+                </section>
 
                 <!-- Estadísticas de inventario -->
-                <div class="row mb-4">
-                    <div class="col-md-3 mb-3">
-                        <div class="card text-white bg-primary">
-                            <div class="card-body text-center">
-                                <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
-                                <h3><?php echo $total_lotes; ?></h3>
-                                <p class="mb-0">Total Lotes</p>
-                            </div>
+                <section class="admin-inventory-summary" aria-labelledby="admin-inventory-title">
+                    <div class="admin-section-heading">
+                        <div>
+                            <span class="admin-section-eyebrow">Control operativo</span>
+                            <h2 id="admin-inventory-title">Resumen de inventario</h2>
                         </div>
                     </div>
-
-                    <div class="col-md-3 mb-3">
-                        <div class="card text-white bg-success">
-                            <div class="card-body text-center">
-                                <i class="fas fa-seedling fa-2x mb-2"></i>
-                                <h3><?php echo $total_cultivos; ?></h3>
-                                <p class="mb-0">Cultivos Activos</p>
+                    <div class="admin-inventory-grid">
+                        <article class="admin-inventory-card">
+                            <span class="admin-inventory-icon"><i class="fas fa-map-marked-alt"></i></span>
+                            <div>
+                                <span>Total lotes</span>
+                                <strong><?php echo $total_lotes; ?></strong>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-                        <div class="card text-white bg-danger">
-                            <div class="card-body text-center">
-                                <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
-                                <h3><?php echo $total_insumos_criticos; ?></h3>
-                                <p class="mb-0">Insumos Agotados</p>
+                            <span class="admin-inventory-state admin-inventory-state--ok">Operativo</span>
+                        </article>
+                        <article class="admin-inventory-card">
+                            <span class="admin-inventory-icon"><i class="fas fa-seedling"></i></span>
+                            <div>
+                                <span>Cultivos activos</span>
+                                <strong><?php echo $total_cultivos; ?></strong>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-                        <div class="card text-white bg-warning">
-                            <div class="card-body text-center">
-                                <i class="fas fa-box fa-2x mb-2"></i>
-                                <h3><?php echo $total_productos_bajos; ?></h3>
-                                <p class="mb-0">Productos Bajos</p>
+                            <span class="admin-inventory-state admin-inventory-state--ok">En curso</span>
+                        </article>
+                        <article class="admin-inventory-card admin-inventory-card--danger">
+                            <span class="admin-inventory-icon"><i class="fas fa-flask"></i></span>
+                            <div>
+                                <span>Insumos agotados</span>
+                                <strong><?php echo $total_insumos_criticos; ?></strong>
                             </div>
-                        </div>
+                            <span class="admin-inventory-state">Revisar</span>
+                        </article>
+                        <article class="admin-inventory-card admin-inventory-card--warning">
+                            <span class="admin-inventory-icon"><i class="fas fa-box-open"></i></span>
+                            <div>
+                                <span>Productos bajos</span>
+                                <strong><?php echo $total_productos_bajos; ?></strong>
+                            </div>
+                            <span class="admin-inventory-state">Atención</span>
+                        </article>
                     </div>
-                </div>
+                </section>
 
                 <!-- Alertas de inventario -->
                 <div class="row">
@@ -472,7 +518,7 @@ $notificaciones = $conn->query("SELECT * FROM notificaciones WHERE leida = 0 ORD
     <?php render_ada_chat(); ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/admin.js?v=20260605-notifications"></script>
+    <script src="js/admin.js?v=<?= filemtime(__DIR__ . '/js/admin.js'); ?>"></script>
     <script>
         // Funciones para el dashboard
         function cargarHistorialLote() {

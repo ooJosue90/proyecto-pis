@@ -22,7 +22,7 @@ $solicitudes_procesadas = $conn->query("
     <link rel="icon" type="image/x-icon" href="assets/mango.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="css/dashboard.css?v=20260605-select-font" rel="stylesheet">
+    <link href="css/dashboard.css?v=<?php echo filemtime(__DIR__ . '/css/dashboard.css'); ?>" rel="stylesheet">
     <link href="asistente/asistente_virtual.css" rel="stylesheet">
 </head>
 <body class="print-page warehouse-report-page">
@@ -33,8 +33,13 @@ $solicitudes_procesadas = $conn->query("
                 <i class="fas fa-arrow-left"></i> Regresar
             </a>
         </div>
-        <span class="report-brand-mark"><i class="fas fa-check-circle"></i></span>
-        <p class="report-kicker">SEMBRIEXPORT</p>
+        <div class="warehouse-report-brand">
+            <span class="report-brand-mark"><i class="fas fa-check"></i></span>
+            <div>
+                <strong>SEMBRIEXPORT</strong>
+                <small>Gestión agrícola</small>
+            </div>
+        </div>
         <h1 class="report-title">Reporte de solicitudes procesadas</h1>
         <p class="report-subtitle">Generado el <?php echo date('d/m/Y H:i:s'); ?> por <?php echo htmlspecialchars($_SESSION['nombre']); ?></p>
     </header>

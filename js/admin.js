@@ -22,6 +22,48 @@
     const Admin = {
         contentCache: {},
 
+        cleanupModalState: function () {
+            const visibleModal = document.querySelector('.modal.show');
+            if (visibleModal) return;
+
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        },
+
+        closeModal: function (modalElement) {
+            return new Promise(resolve => {
+                if (!modalElement || typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+                    this.cleanupModalState();
+                    resolve();
+                    return;
+                }
+
+                const modal = bootstrap.Modal.getInstance(modalElement)
+                    || bootstrap.Modal.getOrCreateInstance(modalElement);
+                let finished = false;
+
+                const finish = () => {
+                    if (finished) return;
+                    finished = true;
+                    modalElement.removeEventListener('hidden.bs.modal', finish);
+                    this.cleanupModalState();
+                    resolve();
+                };
+
+                modalElement.addEventListener('hidden.bs.modal', finish, { once: true });
+                modal.hide();
+                window.setTimeout(finish, 450);
+            });
+        },
+
+        refreshPedidosProveedores: function (modalElement) {
+            return this.closeModal(modalElement)
+                .then(() => this.loadPedidosProveedores())
+                .finally(() => this.cleanupModalState());
+        },
+
         // Carga genérica de HTML en un contenedor y devuelve una Promise
         loadContent: function (file, targetId, options = {}) {
             const useCache = options.useCache !== false;
@@ -203,7 +245,12 @@
                 fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
-                    if (data.success) { alert('Proveedor creado exitosamente'); location.reload(); }
+                    if (data.success) {
+                        alert(data.message || 'Proveedor creado exitosamente');
+                        Admin.refreshPedidosProveedores(
+                            document.getElementById('modalCrearProveedor')
+                        );
+                    }
                     else alert('Error: ' + (data.message || 'Error desconocido'));
                 }).catch(err => { console.error('Crear proveedor:', err); alert('Error de conexión'); });
             });
@@ -220,7 +267,12 @@
                 fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
-                    if (data.success) { alert('Proveedor actualizado'); location.reload(); }
+                    if (data.success) {
+                        alert(data.message || 'Proveedor actualizado');
+                        Admin.refreshPedidosProveedores(
+                            document.getElementById('modalEditarProveedor')
+                        );
+                    }
                     else alert('Error: ' + (data.message || 'Error desconocido'));
                 }).catch(err => { console.error('Editar proveedor:', err); alert('Error de conexión'); });
             });
@@ -237,11 +289,62 @@
                 fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
-                    if (data.success) { alert('Pedido creado exitosamente'); location.reload(); }
+                    if (data.success) {
+                        alert(data.message || 'Pedido creado exitosamente');
+                        Admin.refreshPedidosProveedores(
+                            document.getElementById('modalCrearPedido')
+                        );
+                    }
                     else alert('Error: ' + (data.message || 'Error desconocido'));
                 }).catch(err => { console.error('Crear pedido:', err); alert('Error de conexión'); });
             });
             }
+
+            const editarPedido = root.querySelector('#formEditarPedido');
+            if (editarPedido && !editarPedido.dataset.hasListener) {
+            editarPedido.dataset.hasListener = '1';
+            editarPedido.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const fd = new FormData(this);
+                fd.append('action', 'editar_pedido');
+                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message || 'Pedido actualizado exitosamente');
+                        Admin.refreshPedidosProveedores(
+                            document.getElementById('modalEditarPedido')
+                        );
+                    }
+                    else alert('Error: ' + (data.message || 'No se pudo actualizar el pedido'));
+                }).catch(err => { console.error('Editar pedido:', err); alert('Error de conexión'); });
+            });
+            }
+
+            root.querySelectorAll('[data-edit-order]').forEach((button) => {
+                if (button.dataset.hasListener) return;
+                button.dataset.hasListener = '1';
+                button.addEventListener('click', function () {
+                    const fields = {
+                        edit_pedido_id: button.dataset.orderId,
+                        edit_pedido_proveedor: button.dataset.providerId,
+                        edit_pedido_usuario: button.dataset.userId,
+                        edit_pedido_insumo: button.dataset.itemId,
+                        edit_pedido_cantidad: button.dataset.quantity,
+                        edit_pedido_observaciones: button.dataset.observations,
+                    };
+
+                    Object.entries(fields).forEach(([id, value]) => {
+                        const field = document.getElementById(id);
+                        if (field) field.value = value || '';
+                    });
+
+                    const modalElement = document.getElementById('modalEditarPedido');
+                    if (modalElement && typeof bootstrap !== 'undefined') {
+                        bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                    }
+                });
+            });
 
             // Exponer funciones globales que tu HTML usa con onclick(...)
             window.editarProveedor = function (id, nombre, telefono, email, direccion) {
@@ -261,20 +364,26 @@
             fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
-                if (data.success) { alert('Proveedor eliminado'); location.reload(); }
+                if (data.success) {
+                    alert(data.message || 'Proveedor eliminado');
+                    Admin.loadPedidosProveedores();
+                }
                 else alert('Error: ' + (data.message || 'Error desconocido'));
                 }).catch(err => { console.error('Eliminar proveedor:', err); alert('Error de conexión'); });
             };
 
-            window.eliminarPedido = function (id) {
-            if (!confirm('¿Seguro de eliminar este pedido?')) return;
-            const fd = new FormData(); fd.append('action','eliminar_pedido'); fd.append('id_pedido', id);
+            window.cancelarPedido = function (id) {
+            if (!confirm('¿Seguro de cancelar este pedido? Esta acción impedirá registrar su comprobante.')) return;
+            const fd = new FormData(); fd.append('action','cancelar_pedido'); fd.append('id_pedido', id);
             fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
-                if (data.success) { alert('Pedido eliminado'); location.reload(); }
+                if (data.success) {
+                    alert(data.message || 'Pedido cancelado');
+                    Admin.loadPedidosProveedores();
+                }
                 else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Eliminar pedido:', err); alert('Error de conexión'); });
+                }).catch(err => { console.error('Cancelar pedido:', err); alert('Error de conexión'); });
             };
             // --- FIN: Handlers para Proveedores y Pedidos ---
         },

@@ -14,179 +14,285 @@ function purchase_tables_ready(mysqli $conn): bool
     return true;
 }
 
+function purchase_flow_ready(mysqli $conn): bool
+{
+    $requiredColumns = [
+        ['pedidos', 'id_insumo'],
+        ['pedidos', 'estado'],
+        ['pedidos', 'observaciones'],
+        ['facturas_compra', 'id_pedido'],
+    ];
+
+    foreach ($requiredColumns as [$table, $column]) {
+        $tableEscaped = $conn->real_escape_string($table);
+        $columnEscaped = $conn->real_escape_string($column);
+        if ($conn->query("SHOW COLUMNS FROM `{$tableEscaped}` LIKE '{$columnEscaped}'")->num_rows === 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function valid_invoice_date(string $value): bool
 {
     $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
     return $date !== false && $date->format('Y-m-d') === $value;
 }
 
-$tablesReady = purchase_tables_ready($conn);
+$tiposInsumoPermitidos = [
+    'Fertilizantes',
+    'Insecticidas',
+    'Fungicidas',
+    'Herbicidas',
+    'Bioinsumos',
+    'Correctores de suelo',
+    'Herramientas agrícolas',
+    'Sistemas de riego',
+    'Materiales y suministros',
+];
+
+$tablesReady = purchase_tables_ready($conn) && purchase_flow_ready($conn);
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (!$tablesReady) {
-        flash('error', 'Primero ejecute facturas_compra.sql en phpMyAdmin.');
+        flash('error', 'Primero ejecute actualizar_flujo_pedidos_facturas.sql en phpMyAdmin.');
         redirect('bodeguero_facturas.php');
     }
 
-    $idProveedor = (int) ($_POST['id_proveedor'] ?? 0);
+    $idPedido = (int) ($_POST['id_pedido'] ?? 0);
     $numeroFactura = trim((string) ($_POST['numero_factura'] ?? ''));
     $fecha = trim((string) ($_POST['fecha'] ?? ''));
     $observaciones = trim((string) ($_POST['observaciones'] ?? ''));
-    $productos = is_array($_POST['productos'] ?? null) ? $_POST['productos'] : [];
+    $cantidadRecibida = round((float) ($_POST['cantidad_recibida'] ?? 0), 2);
+    $precioUnitario = round((float) ($_POST['precio_unitario'] ?? 0), 2);
+    $idInsumoFormulario = (int) ($_POST['id_insumo'] ?? 0);
+    $nuevoInsumoNombre = trim((string) ($_POST['nuevo_insumo_nombre'] ?? ''));
+    $nuevoInsumoTipo = trim((string) ($_POST['nuevo_insumo_tipo'] ?? ''));
+    $nuevoInsumoDescripcion = trim((string) ($_POST['nuevo_insumo_descripcion'] ?? ''));
+    $nuevoInsumoUnidad = trim((string) ($_POST['nuevo_insumo_unidad'] ?? ''));
+    $nuevoInsumoObservaciones = trim((string) ($_POST['nuevo_insumo_observaciones'] ?? ''));
 
-    if ($idProveedor <= 0 || $numeroFactura === '' || !valid_invoice_date($fecha)) {
-        flash('error', 'Complete correctamente proveedor, número de factura y fecha.');
-        redirect('bodeguero_facturas.php');
-    }
-
-    if (empty($productos)) {
-        flash('error', 'Agregue al menos un insumo a la factura.');
-        redirect('bodeguero_facturas.php');
+    if ($idPedido <= 0 || $numeroFactura === '' || !valid_invoice_date($fecha)
+        || $cantidadRecibida <= 0 || $precioUnitario < 0) {
+        flash('error', 'Complete correctamente pedido, factura, fecha, cantidad y precio.');
+        redirect('bodeguero_facturas.php' . ($idPedido > 0 ? '?pedido_id=' . $idPedido : ''));
     }
 
     $conn->begin_transaction();
 
     try {
-        $proveedor = db_fetch_one(
+        $pedido = db_fetch_one(
             $conn,
-            'SELECT id_proveedor FROM proveedor WHERE id_proveedor = ?',
+            "SELECT p.id_pedidos, p.id_proveedor, p.id_insumo, p.nombre_producto,
+                    p.cantidad, p.unidad_medida, p.estado
+             FROM pedidos p
+             WHERE p.id_pedidos = ?
+             FOR UPDATE",
             'i',
-            [$idProveedor]
+            [$idPedido]
         );
 
-        if (!$proveedor) {
-            throw new RuntimeException('El proveedor seleccionado no existe.');
+        if (!$pedido) {
+            throw new RuntimeException('El pedido seleccionado no existe.');
+        }
+        if ($pedido['estado'] === 'Cancelado') {
+            throw new RuntimeException('No se puede registrar un comprobante para un pedido cancelado.');
+        }
+        if ($pedido['estado'] !== 'Pendiente') {
+            throw new RuntimeException('El pedido ya fue recibido o no está disponible.');
+        }
+        $idInsumoPedido = (int) ($pedido['id_insumo'] ?: $idInsumoFormulario);
+        if (empty($pedido['id_insumo']) && $idInsumoFormulario === 0) {
+            throw new RuntimeException('Seleccione el producto de inventario relacionado con el pedido.');
         }
 
         $duplicada = db_value(
             $conn,
-            'SELECT COUNT(*) FROM facturas_compra WHERE id_proveedor = ? AND numero_factura = ?',
-            'is',
-            [$idProveedor, $numeroFactura],
+            'SELECT COUNT(*) FROM facturas_compra WHERE id_pedido = ?',
+            'i',
+            [$idPedido],
             0
         );
 
         if ((int) $duplicada > 0) {
+            throw new RuntimeException('Este pedido ya tiene un comprobante registrado.');
+        }
+
+        $numeroDuplicado = (int) db_value(
+            $conn,
+            'SELECT COUNT(*) FROM facturas_compra WHERE id_proveedor = ? AND numero_factura = ?',
+            'is',
+            [(int) $pedido['id_proveedor'], $numeroFactura],
+            0
+        );
+        if ($numeroDuplicado > 0) {
             throw new RuntimeException('El número de factura ya está registrado para este proveedor.');
         }
 
-        $lineas = [];
-        $total = 0.0;
-        $insumosIncluidos = [];
-
-        foreach ($productos as $producto) {
-            $idInsumo = (int) ($producto['id_insumo'] ?? 0);
-            $cantidad = round((float) ($producto['cantidad'] ?? 0), 2);
-            $precioUnitario = round((float) ($producto['precio_unitario'] ?? 0), 2);
-
-            if ($idInsumo <= 0 || $cantidad <= 0 || $precioUnitario < 0) {
-                throw new RuntimeException('Cada producto debe tener insumo, cantidad y precio válidos.');
+        if (empty($pedido['id_insumo']) && $idInsumoFormulario === -1) {
+            if ($nuevoInsumoNombre === '' || $nuevoInsumoTipo === '' || $nuevoInsumoUnidad === '') {
+                throw new RuntimeException('Complete nombre, tipo y unidad del nuevo producto.');
             }
 
-            if (isset($insumosIncluidos[$idInsumo])) {
-                throw new RuntimeException('No repita el mismo insumo dentro de una factura.');
+            if (!in_array($nuevoInsumoTipo, $tiposInsumoPermitidos, true)) {
+                throw new RuntimeException('Seleccione una clasificación válida para el nuevo producto.');
             }
-            $insumosIncluidos[$idInsumo] = true;
 
-            $insumo = db_fetch_one(
+            if (mb_strlen($nuevoInsumoNombre) > 200
+                || mb_strlen($nuevoInsumoTipo) > 100
+                || mb_strlen($nuevoInsumoUnidad) > 50) {
+                throw new RuntimeException('Los datos del nuevo producto superan la longitud permitida.');
+            }
+
+            $insumoExistente = (int) db_value(
                 $conn,
-                'SELECT id_insumos, nombre, unidad_medida, cantidad
-                 FROM insumos_agricolas
-                 WHERE id_insumos = ?
-                 FOR UPDATE',
-                'i',
-                [$idInsumo]
+                'SELECT COUNT(*) FROM insumos_agricolas WHERE LOWER(nombre) = LOWER(?)',
+                's',
+                [$nuevoInsumoNombre],
+                0
             );
-
-            if (!$insumo) {
-                throw new RuntimeException('Uno de los insumos seleccionados no existe.');
+            if ($insumoExistente > 0) {
+                throw new RuntimeException('Ya existe un producto con ese nombre. Selecciónelo en la lista.');
             }
 
-            $subtotal = round($cantidad * $precioUnitario, 2);
-            $total = round($total + $subtotal, 2);
-            $lineas[] = [
-                'insumo' => $insumo,
-                'cantidad' => $cantidad,
-                'precio_unitario' => $precioUnitario,
-                'subtotal' => $subtotal,
-            ];
+            db_execute(
+                $conn,
+                "INSERT INTO insumos_agricolas (
+                    id_usuario, nombre, tipo, descripcion, unidad_medida,
+                    cantidad, observaciones
+                 ) VALUES (?, ?, ?, ?, ?, 0, ?)",
+                'ssssss',
+                [
+                    $_SESSION['id_usuario'],
+                    $nuevoInsumoNombre,
+                    $nuevoInsumoTipo,
+                    $nuevoInsumoDescripcion,
+                    $nuevoInsumoUnidad,
+                    $nuevoInsumoObservaciones,
+                ]
+            );
+            $idInsumoPedido = (int) $conn->insert_id;
         }
 
-        if (!$lineas) {
-            throw new RuntimeException('La factura no contiene productos válidos.');
+        if ($idInsumoPedido <= 0) {
+            throw new RuntimeException('Seleccione un producto de inventario válido.');
         }
 
+        $insumo = db_fetch_one(
+            $conn,
+            'SELECT id_insumos, nombre, unidad_medida, cantidad
+             FROM insumos_agricolas
+             WHERE id_insumos = ?
+             FOR UPDATE',
+            'i',
+            [$idInsumoPedido]
+        );
+        if (!$insumo) {
+            throw new RuntimeException('El producto relacionado ya no existe en el inventario.');
+        }
+
+        if (empty($pedido['id_insumo'])) {
+            db_execute(
+                $conn,
+                'UPDATE pedidos
+                 SET id_insumo = ?, nombre_producto = ?, unidad_medida = ?
+                 WHERE id_pedidos = ? AND estado = \'Pendiente\'',
+                'issi',
+                [$idInsumoPedido, $insumo['nombre'], $insumo['unidad_medida'], $idPedido]
+            );
+            $pedido['nombre_producto'] = $insumo['nombre'];
+            $pedido['unidad_medida'] = $insumo['unidad_medida'];
+        }
+
+        $total = round($cantidadRecibida * $precioUnitario, 2);
         db_execute(
             $conn,
             "INSERT INTO facturas_compra (
-                id_proveedor, id_usuario, numero_factura, fecha, total, estado, observaciones
-             ) VALUES (?, ?, ?, ?, ?, 'Registrada', ?)",
-            'isssds',
-            [$idProveedor, $_SESSION['id_usuario'], $numeroFactura, $fecha, $total, $observaciones]
+                id_pedido, id_proveedor, id_usuario, numero_factura, fecha,
+                total, estado, observaciones
+             ) VALUES (?, ?, ?, ?, ?, ?, 'Registrada', ?)",
+            'iisssds',
+            [
+                $idPedido,
+                (int) $pedido['id_proveedor'],
+                $_SESSION['id_usuario'],
+                $numeroFactura,
+                $fecha,
+                $total,
+                $observaciones,
+            ]
         );
         $idFactura = (int) $conn->insert_id;
 
-        foreach ($lineas as $linea) {
-            $insumo = $linea['insumo'];
-            $idInsumo = (int) $insumo['id_insumos'];
-            $stockAnterior = (float) $insumo['cantidad'];
-            $stockNuevo = round($stockAnterior + $linea['cantidad'], 2);
+        $idInsumo = (int) $insumo['id_insumos'];
+        $stockAnterior = (float) $insumo['cantidad'];
+        $stockNuevo = round($stockAnterior + $cantidadRecibida, 2);
 
-            db_execute(
-                $conn,
-                "INSERT INTO factura_compra_detalle (
-                    id_factura_compra, id_insumo, nombre_insumo, unidad_medida,
-                    cantidad, precio_unitario, subtotal
-                 ) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                'iissddd',
-                [
-                    $idFactura,
-                    $idInsumo,
-                    $insumo['nombre'],
-                    $insumo['unidad_medida'],
-                    $linea['cantidad'],
-                    $linea['precio_unitario'],
-                    $linea['subtotal'],
-                ]
-            );
-            $idDetalle = (int) $conn->insert_id;
+        db_execute(
+            $conn,
+            "INSERT INTO factura_compra_detalle (
+                id_factura_compra, id_insumo, nombre_insumo, unidad_medida,
+                cantidad, precio_unitario, subtotal
+             ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            'iissddd',
+            [
+                $idFactura,
+                $idInsumo,
+                $insumo['nombre'],
+                $pedido['unidad_medida'],
+                $cantidadRecibida,
+                $precioUnitario,
+                $total,
+            ]
+        );
+        $idDetalle = (int) $conn->insert_id;
 
-            db_execute(
-                $conn,
-                'UPDATE insumos_agricolas SET cantidad = ? WHERE id_insumos = ?',
-                'di',
-                [$stockNuevo, $idInsumo]
-            );
+        db_execute(
+            $conn,
+            'UPDATE insumos_agricolas SET cantidad = ? WHERE id_insumos = ?',
+            'di',
+            [$stockNuevo, $idInsumo]
+        );
 
-            $movimientoObservacion = "Entrada por factura {$numeroFactura}";
-            db_execute(
-                $conn,
-                "INSERT INTO movimientos_inventario (
-                    id_factura_compra, id_factura_compra_detalle, id_insumo, id_usuario,
-                    tipo, cantidad, stock_anterior, stock_nuevo, observaciones
-                 ) VALUES (?, ?, ?, ?, 'Entrada', ?, ?, ?, ?)",
-                'iiisddds',
-                [
-                    $idFactura,
-                    $idDetalle,
-                    $idInsumo,
-                    $_SESSION['id_usuario'],
-                    $linea['cantidad'],
-                    $stockAnterior,
-                    $stockNuevo,
-                    $movimientoObservacion,
-                ]
-            );
+        $movimientoObservacion = "Entrada por factura {$numeroFactura}, pedido #{$idPedido}";
+        db_execute(
+            $conn,
+            "INSERT INTO movimientos_inventario (
+                id_factura_compra, id_factura_compra_detalle, id_insumo, id_usuario,
+                tipo, cantidad, stock_anterior, stock_nuevo, observaciones
+             ) VALUES (?, ?, ?, ?, 'Entrada', ?, ?, ?, ?)",
+            'iiisddds',
+            [
+                $idFactura,
+                $idDetalle,
+                $idInsumo,
+                $_SESSION['id_usuario'],
+                $cantidadRecibida,
+                $stockAnterior,
+                $stockNuevo,
+                $movimientoObservacion,
+            ]
+        );
 
-            // Mantiene visible la entrada en el reporte de movimientos existente.
-            db_execute(
-                $conn,
-                "INSERT INTO movimientos_insumos (
-                    id_insumo, id_usuario, tipo, estado, cantidad, observaciones, fecha_movimiento
-                 ) VALUES (?, ?, 'Entrada', 'Entrada', ?, ?, NOW())",
-                'isds',
-                [$idInsumo, $_SESSION['id_usuario'], $linea['cantidad'], $movimientoObservacion]
-            );
+        db_execute(
+            $conn,
+            "INSERT INTO movimientos_insumos (
+                id_insumo, id_usuario, tipo, estado, cantidad, observaciones, fecha_movimiento
+             ) VALUES (?, ?, 'Entrada', 'Entrada', ?, ?, NOW())",
+            'isds',
+            [$idInsumo, $_SESSION['id_usuario'], $cantidadRecibida, $movimientoObservacion]
+        );
+
+        $pedidoActualizado = db_execute(
+            $conn,
+            "UPDATE pedidos SET estado = 'Recibido'
+             WHERE id_pedidos = ? AND estado = 'Pendiente'",
+            'i',
+            [$idPedido]
+        );
+        if ($pedidoActualizado !== 1) {
+            throw new RuntimeException('El pedido cambió de estado durante la recepción.');
         }
 
         $conn->commit();
@@ -195,7 +301,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $conn->rollback();
         error_log('Error registrando factura de compra: ' . $exception->getMessage());
         $message = (int) $exception->getCode() === 1062
-            ? 'El número de factura ya está registrado para este proveedor.'
+            ? 'El pedido o el número de factura ya tiene un comprobante registrado.'
             : ($exception instanceof RuntimeException && !($exception instanceof mysqli_sql_exception)
                 ? $exception->getMessage()
                 : 'No se pudo registrar la factura de compra.');
@@ -205,11 +311,37 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     redirect('bodeguero_facturas.php');
 }
 
-$proveedores = db_fetch_all($conn, 'SELECT id_proveedor, Nombre, ruc_cedula FROM proveedor ORDER BY Nombre');
-$insumos = db_fetch_all(
-    $conn,
-    'SELECT id_insumos, nombre, unidad_medida, cantidad FROM insumos_agricolas ORDER BY nombre'
-);
+$pedidoSeleccionadoId = (int) ($_GET['pedido_id'] ?? 0);
+$pedidosPendientes = $tablesReady
+    ? db_fetch_all(
+        $conn,
+        "SELECT p.id_pedidos, p.id_proveedor, p.id_insumo, p.nombre_producto,
+                p.cantidad, p.unidad_medida, p.observaciones, p.fecha,
+                pr.Nombre AS proveedor_nombre, pr.ruc_cedula,
+                u.nombre AS usuario_responsable
+         FROM pedidos p
+         JOIN proveedor pr ON p.id_proveedor = pr.id_proveedor
+         JOIN usuarios u ON p.id_usuario = u.id_usuario
+         LEFT JOIN facturas_compra fc ON fc.id_pedido = p.id_pedidos
+         WHERE p.estado = 'Pendiente' AND fc.id_factura_compra IS NULL
+         ORDER BY p.fecha ASC, p.id_pedidos ASC"
+    )
+    : [];
+$pedidoSeleccionado = null;
+foreach ($pedidosPendientes as $pedidoPendiente) {
+    if ((int) $pedidoPendiente['id_pedidos'] === $pedidoSeleccionadoId) {
+        $pedidoSeleccionado = $pedidoPendiente;
+        break;
+    }
+}
+$insumosDisponibles = $tablesReady
+    ? db_fetch_all(
+        $conn,
+        'SELECT id_insumos, nombre, unidad_medida, cantidad
+         FROM insumos_agricolas
+         ORDER BY nombre'
+    )
+    : [];
 $facturasRecientes = $tablesReady
     ? db_fetch_all(
         $conn,
@@ -246,7 +378,7 @@ $facturasRecientes = $tablesReady
     <?php if (!$tablesReady): ?>
         <div class="alert alert-warning">
             <i class="fas fa-triangle-exclamation"></i>
-            El módulo requiere ejecutar <strong>facturas_compra.sql</strong> en phpMyAdmin.
+            El módulo requiere ejecutar <strong>actualizar_flujo_pedidos_facturas.sql</strong> en phpMyAdmin.
         </div>
     <?php else: ?>
         <div class="card mb-4 purchase-invoice-card">
@@ -259,72 +391,197 @@ $facturasRecientes = $tablesReady
             </div>
             <div class="card-body">
                 <form method="POST" id="purchaseInvoiceForm">
-                    <div class="row g-3 mb-4 purchase-invoice-main-fields">
-                        <div class="col-md-5">
-                            <label class="form-label">Proveedor *</label>
-                            <select name="id_proveedor" class="form-select" required>
-                                <option value="">Seleccione un proveedor</option>
-                                <?php foreach ($proveedores as $proveedor): ?>
-                                    <option value="<?php echo e($proveedor['id_proveedor']); ?>">
-                                        <?php echo e($proveedor['Nombre']); ?> - <?php echo e($proveedor['ruc_cedula']); ?>
+                    <div class="purchase-invoice-workspace">
+                        <div class="purchase-invoice-form-column">
+                            <section class="purchase-form-section">
+                                <div class="purchase-form-section-heading">
+                                    <span class="purchase-form-section-number">1</span>
+                                    <div>
+                                        <h5>Documento y pedido</h5>
+                                        <p>Seleccione el pedido e ingrese los datos del comprobante.</p>
+                                    </div>
+                                </div>
+                                <div class="purchase-invoice-main-fields">
+                                    <div class="purchase-field purchase-field--order">
+                                        <label class="form-label">Pedido relacionado *</label>
+                                        <?php if ($pedidoSeleccionado): ?>
+                                            <input type="hidden" name="id_pedido" value="<?php echo (int) $pedidoSeleccionado['id_pedidos']; ?>">
+                                        <?php endif; ?>
+                                        <select
+                                            id="purchaseOrderSelect"
+                                            class="form-select"
+                                            <?php echo $pedidoSeleccionado ? 'disabled' : 'name="id_pedido"'; ?>
+                                            required>
+                                            <option value="">Seleccione un pedido pendiente</option>
+                                            <?php foreach ($pedidosPendientes as $pedido): ?>
+                                                <option
+                                                    value="<?php echo (int) $pedido['id_pedidos']; ?>"
+                                                    data-provider="<?php echo e($pedido['proveedor_nombre']); ?>"
+                                                    data-product="<?php echo e($pedido['nombre_producto']); ?>"
+                                                    data-quantity="<?php echo e($pedido['cantidad']); ?>"
+                                                    data-unit="<?php echo e($pedido['unidad_medida']); ?>"
+                                                    data-user="<?php echo e($pedido['usuario_responsable']); ?>"
+                                                    data-item-id="<?php echo (int) ($pedido['id_insumo'] ?? 0); ?>"
+                                                    <?php echo $pedidoSeleccionado && (int) $pedidoSeleccionado['id_pedidos'] === (int) $pedido['id_pedidos'] ? 'selected' : ''; ?>>
+                                                    Pedido #<?php echo (int) $pedido['id_pedidos']; ?> -
+                                                    <?php echo e($pedido['proveedor_nombre']); ?> -
+                                                    <?php echo e($pedido['nombre_producto']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="purchase-field">
+                                        <label class="form-label">Número de factura *</label>
+                                        <input type="text" name="numero_factura" class="form-control" maxlength="60" placeholder="Ej. 001-001-000012345" required>
+                                    </div>
+                                    <div class="purchase-field">
+                                        <label class="form-label">Fecha *</label>
+                                        <input type="date" name="fecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="purchase-form-section">
+                                <div class="purchase-form-section-heading">
+                                    <span class="purchase-form-section-number">2</span>
+                                    <div>
+                                        <h5>Recepción del producto</h5>
+                                        <p>Confirme el producto y la cantidad que ingresará al inventario.</p>
+                                    </div>
+                                </div>
+
+                                <div class="purchase-order-summary">
+                        <div class="purchase-field">
+                            <label class="form-label">Proveedor</label>
+                            <input type="text" id="purchaseOrderProvider" class="form-control" readonly>
+                        </div>
+                        <div class="purchase-field">
+                            <label class="form-label">Producto</label>
+                            <input type="text" id="purchaseOrderProduct" class="form-control" readonly>
+                        </div>
+                        <div class="purchase-field">
+                            <label class="form-label">Usuario responsable</label>
+                            <input type="text" id="purchaseOrderUser" class="form-control" readonly>
+                        </div>
+                        <div class="purchase-field">
+                            <label class="form-label">Cantidad pedida</label>
+                            <input type="text" id="purchaseOrderQuantity" class="form-control" readonly>
+                        </div>
+                                </div>
+
+                                <div class="purchase-inventory-link" id="purchaseInventoryItemField" hidden>
+                        <div class="purchase-inventory-link-copy">
+                            <span class="purchase-inventory-link-icon"><i class="fas fa-link"></i></span>
+                            <div>
+                                <strong>Relacionar con inventario</strong>
+                                <p>Este pedido necesita asociarse con un producto existente o uno nuevo.</p>
+                            </div>
+                        </div>
+                        <div class="purchase-field">
+                            <label class="form-label">Producto que ingresará al inventario *</label>
+                            <select name="id_insumo" id="purchaseInventoryItem" class="form-select">
+                                <option value="">Seleccione un producto</option>
+                                <option value="-1">+ Crear un nuevo producto de inventario</option>
+                                <?php foreach ($insumosDisponibles as $insumo): ?>
+                                    <option
+                                        value="<?php echo (int) $insumo['id_insumos']; ?>"
+                                        data-product="<?php echo e($insumo['nombre']); ?>"
+                                        data-unit="<?php echo e($insumo['unidad_medida']); ?>">
+                                        <?php echo e($insumo['nombre']); ?>
+                                        (stock: <?php echo e($insumo['cantidad']); ?> <?php echo e($insumo['unidad_medida']); ?>)
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Número de factura *</label>
-                            <input type="text" name="numero_factura" class="form-control" maxlength="60" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Fecha *</label>
-                            <input type="date" name="fecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
-                        </div>
-                    </div>
+                                </div>
 
-                    <div class="purchase-invoice-section-heading">
-                        <div>
-                            <span class="purchase-invoice-step">Paso 2</span>
-                            <h5>Insumos recibidos</h5>
+                                <div class="purchase-new-item" id="purchaseNewInventoryItemFields" hidden>
+                        <div class="purchase-new-item-heading">
+                            <span><i class="fas fa-box-open"></i></span>
+                            <div>
+                                <h6>Nuevo producto de inventario</h6>
+                                <p>Se creará con stock inicial 0; la cantidad recibida se agregará al guardar.</p>
+                            </div>
                         </div>
-                        <button type="button" class="btn btn-outline-primary" id="addPurchaseItem">
-                            <i class="fas fa-plus"></i> Agregar insumo
-                        </button>
-                    </div>
-
-                    <div class="table-responsive purchase-items-wrap">
-                        <table class="table align-middle purchase-items-table" id="purchaseItemsTable">
-                            <thead>
-                                <tr>
-                                    <th>Insumo</th>
-                                    <th>Cantidad</th>
-                                    <th>Precio unitario</th>
-                                    <th>Subtotal</th>
-                                    <th><span class="visually-hidden">Eliminar</span></th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                            <tfoot class="purchase-items-total">
-                                <tr>
-                                    <th colspan="3" class="text-end">Total</th>
-                                    <th id="purchaseInvoiceTotal">$0.00</th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    <div class="purchase-invoice-footer-grid">
-                        <div>
-                            <label class="form-label">Observación</label>
-                            <textarea name="observaciones" class="form-control" rows="3" maxlength="1000" placeholder="Información adicional de la recepción"></textarea>
+                        <div class="purchase-new-item-grid">
+                            <div class="purchase-field purchase-field--wide">
+                                <label class="form-label">Nombre *</label>
+                                <input type="text" name="nuevo_insumo_nombre" id="newInventoryItemName" class="form-control" maxlength="200">
+                            </div>
+                            <div class="purchase-field purchase-field--wide">
+                                <label class="form-label">Tipo *</label>
+                                <select name="nuevo_insumo_tipo" id="newInventoryItemType" class="form-select">
+                                    <option value="">Seleccione una clasificación</option>
+                                    <?php foreach ($tiposInsumoPermitidos as $tipoInsumo): ?>
+                                        <option value="<?php echo e($tipoInsumo); ?>">
+                                            <?php echo e($tipoInsumo); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="purchase-field">
+                                <label class="form-label">Unidad *</label>
+                                <input type="text" name="nuevo_insumo_unidad" id="newInventoryItemUnit" class="form-control" maxlength="50" placeholder="kg, L, unid">
+                            </div>
+                            <div class="purchase-field">
+                                <label class="form-label">Observación</label>
+                                <input type="text" name="nuevo_insumo_observaciones" class="form-control" maxlength="500">
+                            </div>
+                            <div class="purchase-field purchase-field--full">
+                                <label class="form-label">Descripción</label>
+                                <textarea name="nuevo_insumo_descripcion" class="form-control" rows="2" maxlength="1000"></textarea>
+                            </div>
                         </div>
-                        <div class="purchase-invoice-submit-panel">
-                            <span>Total de la factura</span>
-                            <strong data-purchase-total-mirror>$0.00</strong>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-floppy-disk"></i> Registrar factura e ingresar stock
+                                </div>
+
+                                <div class="purchase-receipt-grid">
+                        <div class="purchase-field">
+                            <label class="form-label">Cantidad recibida *</label>
+                            <input type="number" name="cantidad_recibida" id="purchaseReceivedQuantity" class="form-control" min="0.01" step="0.01" required>
+                        </div>
+                        <div class="purchase-field">
+                            <label class="form-label">Unidad</label>
+                            <input type="text" id="purchaseOrderUnit" class="form-control" readonly>
+                        </div>
+                        <div class="purchase-field">
+                            <label class="form-label">Precio unitario *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="precio_unitario" id="purchaseUnitPrice" class="form-control" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <aside class="purchase-invoice-sidebar">
+                            <div class="purchase-invoice-sidebar-title">
+                                <span><i class="fas fa-receipt"></i></span>
+                                <div>
+                                    <small>Resumen</small>
+                                    <h5>Factura de compra</h5>
+                                </div>
+                            </div>
+                            <div class="purchase-invoice-total-card">
+                                <span>Total calculado</span>
+                                <strong data-purchase-total-mirror>$0.00</strong>
+                                <small>Cantidad recibida × precio unitario</small>
+                            </div>
+                            <div class="purchase-field">
+                                <label class="form-label">Observación</label>
+                                <textarea name="observaciones" class="form-control" rows="5" maxlength="1000" placeholder="Información adicional de la recepción"></textarea>
+                            </div>
+                            <div class="purchase-invoice-checklist">
+                                <span><i class="fas fa-check-circle"></i> Actualiza el stock</span>
+                                <span><i class="fas fa-check-circle"></i> Registra el movimiento</span>
+                                <span><i class="fas fa-check-circle"></i> Marca el pedido como recibido</span>
+                            </div>
+                            <button type="submit" class="btn btn-success purchase-invoice-submit" <?php echo !$pedidosPendientes ? 'disabled' : ''; ?>>
+                                <i class="fas fa-floppy-disk"></i>
+                                <span>Registrar factura</span>
                             </button>
-                        </div>
+                            <a href="bodeguero.php" class="purchase-invoice-cancel">Cancelar y volver</a>
+                        </aside>
                     </div>
                 </form>
             </div>
@@ -371,72 +628,89 @@ $facturasRecientes = $tablesReady
     <?php endif; ?>
 </div>
 
-<?php if ($tablesReady): ?>
-<template id="purchaseItemTemplate">
-    <tr>
-        <td>
-            <select class="form-select purchase-item-select" required>
-                <option value="">Seleccione un insumo</option>
-                <?php foreach ($insumos as $insumo): ?>
-                    <option
-                        value="<?php echo e($insumo['id_insumos']); ?>"
-                        data-unit="<?php echo e($insumo['unidad_medida']); ?>">
-                        <?php echo e($insumo['nombre']); ?> (stock: <?php echo e($insumo['cantidad']); ?> <?php echo e($insumo['unidad_medida']); ?>)
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </td>
-        <td><input type="number" class="form-control purchase-item-quantity" min="0.01" step="0.01" placeholder="0.00" required></td>
-        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control purchase-item-price" min="0" step="0.01" placeholder="0.00" required></div></td>
-        <td><strong class="purchase-item-subtotal">$0.00</strong></td>
-        <td><button type="button" class="btn btn-outline-danger btn-sm purchase-item-remove"><i class="fas fa-trash"></i></button></td>
-    </tr>
-</template>
-<?php endif; ?>
-
 <?php render_ada_chat(); ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <?php if ($tablesReady): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const body = document.querySelector('#purchaseItemsTable tbody');
-    const template = document.getElementById('purchaseItemTemplate');
-    const addButton = document.getElementById('addPurchaseItem');
-    const totalElement = document.getElementById('purchaseInvoiceTotal');
+    const orderSelect = document.getElementById('purchaseOrderSelect');
+    const provider = document.getElementById('purchaseOrderProvider');
+    const product = document.getElementById('purchaseOrderProduct');
+    const user = document.getElementById('purchaseOrderUser');
+    const orderedQuantity = document.getElementById('purchaseOrderQuantity');
+    const receivedQuantity = document.getElementById('purchaseReceivedQuantity');
+    const unit = document.getElementById('purchaseOrderUnit');
+    const unitPrice = document.getElementById('purchaseUnitPrice');
+    const inventoryField = document.getElementById('purchaseInventoryItemField');
+    const inventoryItem = document.getElementById('purchaseInventoryItem');
+    const newItemFields = document.getElementById('purchaseNewInventoryItemFields');
+    const newItemName = document.getElementById('newInventoryItemName');
+    const newItemType = document.getElementById('newInventoryItemType');
+    const newItemUnit = document.getElementById('newInventoryItemUnit');
     const totalMirror = document.querySelector('[data-purchase-total-mirror]');
-    let itemIndex = 0;
 
     function updateTotal() {
-        let total = 0;
-        body.querySelectorAll('tr').forEach(row => {
-            const quantity = Number(row.querySelector('.purchase-item-quantity').value) || 0;
-            const price = Number(row.querySelector('.purchase-item-price').value) || 0;
-            const subtotal = quantity * price;
-            total += subtotal;
-            row.querySelector('.purchase-item-subtotal').textContent = '$' + subtotal.toFixed(2);
-        });
-        totalElement.textContent = '$' + total.toFixed(2);
+        const total = (Number(receivedQuantity.value) || 0) * (Number(unitPrice.value) || 0);
         totalMirror.textContent = '$' + total.toFixed(2);
     }
 
-    function addItem() {
-        const fragment = template.content.cloneNode(true);
-        const row = fragment.querySelector('tr');
-        row.querySelector('.purchase-item-select').name = `productos[${itemIndex}][id_insumo]`;
-        row.querySelector('.purchase-item-quantity').name = `productos[${itemIndex}][cantidad]`;
-        row.querySelector('.purchase-item-price').name = `productos[${itemIndex}][precio_unitario]`;
-        itemIndex++;
-
-        row.querySelectorAll('input').forEach(input => input.addEventListener('input', updateTotal));
-        row.querySelector('.purchase-item-remove').addEventListener('click', function () {
-            row.remove();
-            updateTotal();
-        });
-        body.appendChild(row);
+    function updateOrder() {
+        const option = orderSelect.options[orderSelect.selectedIndex];
+        const hasOrder = option && option.value;
+        provider.value = hasOrder ? option.dataset.provider || '' : '';
+        product.value = hasOrder ? option.dataset.product || '' : '';
+        user.value = hasOrder ? option.dataset.user || '' : '';
+        unit.value = hasOrder ? option.dataset.unit || '' : '';
+        orderedQuantity.value = hasOrder
+            ? `${option.dataset.quantity || ''} ${option.dataset.unit || ''}`.trim()
+            : '';
+        receivedQuantity.value = hasOrder ? option.dataset.quantity || '' : '';
+        const needsInventoryItem = Boolean(hasOrder && !Number(option.dataset.itemId || 0));
+        inventoryField.hidden = !needsInventoryItem;
+        inventoryItem.required = needsInventoryItem;
+        if (!needsInventoryItem) {
+            inventoryItem.value = '';
+        }
+        toggleNewInventoryItem();
+        updateTotal();
     }
 
-    addButton.addEventListener('click', addItem);
-    addItem();
+    function toggleNewInventoryItem() {
+        const creatingNew = !inventoryField.hidden && inventoryItem.value === '-1';
+        newItemFields.hidden = !creatingNew;
+        newItemName.required = creatingNew;
+        newItemType.required = creatingNew;
+        newItemUnit.required = creatingNew;
+
+        if (creatingNew) {
+            newItemName.value = product.value;
+            newItemUnit.value = unit.value;
+        }
+    }
+
+    inventoryItem.addEventListener('change', function () {
+        const selected = inventoryItem.options[inventoryItem.selectedIndex];
+        toggleNewInventoryItem();
+        if (selected && selected.value && selected.value !== '-1') {
+            product.value = selected.dataset.product || product.value;
+            unit.value = selected.dataset.unit || unit.value;
+            orderedQuantity.value = `${orderSelect.options[orderSelect.selectedIndex].dataset.quantity || ''} ${unit.value}`.trim();
+        }
+    });
+
+    newItemName.addEventListener('input', function () {
+        if (inventoryItem.value === '-1') product.value = newItemName.value;
+    });
+    newItemUnit.addEventListener('input', function () {
+        if (inventoryItem.value !== '-1') return;
+        unit.value = newItemUnit.value;
+        orderedQuantity.value = `${orderSelect.options[orderSelect.selectedIndex].dataset.quantity || ''} ${unit.value}`.trim();
+    });
+
+    orderSelect.addEventListener('change', updateOrder);
+    receivedQuantity.addEventListener('input', updateTotal);
+    unitPrice.addEventListener('input', updateTotal);
+    updateOrder();
 });
 </script>
 <?php endif; ?>

@@ -77,10 +77,16 @@
             const allowedTypes = ['success', 'danger', 'warning', 'info'];
             const notificationType = allowedTypes.includes(type) ? type : 'info';
             const icons = {
-                success: 'fa-circle-check',
-                danger: 'fa-circle-exclamation',
-                warning: 'fa-triangle-exclamation',
-                info: 'fa-circle-info',
+                success: 'fa-check',
+                danger: 'fa-exclamation',
+                warning: 'fa-exclamation',
+                info: 'fa-info',
+            };
+            const titles = {
+                success: 'Operación completada',
+                danger: 'No se pudo completar',
+                warning: 'Requiere atención',
+                info: 'Información',
             };
 
             if (options.persist) {
@@ -117,11 +123,13 @@
                 <span class="app-notification__icon" aria-hidden="true">
                     <i class="fas ${icons[notificationType]}"></i>
                 </span>
-                <span class="app-notification__message"></span>
+                <span class="app-notification__content">
+                    <strong class="app-notification__title">${titles[notificationType]}</strong>
+                    <span class="app-notification__message"></span>
+                </span>
                 <button class="app-notification__close" type="button" data-app-notification-close aria-label="Cerrar notificación">
                     <i class="fas fa-xmark"></i>
                 </button>
-                <span class="app-notification__progress" aria-hidden="true"></span>
             `;
             notification.querySelector('.app-notification__message').textContent = text;
             this.notificationStack().appendChild(notification);
@@ -140,7 +148,6 @@
             notification.dataset.appNotificationBound = '1';
 
             const duration = Math.max(1500, Number(notification.dataset.duration || 4500));
-            const progress = notification.querySelector('.app-notification__progress');
             const close = () => {
                 if (notification.dataset.closing === '1') return;
                 notification.dataset.closing = '1';
@@ -151,7 +158,6 @@
             notification.querySelector('[data-app-notification-close]')
                 ?.addEventListener('click', close);
 
-            if (progress) progress.style.animationDuration = `${duration}ms`;
             window.setTimeout(close, duration);
         },
 
@@ -225,6 +231,26 @@
                     if (sidebarTrigger) this.markActiveSidebar(sidebarTrigger);
                 });
             });
+
+            const activateHashTarget = () => {
+                const hashTarget = window.location.hash;
+                const hashPane = hashTarget ? document.querySelector(hashTarget) : null;
+                const hashTrigger = hashTarget
+                    ? document.querySelector(`[data-app-tab="${hashTarget}"]`)
+                    : null;
+
+                if (!hashPane || !hashTrigger) return;
+
+                this.activatePane(hashPane);
+                hashPane.dispatchEvent(new CustomEvent('shown.bs.tab', {
+                    bubbles: true,
+                    detail: { target: hashPane },
+                }));
+                this.markActiveSidebar(hashTrigger);
+            };
+
+            window.addEventListener('hashchange', activateHashTarget);
+            window.setTimeout(activateHashTarget, 0);
         },
 
         activatePane(tabPane) {
