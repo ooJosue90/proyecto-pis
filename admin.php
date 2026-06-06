@@ -306,16 +306,16 @@ $notificaciones = $conn->query("SELECT * FROM notificaciones WHERE leida = 0 ORD
                 </div>
 
                 <!-- Selector de lotes para historial -->
-                <div class="row mt-4">
+                <div class="row mt-4 admin-lot-history">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
                                 <h5><i class="fas fa-history"></i> Historial por Lote</h5>
                             </div>
                             <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Seleccionar Lote:</label>
+                                <div class="admin-lot-history-controls">
+                                    <div class="admin-lot-history-field">
+                                        <label class="form-label" for="selectorLote">Seleccionar lote</label>
                                         <select class="form-control" id="selectorLote" onchange="cargarHistorialLote()">
                                             <option value="">-- Seleccione un lote --</option>
                                             <?php
@@ -336,8 +336,8 @@ $notificaciones = $conn->query("SELECT * FROM notificaciones WHERE leida = 0 ORD
                                             <?php endwhile; ?>
                                         </select>
                                     </div>
-                                    <div class="col-md-8">
-                                        <button class="btn btn-info" onclick="cargarHistorialLote()">
+                                    <div class="admin-lot-history-action">
+                                        <button class="btn btn-info" type="button" onclick="cargarHistorialLote()">
                                             <i class="fas fa-search"></i> Ver Historial Completo
                                         </button>
                                     </div>

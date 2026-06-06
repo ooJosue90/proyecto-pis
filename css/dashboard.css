@@ -2966,6 +2966,51 @@ body.app-sidebar-collapsed .app-sidebar-user {
     color: #14532d;
 }
 
+.admin-lot-history .card-body {
+    padding: 28px;
+}
+
+.admin-lot-history-controls {
+    display: grid;
+    grid-template-columns: minmax(320px, 545px) auto;
+    gap: 28px;
+    align-items: end;
+}
+
+.admin-lot-history-field {
+    display: grid;
+    min-width: 0;
+    gap: 10px;
+}
+
+.admin-lot-history-field .form-label {
+    margin: 0;
+    line-height: 1.2;
+}
+
+.admin-dashboard .admin-lot-history-field .form-control {
+    width: 100%;
+    min-height: 60px;
+}
+
+.admin-lot-history-action {
+    display: flex;
+    align-items: flex-end;
+}
+
+.admin-dashboard .admin-lot-history-action .btn {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin: 0;
+    padding: 11px 20px;
+    border-radius: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
 @media (max-width: 1199px) {
     .admin-metrics-grid,
     .admin-inventory-grid {
@@ -2996,6 +3041,25 @@ body.app-sidebar-collapsed .app-sidebar-user {
     .admin-section-heading {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .admin-lot-history-controls {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+    }
+}
+
+@media (max-width: 575px) {
+    .admin-lot-history .card-body {
+        padding: 20px;
+    }
+
+    .admin-lot-history-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-dashboard .admin-lot-history-action .btn {
+        width: 100%;
     }
 }
 
