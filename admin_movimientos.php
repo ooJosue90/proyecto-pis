@@ -19,8 +19,14 @@ $movimientos_insumos = $conn->query("
 // Obtener productos finales (cosechas) con información completa
 $productos_finales = $conn->query("
     SELECT pf.*,
+           pf.cantidad as cantidad_cosechada,
+           pf.unidad_medida as unidad_cosecha,
+           pf.fecha as fecha_cosecha,
+           pf.observaciones as observacion,
            u.nombre as usuario_nombre,
            l.ubicacion as lote_ubicacion,
+           l.estado_cultivo,
+           l.fecha_fin_cosecha_real,
            c.tipo as cultivo_tipo
     FROM productos_finales pf
     JOIN usuarios u ON pf.id_usuario = u.id_usuario
@@ -45,7 +51,7 @@ $total_productos_finales = $conn->query("SELECT COUNT(*) as count FROM productos
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4><i class="fas fa-exchange-alt"></i> Registro de Movimientos y Productos</h4>
+                <h4><i class="fas fa-right-left"></i> Registro de Movimientos y Productos</h4>
             </div>
             <div class="card-body">
                 <!-- Estadísticas -->
@@ -53,7 +59,7 @@ $total_productos_finales = $conn->query("SELECT COUNT(*) as count FROM productos
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
                             <div class="card-body text-center">
-                                <i class="fas fa-arrows-alt fa-2x mb-2"></i>
+                                <i class="fas fa-arrows-up-down-left-right fa-2x mb-2"></i>
                                 <h3><?php echo $stats_movimientos['total_movimientos'] ?: 0; ?></h3>
                                 <p class="mb-0">Total Movimientos</p>
                             </div>
@@ -80,7 +86,7 @@ $total_productos_finales = $conn->query("SELECT COUNT(*) as count FROM productos
                     <div class="col-md-3">
                         <div class="card bg-info text-white">
                             <div class="card-body text-center">
-                                <i class="fas fa-apple-alt fa-2x mb-2"></i>
+                                <i class="fas fa-wheat-awn fa-2x mb-2"></i>
                                 <h3><?php echo $total_productos_finales; ?></h3>
                                 <p class="mb-0">Productos Cosechados</p>
                             </div>
@@ -92,12 +98,12 @@ $total_productos_finales = $conn->query("SELECT COUNT(*) as count FROM productos
                 <ul class="nav nav-tabs" id="movimientosTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="insumos-tab" data-bs-toggle="tab" data-bs-target="#movimientos-insumos" type="button">
-                            <i class="fas fa-flask"></i> Movimientos de Insumos
+                            <i class="fas fa-flask-vial"></i> Movimientos de Insumos
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos-finales" type="button">
-                            <i class="fas fa-apple-alt"></i> Productos Finales/Cosecha
+                            <i class="fas fa-wheat-awn"></i> Productos Finales/Cosecha
                         </button>
                     </li>
                 </ul>
@@ -150,7 +156,7 @@ $total_productos_finales = $conn->query("SELECT COUNT(*) as count FROM productos
                             </div>
                             <?php else: ?>
                             <div class="alert alert-info text-center">
-                                <i class="fas fa-exchange-alt fa-3x mb-3"></i>
+                                <i class="fas fa-right-left fa-3x mb-3"></i>
                                 <h5>No hay movimientos de insumos registrados</h5>
                             </div>
                             <?php endif; ?>
@@ -173,23 +179,24 @@ $total_productos_finales = $conn->query("SELECT COUNT(*) as count FROM productos
                                             <th>Agricultor</th>
                                             <th>Lote</th>
                                             <th>Tipo Cultivo</th>
-                                            <th>Observaciones</th>
+                                            <th>Estado</th>
+                                            <th>Observación</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php while ($prod = $productos_finales->fetch_assoc()): ?>
                                         <tr>
                                             <td><?php echo $prod['id_producto_final']; ?></td>
-                                            <td><?php echo date('d/m/Y H:i', strtotime($prod['fecha'])); ?></td>
+                                            <td><?php echo date('d/m/Y', strtotime($prod['fecha_cosecha'])); ?></td>
                                             <td>
                                                 <strong><?php echo htmlspecialchars($prod['nombre_producto']); ?></strong>
                                             </td>
                                             <td>
                                                 <span class="badge bg-primary fs-6">
-                                                    <?php echo $prod['cantidad']; ?>
+                                                    <?php echo $prod['cantidad_cosechada']; ?>
                                                 </span>
                                             </td>
-                                            <td><?php echo htmlspecialchars($prod['unidad_medida']); ?></td>
+                                            <td><?php echo htmlspecialchars($prod['unidad_cosecha']); ?></td>
                                             <td><?php echo htmlspecialchars($prod['usuario_nombre']); ?></td>
                                             <td>
                                                 <span class="badge bg-info">
@@ -197,62 +204,21 @@ $total_productos_finales = $conn->query("SELECT COUNT(*) as count FROM productos
                                                 </span>
                                             </td>
                                             <td><?php echo htmlspecialchars($prod['cultivo_tipo'] ?: 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($prod['observaciones'] == 'NULL' ? 'N/A' : $prod['observaciones']); ?></td>
+                                            <td>
+                                                <span class="badge bg-<?php echo $prod['estado_cultivo'] === 'finalizado' ? 'success' : 'warning text-dark'; ?>">
+                                                    <?php echo $prod['estado_cultivo'] === 'finalizado' ? 'Finalizado' : 'En cosecha'; ?>
+                                                </span>
+                                            </td>
+                                            <td><?php echo htmlspecialchars($prod['observacion'] ?: 'N/A'); ?></td>
                                         </tr>
                                         <?php endwhile; ?>
                                     </tbody>
                                 </table>
                             </div>
 
-                            <!-- Resumen de producción -->
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <h5><i class="fas fa-chart-pie"></i> Resumen de Producción</h5>
-                                    <?php
-                                    // Reset para obtener estadísticas
-                                    $productos_finales->data_seek(0);
-                                    $resumen_produccion = [];
-                                    $total_cantidad = 0;
-                                    
-                                    while ($prod = $productos_finales->fetch_assoc()) {
-                                        $producto = $prod['nombre_producto'];
-                                        if (!isset($resumen_produccion[$producto])) {
-                                            $resumen_produccion[$producto] = 0;
-                                        }
-                                        $resumen_produccion[$producto] += $prod['cantidad'];
-                                        $total_cantidad += $prod['cantidad'];
-                                    }
-                                    ?>
-                                    
-                                    <div class="row">
-                                        <?php foreach ($resumen_produccion as $producto => $cantidad): ?>
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card border-left-primary">
-                                                <div class="card-body">
-                                                    <div class="row no-gutters align-items-center">
-                                                        <div class="col mr-2">
-                                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                                <?php echo htmlspecialchars($producto); ?>
-                                                            </div>
-                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                                <?php echo $cantidad; ?> unidades
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-auto">
-                                                            <i class="fas fa-apple-alt fa-2x text-gray-300"></i>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            </div>
-                            
                             <?php else: ?>
                             <div class="alert alert-info text-center">
-                                <i class="fas fa-apple-alt fa-3x mb-3"></i>
+                                <i class="fas fa-wheat-awn fa-3x mb-3"></i>
                                 <h5>No hay productos finales registrados</h5>
                                 <p>Los productos cosechados aparecerán aquí cuando los agricultores registren sus cosechas.</p>
                             </div>

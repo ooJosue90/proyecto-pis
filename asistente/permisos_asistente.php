@@ -142,6 +142,19 @@ function ada_clasificar_intencion(string $pregunta): array
     $texto = ada_normalizar_texto($pregunta);
     $temasInternos = ada_detectar_temas_internos($pregunta);
 
+    if (ada_texto_contiene_alguno($texto, [
+        'como va todo',
+        'como estamos',
+        'estado general',
+        'dame un resumen general',
+        'resumen del sistema',
+    ])) {
+        return [
+            'categoria' => ADA_INTENCION_DATOS_INTERNOS,
+            'temas' => ['resumen'],
+        ];
+    }
+
     $iniciosEducativos = [
         'que es',
         'que son',
@@ -165,7 +178,9 @@ function ada_clasificar_intencion(string $pregunta): array
     $verbosAdministrativos = [
         'crear', 'agregar', 'registrar', 'eliminar', 'borrar', 'desactivar', 'activar',
         'modificar', 'editar', 'actualizar', 'cambiar', 'gestionar', 'asignar', 'quitar',
-        'configurar', 'restablecer',
+        'configurar', 'restablecer', 'crea', 'agrega', 'registra', 'elimina', 'borra',
+        'desactiva', 'activa', 'modifica', 'edita', 'actualiza', 'cambia', 'gestiona',
+        'asigna', 'quita', 'configura', 'restablece',
     ];
     $objetosAdministrativos = [
         'usuario', 'usuarios', 'empleado', 'empleados', 'permiso', 'permisos', 'rol',

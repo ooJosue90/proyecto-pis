@@ -1,0 +1,261 @@
+/* Shared identity for positive warehouse actions. */
+.warehouse-primary-action {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 17px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #fff !important;
+    font-weight: 800;
+    text-decoration: none;
+    text-shadow: none;
+    box-shadow:
+        0 16px 30px rgba(7, 95, 29, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease !important;
+}
+
+.warehouse-primary-action::before {
+    position: absolute;
+    top: -70%;
+    left: -30%;
+    width: 28%;
+    height: 240%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    content: "";
+    transform: rotate(20deg);
+    transition: left 480ms ease;
+    pointer-events: none;
+}
+
+.warehouse-primary-action--primary {
+    width: 100%;
+    min-height: 52px !important;
+    padding: 12px 22px !important;
+    font-size: 15px !important;
+}
+
+.warehouse-primary-action--compact {
+    width: auto;
+    min-height: 40px !important;
+    padding: 9px 14px !important;
+    font-size: 12px !important;
+}
+
+.warehouse-primary-action > :is(i, span) {
+    position: relative;
+    z-index: 1;
+}
+
+.warehouse-primary-action:is(:hover, :focus) {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 42%),
+        linear-gradient(135deg, #18743a, #0a431f) !important;
+    color: #fff !important;
+    box-shadow:
+        0 20px 38px rgba(7, 95, 29, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    filter: none;
+    transform: translateY(-2px);
+}
+
+.warehouse-primary-action:is(:hover, :focus)::before {
+    left: 115%;
+}
+
+.warehouse-primary-action:active {
+    box-shadow:
+        0 8px 18px rgba(7, 95, 29, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+    transform: translateY(0);
+}
+
+.warehouse-primary-action:focus-visible {
+    outline: 3px solid rgba(22, 163, 74, 0.25) !important;
+    outline-offset: 3px;
+}
+
+.warehouse-primary-action:disabled {
+    box-shadow: none !important;
+    filter: grayscale(0.25);
+    opacity: 0.62;
+    transform: none;
+}
+
+.warehouse-confirm-modal.is-cancel .warehouse-primary-action {
+    border-color: #dc2626 !important;
+    background: #dc2626 !important;
+    box-shadow: 0 12px 24px rgba(220, 38, 38, 0.2) !important;
+}
+
+.warehouse-confirm-modal.is-cancel .warehouse-primary-action::before {
+    display: none;
+}
+
+/* Shared identity for positive administrator actions. */
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info),
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 17px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #fff !important;
+    text-shadow: none;
+    box-shadow:
+        0 16px 30px rgba(7, 95, 29, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease !important;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info)::before,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm::before {
+    position: absolute;
+    top: -70%;
+    left: 0;
+    width: 22%;
+    height: 240%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+    content: "";
+    opacity: 0;
+    transform: translateX(-180%) rotate(20deg);
+    transition:
+        opacity 120ms ease,
+        transform 480ms ease;
+    pointer-events: none;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info) > :is(i, span),
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm
+    > :is(i, span) {
+    position: relative;
+    z-index: 1;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus),
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus) {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 42%),
+        linear-gradient(135deg, #18743a, #0a431f) !important;
+    color: #fff !important;
+    box-shadow:
+        0 20px 38px rgba(7, 95, 29, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    filter: none;
+    transform: translateY(-2px);
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus)::before,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus)::before {
+    opacity: 1;
+    transform: translateX(600%) rotate(20deg);
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):active,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:active {
+    box-shadow:
+        0 8px 18px rgba(7, 95, 29, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+    transform: translateY(0);
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):focus-visible,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:focus-visible {
+    outline: 3px solid rgba(22, 163, 74, 0.25) !important;
+    outline-offset: 3px;
+}
+
+.admin-dashboard :is(.btn-primary, .btn-success, .btn-info):disabled,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:disabled {
+    box-shadow: none !important;
+    filter: grayscale(0.25);
+    opacity: 0.62;
+    transform: none;
+}
+
+/* Keep button geometry stable across every interaction state. */
+:is(
+    button,
+    .btn,
+    .app-icon-button,
+    .farmer-action-button,
+    .harvest-finish-button,
+    .harvest-modal-submit,
+    .warehouse-primary-action,
+    .warehouse-action-button,
+    .warehouse-receipt-button,
+    .warehouse-print-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit,
+    .request-history-secondary-action,
+    .admin-delete-modal__confirm
+):is(:hover, :focus, :focus-visible, :active) {
+    transform: none !important;
+}
+
+:is(
+    button,
+    .btn,
+    .app-icon-button,
+    .farmer-action-button,
+    .harvest-finish-button,
+    .harvest-modal-submit,
+    .warehouse-primary-action,
+    .warehouse-action-button,
+    .warehouse-receipt-button,
+    .warehouse-print-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit,
+    .request-history-secondary-action,
+    .admin-delete-modal__confirm
+) {
+    transition-property: background-color, border-color, color, box-shadow, filter, opacity !important;
+}
+
+:is(
+    .farmer-action-button,
+    .warehouse-primary-action,
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit,
+    .admin-dashboard .btn-primary,
+    .admin-dashboard .btn-success,
+    .admin-dashboard .btn-info
+)::before {
+    display: none !important;
+    content: none !important;
+}

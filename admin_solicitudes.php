@@ -109,7 +109,7 @@ $stats_solicitudes = $conn->query("
                     <div class="col-md-3">
                         <div class="card bg-danger text-white">
                             <div class="card-body text-center">
-                                <i class="fas fa-times fa-2x mb-2"></i>
+                                <i class="fas fa-xmark fa-2x mb-2"></i>
                                 <h3><?php echo $stats_solicitudes['rechazadas'] ?: 0; ?></h3>
                                 <p class="mb-0">Rechazadas</p>
                             </div>
@@ -175,7 +175,7 @@ $stats_solicitudes = $conn->query("
                                         data-farmer="<?php echo htmlspecialchars($solicitud['agricultor_nombre'], ENT_QUOTES, 'UTF-8'); ?>"
                                         data-product="<?php echo htmlspecialchars($solicitud['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
                                         data-quantity="<?php echo htmlspecialchars($solicitud['cantidad_solicitada'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        <i class="fas fa-times"></i> Rechazar
+                                        <i class="fas fa-xmark"></i> Rechazar
                                     </button>
                                     <?php else: ?>
                                     <span class="badge bg-secondary">Procesada</span>
@@ -198,7 +198,7 @@ $stats_solicitudes = $conn->query("
     </div>
 </div>
 
-<div class="modal fade warehouse-confirm-modal" id="adminRequestConfirmModal" tabindex="-1" aria-labelledby="adminRequestConfirmTitle" aria-hidden="true">
+<div class="modal fade warehouse-confirm-modal admin-premium-modal" id="adminRequestConfirmModal" tabindex="-1" aria-labelledby="adminRequestConfirmTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form id="adminRequestConfirmForm">
@@ -236,7 +236,7 @@ $stats_solicitudes = $conn->query("
 
                 <div class="modal-footer">
                     <button type="button" class="btn warehouse-modal-back" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn warehouse-modal-confirm" data-admin-request-modal-confirm>
+                    <button type="submit" class="btn warehouse-modal-confirm" data-admin-request-modal-confirm data-skip-loading="1">
                         <i class="fas fa-check"></i>
                         <span>Confirmar aprobación</span>
                     </button>

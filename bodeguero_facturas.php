@@ -410,6 +410,10 @@ $facturasRecientes = $tablesReady
                                         <select
                                             id="purchaseOrderSelect"
                                             class="form-select"
+                                            data-premium-select
+                                            data-select-icon="fa-file-invoice"
+                                            data-option-icon="fa-truck-fast"
+                                            data-select-label="Seleccione un pedido pendiente"
                                             <?php echo $pedidoSeleccionado ? 'disabled' : 'name="id_pedido"'; ?>
                                             required>
                                             <option value="">Seleccione un pedido pendiente</option>
@@ -479,7 +483,14 @@ $facturasRecientes = $tablesReady
                         </div>
                         <div class="purchase-field">
                             <label class="form-label">Producto que ingresará al inventario *</label>
-                            <select name="id_insumo" id="purchaseInventoryItem" class="form-select">
+                            <select
+                                name="id_insumo"
+                                id="purchaseInventoryItem"
+                                class="form-select"
+                                data-premium-select
+                                data-select-icon="fa-boxes-stacked"
+                                data-option-icon="fa-box"
+                                data-select-label="Seleccione un producto">
                                 <option value="">Seleccione un producto</option>
                                 <option value="-1">+ Crear un nuevo producto de inventario</option>
                                 <?php foreach ($insumosDisponibles as $insumo): ?>
@@ -510,7 +521,14 @@ $facturasRecientes = $tablesReady
                             </div>
                             <div class="purchase-field purchase-field--wide">
                                 <label class="form-label">Tipo *</label>
-                                <select name="nuevo_insumo_tipo" id="newInventoryItemType" class="form-select">
+                                <select
+                                    name="nuevo_insumo_tipo"
+                                    id="newInventoryItemType"
+                                    class="form-select"
+                                    data-premium-select
+                                    data-select-icon="fa-tags"
+                                    data-option-icon="fa-tag"
+                                    data-select-label="Seleccione una clasificación">
                                     <option value="">Seleccione una clasificación</option>
                                     <?php foreach ($tiposInsumoPermitidos as $tipoInsumo): ?>
                                         <option value="<?php echo e($tipoInsumo); ?>">
@@ -576,7 +594,7 @@ $facturasRecientes = $tablesReady
                                 <span><i class="fas fa-check-circle"></i> Registra el movimiento</span>
                                 <span><i class="fas fa-check-circle"></i> Marca el pedido como recibido</span>
                             </div>
-                            <button type="submit" class="btn btn-success purchase-invoice-submit" <?php echo !$pedidosPendientes ? 'disabled' : ''; ?>>
+                            <button type="submit" class="btn purchase-invoice-submit warehouse-primary-action warehouse-primary-action--primary" <?php echo !$pedidosPendientes ? 'disabled' : ''; ?>>
                                 <i class="fas fa-floppy-disk"></i>
                                 <span>Registrar factura</span>
                             </button>
@@ -652,6 +670,129 @@ document.addEventListener('DOMContentLoaded', function () {
     const newItemUnit = document.getElementById('newInventoryItemUnit');
     const totalMirror = document.querySelector('[data-purchase-total-mirror]');
 
+    function setupPremiumSelect(nativeSelect) {
+        const premiumSelect = document.createElement('div');
+        const button = document.createElement('button');
+        const leadingIcon = document.createElement('span');
+        const label = document.createElement('span');
+        const arrow = document.createElement('i');
+        const menu = document.createElement('div');
+        const options = Array.from(nativeSelect.options);
+        const placeholder = nativeSelect.dataset.selectLabel || options[0]?.textContent.trim() || 'Seleccione una opción';
+
+        nativeSelect.classList.add('purchase-premium-select__native');
+        premiumSelect.className = 'purchase-premium-select';
+        button.type = 'button';
+        button.className = 'purchase-premium-select__button';
+        button.disabled = nativeSelect.disabled;
+        button.setAttribute('aria-haspopup', 'listbox');
+        button.setAttribute('aria-expanded', 'false');
+        leadingIcon.className = 'purchase-premium-select__icon';
+        leadingIcon.innerHTML = `<i class="fas ${nativeSelect.dataset.selectIcon || 'fa-list'}"></i>`;
+        label.className = 'purchase-premium-select__label';
+        arrow.className = 'fas fa-chevron-down purchase-premium-select__arrow';
+        menu.className = 'purchase-premium-select__menu';
+        menu.setAttribute('role', 'listbox');
+
+        button.append(leadingIcon, label, arrow);
+        premiumSelect.append(button, menu);
+        nativeSelect.insertAdjacentElement('afterend', premiumSelect);
+
+        function close() {
+            premiumSelect.classList.remove('is-open');
+            button.setAttribute('aria-expanded', 'false');
+        }
+
+        function sync() {
+            const selectedOption = nativeSelect.selectedOptions[0];
+            const hasValue = Boolean(nativeSelect.value);
+            label.textContent = hasValue ? selectedOption.textContent.trim().replace(/\s+/g, ' ') : placeholder;
+            premiumSelect.classList.toggle('has-value', hasValue);
+            premiumSelect.classList.toggle('is-disabled', nativeSelect.disabled);
+            button.disabled = nativeSelect.disabled;
+            menu.querySelectorAll('.purchase-premium-select__option').forEach((option) => {
+                const selected = option.dataset.value === nativeSelect.value;
+                option.classList.toggle('is-selected', selected);
+                option.setAttribute('aria-selected', selected ? 'true' : 'false');
+            });
+            if (hasValue) premiumSelect.classList.remove('is-invalid');
+        }
+
+        options.forEach((nativeOption, index) => {
+            if (index === 0 && nativeOption.value === '') return;
+
+            const option = document.createElement('button');
+            const optionIcon = document.createElement('span');
+            const optionCopy = document.createElement('span');
+            const optionLabel = document.createElement('strong');
+            const optionDetail = document.createElement('small');
+            const cleanText = nativeOption.textContent.trim().replace(/\s+/g, ' ');
+
+            option.type = 'button';
+            option.className = 'purchase-premium-select__option';
+            option.dataset.value = nativeOption.value;
+            option.setAttribute('role', 'option');
+            optionIcon.className = 'purchase-premium-select__option-icon';
+            optionIcon.innerHTML = `<i class="fas ${nativeOption.value === '-1' ? 'fa-circle-plus' : (nativeSelect.dataset.optionIcon || 'fa-circle-check')}"></i>`;
+            optionLabel.textContent = cleanText;
+
+            if (nativeOption.dataset.provider || nativeOption.dataset.product) {
+                optionLabel.textContent = nativeOption.dataset.provider
+                    ? `Pedido #${nativeOption.value} · ${nativeOption.dataset.provider}`
+                    : cleanText;
+                optionDetail.textContent = nativeOption.dataset.product || '';
+            } else if (nativeOption.value === '-1') {
+                optionDetail.textContent = 'Agregarlo al catálogo de inventario';
+            }
+
+            optionCopy.append(optionLabel);
+            if (optionDetail.textContent) optionCopy.append(optionDetail);
+            option.append(optionIcon, optionCopy, document.createElement('i'));
+            option.lastElementChild.className = 'fas fa-check purchase-premium-select__check';
+
+            option.addEventListener('click', function () {
+                nativeSelect.value = option.dataset.value;
+                nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                close();
+                button.focus();
+            });
+            menu.append(option);
+        });
+
+        button.addEventListener('click', function () {
+            if (nativeSelect.disabled) return;
+            const willOpen = !premiumSelect.classList.contains('is-open');
+            document.querySelectorAll('.purchase-premium-select.is-open').forEach((select) => {
+                if (select !== premiumSelect) {
+                    select.classList.remove('is-open');
+                    select.querySelector('.purchase-premium-select__button')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+            premiumSelect.classList.toggle('is-open', willOpen);
+            button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        });
+
+        nativeSelect.addEventListener('change', sync);
+        nativeSelect.addEventListener('premium-select:sync', sync);
+        nativeSelect.addEventListener('invalid', function (event) {
+            event.preventDefault();
+            premiumSelect.classList.add('is-invalid');
+            button.focus();
+        });
+        premiumSelect.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                close();
+                button.focus();
+            }
+        });
+        document.addEventListener('click', function (event) {
+            if (!premiumSelect.contains(event.target)) close();
+        });
+        sync();
+    }
+
+    document.querySelectorAll('select[data-premium-select]').forEach(setupPremiumSelect);
+
     function updateTotal() {
         const total = (Number(receivedQuantity.value) || 0) * (Number(unitPrice.value) || 0);
         totalMirror.textContent = '$' + total.toFixed(2);
@@ -673,6 +814,7 @@ document.addEventListener('DOMContentLoaded', function () {
         inventoryItem.required = needsInventoryItem;
         if (!needsInventoryItem) {
             inventoryItem.value = '';
+            inventoryItem.dispatchEvent(new Event('premium-select:sync'));
         }
         toggleNewInventoryItem();
         updateTotal();

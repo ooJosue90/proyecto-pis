@@ -302,7 +302,7 @@ $stats = $conn->query("
                     <div class="col-md-4">
                         <div class="card bg-success text-white">
                             <div class="card-body text-center">
-                                <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                                <i class="fas fa-cart-shopping fa-2x mb-2"></i>
                                 <h3><?php echo $stats['total_pedidos'] ?: 0; ?></h3>
                                 <p class="mb-0">Total Pedidos</p>
                             </div>
@@ -328,7 +328,7 @@ $stats = $conn->query("
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos-section" type="button">
-                            <i class="fas fa-shopping-cart"></i> Pedidos
+                            <i class="fas fa-cart-shopping"></i> Pedidos
                         </button>
                     </li>
                 </ul>
@@ -384,7 +384,7 @@ $stats = $conn->query("
                                             <td>
                                                 <button class="btn btn-sm btn-outline-primary" 
                                                         onclick="editarProveedor(<?php echo $proveedor['id_proveedor']; ?>, '<?php echo htmlspecialchars($proveedor['Nombre'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($proveedor['telefono'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($proveedor['email'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($proveedor['direccion'], ENT_QUOTES); ?>')">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="fas fa-pen-to-square"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-danger <?php echo $pedidos_count > 0 ? 'disabled' : ''; ?>" 
                                                         onclick="eliminarProveedor(<?php echo $proveedor['id_proveedor']; ?>)"
@@ -457,7 +457,7 @@ $stats = $conn->query("
                                                     ? 'success'
                                                     : ($pedido['estado'] === 'Cancelado' ? 'secondary' : 'warning');
                                                 ?>
-                                                <span class="badge bg-<?php echo $pedidoBadge; ?>">
+                                                <span class="badge bg-<?php echo $pedidoBadge; ?> admin-order-status admin-order-status--<?php echo strtolower($pedido['estado']); ?>">
                                                     <?php echo htmlspecialchars($pedido['estado']); ?>
                                                 </span>
                                             </td>
@@ -492,7 +492,7 @@ $stats = $conn->query("
                             </div>
                             <?php else: ?>
                             <div class="alert alert-info text-center">
-                                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                                <i class="fas fa-cart-shopping fa-3x mb-3"></i>
                                 <h5>No hay pedidos registrados</h5>
                                 <p>Los pedidos a proveedores aparecerán aquí.</p>
                             </div>
@@ -506,47 +506,79 @@ $stats = $conn->query("
 </div>
 
 <!-- Modal Crear Proveedor -->
-<div class="modal fade" id="modalCrearProveedor" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="formCrearProveedor">
-        <div class="modal-header">
-          <h5 class="modal-title">Crear Proveedor</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade admin-premium-modal admin-purchase-modal" id="modalCrearProveedor" tabindex="-1" aria-labelledby="modalCrearProveedorTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formCrearProveedor">
+                <div class="modal-header">
+                    <span class="admin-premium-modal__icon admin-purchase-modal__icon">
+                        <i class="fas fa-building-circle-check"></i>
+                    </span>
+                    <div class="admin-premium-modal__heading">
+                        <span class="farmer-kicker">Red de abastecimiento</span>
+                        <h5 class="modal-title" id="modalCrearProveedorTitle">Crear proveedor</h5>
+                        <p>Registra un aliado comercial para tus próximos pedidos.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="admin-purchase-modal__notice">
+                        <span><i class="fas fa-shield-halved"></i></span>
+                        <div>
+                            <strong>Información comercial verificada</strong>
+                            <p>Los campos marcados son necesarios para identificar y contactar al proveedor.</p>
+                        </div>
+                    </div>
+                    <div class="admin-purchase-modal__grid">
+                        <div class="admin-purchase-field">
+                            <label for="crear_nombre">Nombre comercial <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-building"></i>
+                                <input type="text" class="form-control" id="crear_nombre" name="nombre" placeholder="Ej. Agroinsumos del Pacífico" autocomplete="organization" required>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field">
+                            <label for="crear_ruc">RUC / Cédula <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-id-card"></i>
+                                <input type="text" class="form-control" id="crear_ruc" name="ruc_cedula" placeholder="Número de identificación" inputmode="numeric" required>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field">
+                            <label for="crear_telefono">Teléfono <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-phone"></i>
+                                <input type="tel" class="form-control" id="crear_telefono" name="telefono" placeholder="Ej. 099 123 4567" autocomplete="tel" required>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field">
+                            <label for="crear_email">Correo electrónico <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" class="form-control" id="crear_email" name="email" placeholder="ventas@proveedor.com" autocomplete="email" required>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field admin-purchase-field--wide">
+                            <label for="crear_direccion">Dirección <small>Opcional</small></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-location-dot"></i>
+                                <input type="text" class="form-control" id="crear_direccion" name="direccion" placeholder="Ciudad, sector y referencia" autocomplete="street-address">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="admin-premium-modal__security">
+                        <i class="fas fa-lock"></i> Datos protegidos
+                    </span>
+                    <button type="button" class="btn admin-purchase-modal__cancel" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary admin-purchase-modal__submit">
+                        <i class="fas fa-plus"></i> Guardar proveedor
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="crear_nombre" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="crear_nombre" name="nombre" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="crear_ruc" class="form-label">RUC / Cédula</label>
-            <input type="text" class="form-control" id="crear_ruc" name="ruc_cedula" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="crear_telefono" class="form-label">Teléfono</label>
-            <input type="text" class="form-control" id="crear_telefono" name="telefono" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="crear_email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="crear_email" name="email" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="crear_direccion" class="form-label">Dirección</label>
-            <input type="text" class="form-control" id="crear_direccion" name="direccion">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Guardar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        </div>
-      </form>
     </div>
-  </div>
 </div>
 
 <!-- Modal Editar Proveedor -->
@@ -661,19 +693,36 @@ $stats = $conn->query("
 </div>
 
 <!-- Modal Crear Pedido -->
-<div class="modal fade" id="modalCrearPedido" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade admin-premium-modal admin-purchase-modal admin-purchase-modal--order" id="modalCrearPedido" tabindex="-1" aria-labelledby="modalCrearPedidoTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Nuevo Pedido</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
             <form id="formCrearPedido">
+                <div class="modal-header">
+                    <span class="admin-premium-modal__icon admin-purchase-modal__icon">
+                        <i class="fas fa-cart-flatbed"></i>
+                    </span>
+                    <div class="admin-premium-modal__heading">
+                        <span class="farmer-kicker">Abastecimiento inteligente</span>
+                        <h5 class="modal-title" id="modalCrearPedidoTitle">Nuevo pedido</h5>
+                        <p>Organiza la compra y deja lista la recepción de insumos.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Proveedor *</label>
-                        <select class="form-control" name="id_proveedor" required>
-                            <option value="">Seleccionar proveedor</option>
+                    <div class="admin-purchase-modal__notice">
+                        <span><i class="fas fa-boxes-stacked"></i></span>
+                        <div>
+                            <strong>Pedido con trazabilidad</strong>
+                            <p>Se registrará como pendiente hasta que bodega confirme la recepción.</p>
+                        </div>
+                    </div>
+                    <div class="admin-purchase-modal__grid">
+                        <div class="admin-purchase-field">
+                            <label for="crear_pedido_proveedor">Proveedor <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-truck-field"></i>
+                                <select class="form-select" id="crear_pedido_proveedor" name="id_proveedor" data-purchase-select data-select-icon="fa-truck-field" data-option-icon="fa-building" data-select-label="Seleccionar proveedor" required>
+                                    <option value="">Seleccionar proveedor</option>
                             <?php
                             $proveedores->data_seek(0);
                             while ($prov = $proveedores->fetch_assoc()):
@@ -682,12 +731,15 @@ $stats = $conn->query("
                                 <?php echo htmlspecialchars($prov['Nombre']); ?>
                             </option>
                             <?php endwhile; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Usuario Responsable *</label>
-                        <select class="form-control" name="id_usuario" required>
-                            <option value="">Seleccionar usuario</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field">
+                            <label for="crear_pedido_usuario">Responsable <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-user-check"></i>
+                                <select class="form-select" id="crear_pedido_usuario" name="id_usuario" data-purchase-select data-select-icon="fa-user-check" data-option-icon="fa-user-tie" data-select-label="Seleccionar responsable" required>
+                                    <option value="">Seleccionar responsable</option>
                             <?php
                             $usuarios->data_seek(0);
                             while ($user = $usuarios->fetch_assoc()):
@@ -696,12 +748,15 @@ $stats = $conn->query("
                                 <?php echo htmlspecialchars($user['nombre']); ?>
                             </option>
                             <?php endwhile; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Producto *</label>
-                        <select class="form-control" name="id_insumo" required>
-                            <option value="">Seleccionar producto</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field">
+                            <label for="crear_pedido_producto">Producto <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-seedling"></i>
+                                <select class="form-select" id="crear_pedido_producto" name="id_insumo" data-purchase-select data-select-icon="fa-seedling" data-option-icon="fa-box-open" data-select-label="Seleccionar producto" required>
+                                    <option value="">Seleccionar producto</option>
                             <?php
                             $insumos->data_seek(0);
                             while ($insumo = $insumos->fetch_assoc()):
@@ -712,20 +767,33 @@ $stats = $conn->query("
                                     stock: <?php echo htmlspecialchars($insumo['cantidad']); ?>)
                                 </option>
                             <?php endwhile; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Cantidad *</label>
-                        <input type="number" step="0.01" min="0.01" class="form-control" name="cantidad" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Observación</label>
-                        <textarea class="form-control" name="observaciones" rows="3" maxlength="1000" placeholder="Detalle o instrucción para la recepción"></textarea>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field">
+                            <label for="crear_pedido_cantidad">Cantidad <b>*</b></label>
+                            <div class="admin-purchase-field__control">
+                                <i class="fas fa-arrow-up-9-1"></i>
+                                <input type="number" step="0.01" min="0.01" class="form-control" id="crear_pedido_cantidad" name="cantidad" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="admin-purchase-field admin-purchase-field--wide">
+                            <label for="crear_pedido_observaciones">Observación <small>Opcional</small></label>
+                            <div class="admin-purchase-field__control admin-purchase-field__control--textarea">
+                                <i class="fas fa-clipboard-list"></i>
+                                <textarea class="form-control" id="crear_pedido_observaciones" name="observaciones" rows="3" maxlength="1000" placeholder="Detalle, fecha esperada o instrucciones para la recepción"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Crear Pedido</button>
+                    <span class="admin-premium-modal__security">
+                        <i class="fas fa-clock-rotate-left"></i> Registro auditable
+                    </span>
+                    <button type="button" class="btn admin-purchase-modal__cancel" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success admin-purchase-modal__submit">
+                        <i class="fas fa-paper-plane"></i> Crear pedido
+                    </button>
                 </div>
             </form>
         </div>

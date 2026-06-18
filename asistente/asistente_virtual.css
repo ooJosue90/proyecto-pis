@@ -109,8 +109,7 @@
 }
 
 .ada-chat__brand strong,
-.ada-chat__brand span,
-.ada-chat__brand small {
+.ada-chat__brand span {
     display: block;
 }
 
@@ -126,13 +125,6 @@
     color: rgba(255, 255, 255, 0.82);
     font-size: 13px;
     font-weight: 800;
-}
-
-.ada-chat__brand small {
-    margin-top: 4px;
-    color: rgba(255, 255, 255, 0.58);
-    font-size: 11px;
-    font-weight: 700;
 }
 
 .ada-chat__status {
@@ -227,13 +219,6 @@
     font-weight: 700;
 }
 
-.ada-capability-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-}
-
-.ada-capability-grid span,
 .ada-quick-actions button {
     min-height: 38px;
     display: inline-flex;
@@ -243,10 +228,6 @@
     background: #f8fbf7;
     color: #1f3529;
     font-weight: 800;
-}
-
-.ada-capability-grid span {
-    padding: 8px 10px;
 }
 
 .ada-quick-actions {
@@ -516,10 +497,6 @@
         border-radius: 16px;
     }
 
-    .ada-chat__brand small {
-        display: none;
-    }
-
     .ada-chat__messages {
         height: min(62dvh, 430px);
         min-height: 180px;
@@ -546,7 +523,223 @@
     background: var(--app-bg, #0f172a);
 }
 
-:root:is([data-theme="dark"], [data-theme="night"]) .ada-message--assistant .ada-message__bubble {
+/* Refinamiento visual ADA */
+.ada-chat {
+    right: 24px;
+    bottom: 24px;
+    --ada-primary: #14532d;
+    --ada-accent: #22c55e;
+    --ada-ink: #122019;
+    --ada-muted: #66756c;
+    --ada-border: rgba(20, 83, 45, 0.12);
+}
+
+.ada-chat__toggle {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-color: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 18px 46px rgba(17, 24, 39, 0.26), 0 0 0 6px rgba(20, 83, 45, 0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ada-chat__toggle::after {
+    position: absolute;
+    right: 1px;
+    bottom: 2px;
+    width: 13px;
+    height: 13px;
+    content: "";
+    border: 3px solid #fff;
+    border-radius: 999px;
+    background: var(--ada-accent);
+}
+
+.ada-chat__window {
+    width: min(420px, calc(100vw - 32px));
+    border-color: rgba(17, 24, 39, 0.08);
+    border-radius: 26px;
+    background: #f8faf9;
+    box-shadow: 0 32px 90px rgba(17, 24, 39, 0.22), 0 8px 24px rgba(17, 24, 39, 0.08);
+}
+
+.ada-chat__header {
+    padding: 18px 20px;
+    background:
+        radial-gradient(circle at 88% 5%, rgba(74, 222, 128, 0.2), transparent 32%),
+        linear-gradient(135deg, #101c16 0%, #153f28 100%);
+}
+
+.ada-chat__avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+}
+
+.ada-chat__brand strong {
+    font-size: 19px;
+}
+
+.ada-chat__brand > div > span:not(.ada-chat__status) {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.ada-chat__messages {
+    height: min(438px, calc(100dvh - 320px));
+    gap: 16px;
+    padding: 18px;
+    background:
+        radial-gradient(circle at 8% 0%, rgba(34, 197, 94, 0.06), transparent 32%),
+        #f8faf9;
+}
+
+.ada-welcome-card {
+    padding: 18px;
+    border-color: var(--ada-border);
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(20, 83, 45, 0.05);
+}
+
+.ada-welcome-card__eyebrow,
+.ada-suggestions__label {
+    display: block;
+    color: #16803d;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.ada-welcome-card h3 {
+    margin: 7px 0 0;
+    color: var(--ada-ink);
+    font-size: 20px;
+}
+
+.ada-welcome-card p {
+    margin: 8px 0 0;
+    color: var(--ada-muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.ada-suggestions {
+    display: grid;
+    gap: 9px;
+}
+
+.ada-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.ada-quick-actions button {
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border-color: var(--ada-border);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.86);
+    color: #25382d;
+    font-size: 12px;
+    font-weight: 750;
+    text-align: left;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ada-quick-actions button > i:first-child {
+    color: #16803d;
+    font-size: 14px;
+    text-align: center;
+}
+
+.ada-quick-actions button > i:last-child {
+    color: #8ca097;
+    font-size: 10px;
+}
+
+.ada-quick-actions button:hover {
+    border-color: rgba(20, 83, 45, 0.22);
+    background: #fff;
+    box-shadow: 0 10px 22px rgba(20, 83, 45, 0.08);
+    transform: translateY(-1px);
+}
+
+.ada-chat__form {
+    grid-template-columns: 1fr 48px;
+    padding: 13px 15px 15px;
+}
+
+.ada-chat__input-wrap {
+    position: relative;
+}
+
+.ada-chat__input-wrap > i {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    z-index: 1;
+    color: #799087;
+    font-size: 13px;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.ada-chat__input {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 39px;
+}
+
+.ada-chat__send {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #176236, #0f4527);
+}
+
+.ada-chat button:focus-visible,
+.ada-chat input:focus-visible {
+    outline: 3px solid rgba(34, 197, 94, 0.32);
+    outline-offset: 2px;
+}
+
+@media (max-width: 575px) {
+    .ada-chat {
+        right: 14px;
+        bottom: 14px;
+    }
+
+    .ada-quick-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-chat__messages {
+    background:
+        radial-gradient(circle at 8% 0%, rgba(34, 197, 94, 0.08), transparent 32%),
+        var(--app-bg, #0f172a);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-welcome-card h3,
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-quick-actions button {
+    color: var(--app-text, #e5e7eb);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-welcome-card p {
+    color: var(--app-text-muted, #a7b0bd);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-message--bot,
+:root:is([data-theme="dark"], [data-theme="night"]) .ada-typing {
+    border-color: var(--app-border, #2b3547);
     background: var(--app-surface-soft, #1f2937);
     color: var(--app-text, #e5e7eb);
 }

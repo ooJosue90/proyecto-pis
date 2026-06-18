@@ -21,8 +21,8 @@ $productos_factura = $conn->query("
     <title>Reporte de Productos en Factura</title>
     <link rel="icon" type="image/x-icon" href="assets/mango.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="css/dashboard.css?v=20260605-select-font" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet">
+    <link href="css/dashboard.css?v=<?= filemtime(__DIR__ . '/css/dashboard.css'); ?>" rel="stylesheet">
     <link href="asistente/asistente_virtual.css" rel="stylesheet">
 </head>
 <body class="print-page warehouse-report-page">
@@ -87,7 +87,7 @@ $productos_factura = $conn->query("
             <p><strong>SEMBRIEXPORT</strong> - Sistema de Gestión Agrícola</p>
             <p>Reporte generado automáticamente</p>
         </div>
-        <button class="btn btn-primary no-print" onclick="window.print()">
+        <button class="btn no-print warehouse-primary-action warehouse-primary-action--compact" onclick="window.print()">
             <i class="fas fa-print"></i>
             Imprimir
         </button>

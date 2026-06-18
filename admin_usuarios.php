@@ -157,7 +157,7 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY id_usuario");
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4><i class="fas fa-users"></i> Gestión de Usuarios</h4>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario" data-app-no-ripple>
                     <i class="fas fa-plus"></i> Nuevo Usuario
                 </button>
             </div>
@@ -200,10 +200,18 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY id_usuario");
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary" onclick="editarUsuario('<?= htmlspecialchars($usuario['id_usuario']) ?>','<?= htmlspecialchars($usuario['nombre']) ?>','<?= htmlspecialchars($usuario['email']) ?>','<?= $usuario['rol'] ?>')">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-user-pen"></i>
                                         </button>
                                         <?php if ($usuario['id_usuario'] != '1'): ?>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarUsuario('<?= htmlspecialchars($usuario['id_usuario']) ?>')">
+                                            <button
+                                                class="btn btn-sm btn-outline-danger"
+                                                type="button"
+                                                data-user-id="<?= htmlspecialchars($usuario['id_usuario'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-user-name="<?= htmlspecialchars($usuario['nombre'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-user-email="<?= htmlspecialchars($usuario['email'], ENT_QUOTES, 'UTF-8') ?>"
+                                                onclick="eliminarUsuario(this)"
+                                                aria-label="Eliminar usuario <?= htmlspecialchars($usuario['nombre'], ENT_QUOTES, 'UTF-8') ?>"
+                                            >
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         <?php endif; ?>

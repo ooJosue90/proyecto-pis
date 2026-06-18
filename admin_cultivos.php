@@ -77,9 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
 // Obtener cultivos con información del agricultor
 $cultivos = $conn->query("
-    SELECT c.*, u.nombre as agricultor_nombre 
-    FROM cultivos c 
-    LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario 
+    SELECT c.*, u.nombre as agricultor_nombre,
+           COUNT(l.id_lote) AS total_lotes,
+           SUM(CASE WHEN l.estado_cultivo = 'en_cosecha' THEN 1 ELSE 0 END) AS lotes_en_cosecha,
+           SUM(CASE WHEN l.estado_cultivo = 'finalizado' THEN 1 ELSE 0 END) AS lotes_finalizados,
+           SUM(CASE WHEN l.estado_cultivo = 'cancelado' THEN 1 ELSE 0 END) AS lotes_cancelados
+    FROM cultivos c
+    LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
+    LEFT JOIN lotes l ON c.id_cultivo = l.id_cultivo
+    GROUP BY c.id_cultivo
     ORDER BY c.fecha_siembra DESC
 ");
 
@@ -145,7 +151,7 @@ if ($area_total_query) {
                     <div class="col-md-3">
                         <div class="card bg-info text-white">
                             <div class="card-body text-center">
-                                <i class="fas fa-clone fa-2x mb-2"></i>
+                                <i class="fas fa-layer-group fa-2x mb-2"></i>
                                 <h3><?php echo $stats_cultivos['tipos_diferentes'] ?: 0; ?></h3>
                                 <p class="mb-0">Tipos de Cultivo</p>
                             </div>
@@ -154,7 +160,7 @@ if ($area_total_query) {
                     <div class="col-md-3">
                         <div class="card bg-warning text-white">
                             <div class="card-body text-center">
-                                <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
+                                <i class="fas fa-map-location-dot fa-2x mb-2"></i>
                                 <h3><?php echo $stats_lotes['total_lotes'] ?: 0; ?></h3>
                                 <p class="mb-0">Total Lotes</p>
                             </div>
@@ -163,7 +169,7 @@ if ($area_total_query) {
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
                             <div class="card-body text-center">
-                                <i class="fas fa-expand-arrows-alt fa-2x mb-2"></i>
+                                <i class="fas fa-maximize fa-2x mb-2"></i>
                                 <h3><?php echo number_format($area_total, 1); ?></h3>
                                 <p class="mb-0">Área Total (aprox.)</p>
                             </div>
@@ -180,7 +186,7 @@ if ($area_total_query) {
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="lotes-tab" data-bs-toggle="tab" data-bs-target="#lotes-section" type="button">
-                            <i class="fas fa-map-marked-alt"></i> Lotes
+                            <i class="fas fa-map-location-dot"></i> Lotes
                         </button>
                     </li>
                 </ul>
@@ -191,7 +197,7 @@ if ($area_total_query) {
                         <div class="mt-3">
                             <?php if ($cultivos && $cultivos->num_rows > 0): ?>
                                 <div class="alert alert-warning">
-                                    <i class="fas fa-exclamation-triangle"></i> <strong>Nota:</strong> No se puede eliminar un cultivo que tenga lotes asociados. Elimine primero los lotes o contacte al administrador del sistema.
+                                    <i class="fas fa-triangle-exclamation"></i> <strong>Nota:</strong> No se puede eliminar un cultivo que tenga lotes asociados. Elimine primero los lotes o contacte al administrador del sistema.
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover">
@@ -229,18 +235,18 @@ if ($area_total_query) {
                                                 <td><?php echo htmlspecialchars($cultivo['agricultor_nombre'] ?: 'No asignado'); ?></td>
                                                 <td>
                                                     <?php 
-                                                    $fecha_siembra = strtotime($cultivo['fecha_siembra']);
-                                                    $dias_transcurridos = floor((time() - $fecha_siembra) / (60*60*24));
-                                                    
-                                                    if ($dias_transcurridos < 30) {
-                                                        echo '<span class="badge bg-info">Recién plantado</span>';
-                                                    } elseif ($dias_transcurridos < 180) {
-                                                        echo '<span class="badge bg-warning">En desarrollo</span>';
+                                                    if ((int) $cultivo['lotes_en_cosecha'] > 0) {
+                                                        echo '<span class="badge admin-crop-status admin-crop-status--harvest">En cosecha</span>';
+                                                    } elseif ((int) $cultivo['total_lotes'] > 0
+                                                        && (int) $cultivo['lotes_finalizados'] === (int) $cultivo['total_lotes']) {
+                                                        echo '<span class="badge admin-crop-status admin-crop-status--finished">Finalizado</span>';
+                                                    } elseif ((int) $cultivo['total_lotes'] > 0
+                                                        && (int) $cultivo['lotes_cancelados'] === (int) $cultivo['total_lotes']) {
+                                                        echo '<span class="badge admin-crop-status admin-crop-status--cancelled">Cancelado</span>';
                                                     } else {
-                                                        echo '<span class="badge bg-success">Maduro</span>';
+                                                        echo '<span class="badge admin-crop-status admin-crop-status--active">Activo</span>';
                                                     }
                                                     ?>
-                                                    <br><small class="text-muted"><?php echo $dias_transcurridos; ?> días</small>
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-<?php echo $lotes_count > 0 ? 'warning' : 'secondary'; ?>">
@@ -251,9 +257,13 @@ if ($area_total_query) {
                                                     <button class="btn btn-sm btn-outline-info" onclick="verDetallesCultivo(<?php echo $cultivo['id_cultivo']; ?>)">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-outline-danger <?php echo $lotes_count > 0 ? 'disabled' : ''; ?>" 
-                                                            onclick="eliminarCultivo(<?php echo $cultivo['id_cultivo']; ?>)"
-                                                            <?php echo $lotes_count > 0 ? 'title="No se puede eliminar: tiene lotes asociados"' : ''; ?>>
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        data-admin-crop-delete="cultivo"
+                                                        data-record-id="<?php echo (int) $cultivo['id_cultivo']; ?>"
+                                                        data-record-name="<?php echo htmlspecialchars($cultivo['tipo'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                        <?php echo $lotes_count > 0 ? 'disabled title="No se puede eliminar: tiene lotes asociados"' : ''; ?>>
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </td>
@@ -306,7 +316,12 @@ if ($area_total_query) {
                                                     <button class="btn btn-sm btn-outline-info" onclick="verDetalleLote(<?php echo $lote['id_lote']; ?>)">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarLote(<?php echo $lote['id_lote']; ?>)">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        data-admin-crop-delete="lote"
+                                                        data-record-id="<?php echo (int) $lote['id_lote']; ?>"
+                                                        data-record-name="<?php echo htmlspecialchars($lote['ubicacion'], ENT_QUOTES, 'UTF-8'); ?>">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </td>
@@ -317,7 +332,7 @@ if ($area_total_query) {
                                 </div>
                             <?php else: ?>
                                 <div class="alert alert-info text-center">
-                                    <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
+                                    <i class="fas fa-map-location-dot fa-3x mb-3"></i>
                                     <h5>No hay lotes registrados</h5>
                                     <p>Los agricultores pueden registrar sus lotes desde su panel de control.</p>
                                 </div>
@@ -331,37 +346,97 @@ if ($area_total_query) {
 </div>
 
 <!-- Modal para detalles del cultivo -->
-<div class="modal fade" id="modalDetallesCultivo" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade admin-premium-modal admin-crop-detail-modal" id="modalDetallesCultivo" tabindex="-1" aria-labelledby="modalDetallesCultivoTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detalles del Cultivo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <span class="admin-premium-modal__icon"><i class="fas fa-seedling"></i></span>
+                <div class="admin-premium-modal__heading">
+                    <span class="farmer-kicker">Producción agrícola</span>
+                    <h2 class="modal-title" id="modalDetallesCultivoTitle">Detalle del cultivo</h2>
+                    <p>Estado, responsable y ciclo actual de producción.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body" id="detallesCultivoContent">
                 <!-- Contenido cargado dinámicamente -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <span class="admin-premium-modal__security"><i class="fas fa-leaf"></i> Información agrícola</span>
+                <button type="button" class="btn admin-premium-modal__close" data-bs-dismiss="modal">
+                    <i class="fas fa-xmark"></i> Cerrar detalle
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal para detalles del lote -->
-<div class="modal fade" id="modalDetalleLote" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade admin-premium-modal admin-crop-detail-modal" id="modalDetalleLote" tabindex="-1" aria-labelledby="modalDetalleLoteTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detalles del Lote</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <span class="admin-premium-modal__icon"><i class="fas fa-map-location-dot"></i></span>
+                <div class="admin-premium-modal__heading">
+                    <span class="farmer-kicker">Superficie productiva</span>
+                    <h2 class="modal-title" id="modalDetalleLoteTitle">Detalle del lote</h2>
+                    <p>Ubicación, área y cultivo asignado al terreno.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body" id="detalleLoteContent">
                 <!-- Contenido cargado dinámicamente -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <span class="admin-premium-modal__security"><i class="fas fa-location-dot"></i> Registro territorial</span>
+                <button type="button" class="btn admin-premium-modal__close" data-bs-dismiss="modal">
+                    <i class="fas fa-xmark"></i> Cerrar detalle
+                </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para confirmar eliminación -->
+<div class="modal fade admin-premium-modal admin-delete-modal" id="adminCropDeleteModal" tabindex="-1" aria-labelledby="adminCropDeleteTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="adminCropDeleteForm">
+                <input type="hidden" id="adminCropDeleteType">
+                <input type="hidden" id="adminCropDeleteId">
+
+                <div class="modal-header">
+                    <span class="admin-delete-modal__icon"><i class="fas fa-trash-can"></i></span>
+                    <div class="admin-premium-modal__heading">
+                        <span class="farmer-kicker">Acción irreversible</span>
+                        <h2 class="modal-title" id="adminCropDeleteTitle">Eliminar registro</h2>
+                        <p>Esta acción retirará el registro del sistema.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="admin-delete-modal__warning">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <p>
+                            <strong data-admin-delete-question>¿Desea continuar?</strong>
+                            <span>Compruebe la información antes de confirmar.</span>
+                        </p>
+                    </div>
+                    <div class="admin-delete-modal__record">
+                        <span data-admin-delete-label>Registro</span>
+                        <strong data-admin-delete-name></strong>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn warehouse-modal-back" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn admin-delete-modal__confirm" data-admin-delete-confirm data-skip-loading="1">
+                        <i class="fas fa-trash-can"></i>
+                        <span>Eliminar definitivamente</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -14,12 +14,21 @@ start_secure_session();
 
 header('Content-Type: application/json; charset=utf-8');
 
-const ADA_DENIED_MESSAGE = 'No tienes permisos para realizar esta acción. Puedo ayudarte con las funciones disponibles para tu perfil.';
-const ADA_SYSTEM_PROMPT = 'Eres ADA (Asistente de Decisiones Agrícolas) del sistema SEMBRIEXPORT.
+const ADA_SYSTEM_PROMPT = 'Eres ADA (Asistente de Decisiones Agrícolas), asistente virtual oficial de SEMBRIEXPORT y experta en agricultura tropical, especialmente en mango Tommy Atkins.
 
-Tu función es ayudar a los usuarios con información agrícola, consultas del sistema y orientación operativa.
+## PERSONALIDAD Y TONO
 
-Debes distinguir entre:
+* Mantén un tono profesional, claro y empático; nunca condescendiente.
+* Usa terminología técnica agrícola correcta y explícala cuando el contexto lo requiera.
+* Llama al usuario por su nombre de manera natural, sin repetirlo de forma forzada en cada párrafo.
+* Cuando no puedas ayudar, ofrece una alternativa o un siguiente paso.
+* Nunca respondas únicamente "no sé". Explica que no cuentas con la información y señala el módulo o contacto apropiado.
+* Evita respuestas de una sola línea en consultas técnicas y aporta contexto útil.
+* No uses estas frases: "¡Claro que sí!", "¡Por supuesto!", "Espero haberte ayudado.", "No dudes en preguntar." o "Como IA...".
+
+## CLASIFICACIÓN DE CONSULTAS
+
+Debes distinguir internamente entre:
 
 * Conocimiento agrícola general.
 * Consultas sobre datos internos del sistema.
@@ -35,24 +44,86 @@ No bloquees preguntas educativas relacionadas con agricultura, cultivos, fertili
 
 Solo restringe el acceso cuando el usuario solicite información interna o acciones para las que no tenga permisos.
 
-Si el usuario no tiene permisos, responde de forma amable indicando qué funciones sí están disponibles para su perfil.
+Si el usuario no tiene permisos, indica que la información pertenece a un módulo no disponible para su perfil y sugiere solicitarla al administrador.
 
 No te presentes en cada respuesta. No empieces con frases como "Soy ADA" o "Hola, soy ADA". Evita introducciones repetitivas o demasiado ceremoniosas.
 
-Presenta las respuestas con formato Markdown sencillo y consistente:
+## FORMATO DE RESPUESTAS
 
-* Empieza con una conclusión o introducción breve de una sola oración.
-* Organiza información extensa con títulos breves usando "###".
-* Usa listas con viñetas para resúmenes y datos relacionados.
-* Para varios registros, usa un subtítulo por registro y agrupa sus datos por tema.
-* Resalta en negrita únicamente etiquetas, estados y cifras importantes.
-* No conviertas cada dato de un registro en una lista principal independiente.
-* Evita repetir "Sin fecha", "sin registros" o estados equivalentes de forma innecesaria; agrúpalos como "Aún no registrado" cuando corresponda.
-* En consultas con varios lotes, conserva todos los registros y resume cada uno en pocas líneas.
-* Cierra con una observación breve solo si aporta valor, por ejemplo una alerta o pendiente relevante.
-* No uses tablas, HTML, emojis ni adornos excesivos.
+Adapta el formato al tipo de consulta:
+
+* Datos del sistema: usa listas con etiquetas claras o registros compactos. Incluye la fecha de actualización cuando esté disponible y señala con ⚠️ el stock bajo, plagas activas o fechas vencidas.
+* Lotes: prefiere el formato "📍 **Lote:** nombre | **Superficie:** ha | **Etapa:** etapa | **Última actividad:** fecha".
+* Preguntas técnicas: estructura la respuesta como contexto breve, recomendación principal, hasta cinco pasos concretos y una advertencia cuando aplique.
+* Acciones administrativas: indica claramente qué no puede hacer ADA, explica el procedimiento paso a paso y termina con "Puedes realizarlo directamente en → [Módulo correspondiente]".
+* Datos no encontrados: responde "No encontré registros para [consulta]. Verifica que los datos estén cargados en el sistema o consulta con el administrador."
+* Nunca muestres errores técnicos crudos como NULL, undefined, trazas o códigos HTTP.
+* Organiza información extensa con títulos breves usando "###", listas y etiquetas en negrita.
+* Conserva todos los registros recibidos en el contexto y resume cada uno en pocas líneas.
+
+## COMPORTAMIENTO PROACTIVO
+
+* Si el contexto contiene datos críticos, como stock bajo, plagas registradas, etapas atrasadas o cosecha próxima, menciónalos aunque no sean la pregunta principal usando "💡 **Dato importante:** [observación basada en los datos]".
+* Para preguntas como "¿cómo va todo?", genera un resumen ejecutivo según el rol: agricultor o técnico, estado de lotes, pendientes y alertas fitosanitarias; bodeguero, stock bajo, solicitudes y movimientos; administrador, panorama general, producción, usuarios y notificaciones disponibles.
+* Si se informa que la consulta está repetida, indícalo con tacto y pregunta qué punto necesita profundizar.
+
+## SITUACIONES ESPECIALES
+
+* Ante tono frustrado o urgente, reconoce primero la urgencia: "Entiendo que esto es urgente. Aquí está lo que puedo decirte ahora mismo:".
+* Si la consulta sale del alcance de SEMBRIEXPORT, recomienda al técnico agrícola o fuentes especializadas como INIAP o MAG.
+* Si los datos son insuficientes, dilo claramente y pide verificar que estén registrados.
+
+## RESTRICCIONES CRÍTICAS
+
+* ADA no modifica, crea, edita ni elimina registros.
+* ADA no aprueba solicitudes ni ejecuta acciones administrativas desde el chat.
+* No reveles contraseñas, credenciales ni datos fuera de los permisos del rol.
+* Para datos internos, utiliza exclusivamente el contexto proporcionado y no inventes información.
 
 Responde de forma profesional, clara, concisa y útil.';
+
+function ada_nombre_usuario(): string
+{
+    $nombre = trim((string) ($_SESSION['nombre'] ?? 'Usuario'));
+    return $nombre !== '' ? $nombre : 'Usuario';
+}
+
+function ada_saludo_actual(): string
+{
+    $hora = (int) date('G');
+
+    return match (true) {
+        $hora < 12 => 'Buenos días',
+        $hora < 18 => 'Buenas tardes',
+        default => 'Buenas noches',
+    };
+}
+
+function ada_mensaje_denegado(): string
+{
+    return 'Entiendo tu consulta, ' . ada_nombre_usuario()
+        . ', pero esa información corresponde a un módulo al que tu perfil no tiene acceso. '
+        . 'Si necesitas estos datos, solicítalos al administrador del sistema.';
+}
+
+function ada_es_primera_interaccion_del_dia(): bool
+{
+    return ($_SESSION['ada_ultima_interaccion_fecha'] ?? '') !== date('Y-m-d');
+}
+
+function ada_consulta_repetida(string $pregunta): bool
+{
+    $actual = ada_normalizar_texto($pregunta);
+    $anterior = (string) ($_SESSION['ada_ultima_pregunta'] ?? '');
+
+    return $actual !== '' && $actual === $anterior;
+}
+
+function ada_recordar_interaccion(string $pregunta): void
+{
+    $_SESSION['ada_ultima_pregunta'] = ada_normalizar_texto($pregunta);
+    $_SESSION['ada_ultima_interaccion_fecha'] = date('Y-m-d');
+}
 
 function ada_json(
     bool $success,
@@ -148,7 +219,7 @@ function ada_enlaces_modulos(string $rol, string $pregunta, array $intencion): a
             'reportes' => ['label' => 'Ir a Reportes', 'href' => 'admin.php#reportes', 'icon' => 'fas fa-chart-column'],
             'cultivos' => ['label' => 'Ir a Cultivos', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-seedling'],
             'lotes' => ['label' => 'Ir a Cultivos y lotes', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-location-dot'],
-            'produccion' => ['label' => 'Ir a Cultivos y producción', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-box'],
+            'produccion' => ['label' => 'Ir a Cultivos y producción', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-wheat-awn'],
             'plagas' => ['label' => 'Ir a Cultivos y plagas', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-bug'],
             'monitoreo' => ['label' => 'Ir a Monitoreo de cultivos', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-magnifying-glass-chart'],
             'actividades' => ['label' => 'Ir a Actividad agrícola', 'href' => 'admin.php#cultivos', 'icon' => 'fas fa-list-check'],
@@ -160,7 +231,7 @@ function ada_enlaces_modulos(string $rol, string $pregunta, array $intencion): a
             'resumen' => ['label' => 'Abrir mi panel', 'href' => 'agricultor.php', 'icon' => 'fas fa-chart-pie'],
             'cultivos' => ['label' => 'Ir a Cultivos', 'href' => 'agricultor.php?tab=cultivo', 'icon' => 'fas fa-seedling'],
             'lotes' => ['label' => 'Ir a Lotes', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-location-dot'],
-            'produccion' => ['label' => 'Ir a Producción', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-box'],
+            'produccion' => ['label' => 'Ir a Producción', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-wheat-awn'],
             'monitoreo' => ['label' => 'Ir a Monitoreo', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-magnifying-glass-chart'],
             'actividades' => ['label' => 'Ir a Actividades', 'href' => 'agricultor.php?tab=lote', 'icon' => 'fas fa-list-check'],
             'plagas' => ['label' => 'Registrar plaga', 'href' => 'agricultor.php?tab=plaga', 'icon' => 'fas fa-bug'],
@@ -297,10 +368,20 @@ function ada_fecha(?string $fecha): string
 function ada_etapa_lote($etapa): string
 {
     return match ((int) $etapa) {
-        1 => 'Riego',
-        2 => 'Siembra',
+        1 => 'Siembra',
+        2 => 'Desarrollo',
         3 => 'Cosecha',
         default => 'Sin etapa',
+    };
+}
+
+function ada_estado_cultivo($estado): string
+{
+    return match ((string) $estado) {
+        'en_cosecha' => 'En cosecha',
+        'finalizado' => 'Finalizado',
+        'cancelado' => 'Cancelado',
+        default => 'Activo',
     };
 }
 
@@ -424,7 +505,8 @@ function ada_contexto_cultivos_lotes(mysqli $conn, string $rol): string
 
     $rows = ada_fetch_all(
         $conn,
-        "SELECT c.tipo, c.fecha_siembra, u.nombre AS agricultor, l.ubicacion, l.area, l.etapa_actual, l.fecha_registro
+        "SELECT c.tipo, c.fecha_siembra, u.nombre AS agricultor, l.ubicacion, l.area,
+                l.etapa_actual, l.estado_cultivo, l.fecha_registro
          FROM cultivos c
          JOIN usuarios u ON c.id_usuario = u.id_usuario
          LEFT JOIN lotes l ON c.id_cultivo = l.id_cultivo
@@ -436,7 +518,7 @@ function ada_contexto_cultivos_lotes(mysqli $conn, string $rol): string
     );
 
     return "Cultivos y lotes:\n" . ada_lineas($rows, fn ($row) =>
-        "{$row['tipo']} - Agricultor: {$row['agricultor']} - Siembra: " . ada_fecha($row['fecha_siembra']) . " - Lote: " . ($row['ubicacion'] ?: 'Sin lote') . " - Area: " . ada_numero($row['area']) . " ha - Etapa: {$row['etapa_actual']}"
+        "{$row['tipo']} - Agricultor: {$row['agricultor']} - Siembra: " . ada_fecha($row['fecha_siembra']) . " - Lote: " . ($row['ubicacion'] ?: 'Sin lote') . " - Area: " . ada_numero($row['area']) . " ha - Etapa: " . ada_etapa_lote($row['etapa_actual']) . " - Estado: " . ada_estado_cultivo($row['estado_cultivo'])
     );
 }
 
@@ -547,11 +629,11 @@ function ada_contexto_monitoreo(mysqli $conn, string $rol): string
 
     $rows = ada_fetch_all(
         $conn,
-        "SELECT l.id_lote, l.ubicacion, l.area, l.etapa_actual,
+        "SELECT l.id_lote, l.ubicacion, l.area, l.etapa_actual, l.estado_cultivo,
                 l.etapa_riego, l.etapa_siembra, l.etapa_cosecha,
                 l.fecha_inicio_riego, l.fecha_fin_riego,
                 l.fecha_inicio_siembra, l.fecha_fin_siembra,
-                l.fecha_inicio_cosecha, l.fecha_fin_cosecha,
+                l.fecha_inicio_cosecha, l.fecha_fin_cosecha, l.fecha_fin_cosecha_real,
                 l.fecha_registro, c.tipo AS cultivo, c.fecha_siembra,
                 u.nombre AS agricultor,
                 (SELECT COUNT(*) FROM plagas p WHERE p.id_lote = l.id_lote) AS total_plagas,
@@ -582,9 +664,10 @@ function ada_contexto_monitoreo(mysqli $conn, string $rol): string
     $resumen = "Resumen de monitoreo:\n"
         . "Lotes monitoreados: " . count($rows) . "\n"
         . "Area total: " . ada_numero(array_sum(array_column($rows, 'area'))) . " ha\n"
-        . "Lotes en riego: " . count(array_filter($rows, fn ($row) => (int) $row['etapa_actual'] === 1)) . "\n"
-        . "Lotes en siembra: " . count(array_filter($rows, fn ($row) => (int) $row['etapa_actual'] === 2)) . "\n"
-        . "Lotes en cosecha: " . count(array_filter($rows, fn ($row) => (int) $row['etapa_actual'] === 3)) . "\n"
+        . "Lotes en siembra: " . count(array_filter($rows, fn ($row) => (int) $row['etapa_actual'] === 1)) . "\n"
+        . "Lotes en desarrollo: " . count(array_filter($rows, fn ($row) => (int) $row['etapa_actual'] === 2)) . "\n"
+        . "Lotes en cosecha: " . count(array_filter($rows, fn ($row) => $row['estado_cultivo'] === 'en_cosecha')) . "\n"
+        . "Lotes finalizados: " . count(array_filter($rows, fn ($row) => $row['estado_cultivo'] === 'finalizado')) . "\n"
         . "Lotes con plagas registradas: " . count(array_filter($rows, fn ($row) => (int) $row['total_plagas'] > 0)) . "\n"
         . "Solicitudes pendientes o aprobadas: " . array_sum(array_column($rows, 'solicitudes_pendientes'));
 
@@ -594,12 +677,15 @@ function ada_contexto_monitoreo(mysqli $conn, string $rol): string
             . " - Agricultor: {$row['agricultor']}"
             . " - Area: " . ada_numero($row['area']) . " ha"
             . " - Etapa actual: " . ada_etapa_lote($row['etapa_actual'])
-            . " - Riego: " . ((int) $row['etapa_riego'] === 1 ? 'completado' : 'pendiente')
+            . " - Estado del cultivo: " . ada_estado_cultivo($row['estado_cultivo'])
+            . " - Desarrollo/riego planificado: " . ((int) $row['etapa_riego'] === 1 ? 'si' : 'no')
             . " [" . ada_fecha($row['fecha_inicio_riego']) . " a " . ada_fecha($row['fecha_fin_riego']) . "]"
-            . " - Siembra: " . ((int) $row['etapa_siembra'] === 1 ? 'completada' : 'pendiente')
+            . " - Siembra planificada: " . ((int) $row['etapa_siembra'] === 1 ? 'si' : 'no')
             . " [" . ada_fecha($row['fecha_inicio_siembra']) . " a " . ada_fecha($row['fecha_fin_siembra']) . "]"
-            . " - Cosecha: " . ((int) $row['etapa_cosecha'] === 1 ? 'completada' : 'pendiente')
+            . " - Cosecha iniciada: " . ($row['estado_cultivo'] === 'en_cosecha' || $row['estado_cultivo'] === 'finalizado' ? 'si' : 'no')
             . " [" . ada_fecha($row['fecha_inicio_cosecha']) . " a " . ada_fecha($row['fecha_fin_cosecha']) . "]"
+            . " - Cosecha completada: " . ($row['estado_cultivo'] === 'finalizado' ? 'si' : 'no')
+            . " - Fecha final real: " . ada_fecha($row['fecha_fin_cosecha_real'])
             . " - Produccion acumulada: " . ada_numero($row['produccion_total'])
             . " " . ($row['unidades_produccion'] ?: 'sin registros')
             . " - Ultima produccion: " . ada_fecha($row['ultima_produccion'])
@@ -630,14 +716,14 @@ function ada_contexto_actividades(mysqli $conn, string $rol): string
         $conn,
         "SELECT l.id_lote, l.ubicacion, c.tipo AS cultivo,
                 CASE
-                    WHEN l.etapa_riego = 0 THEN 'Completar etapa de riego'
-                    WHEN l.etapa_siembra = 0 THEN 'Completar etapa de siembra'
-                    WHEN l.etapa_cosecha = 0 THEN 'Completar etapa de cosecha'
+                    WHEN l.estado_cultivo = 'en_cosecha' THEN 'Finalizar cosecha y registrar producción'
+                    WHEN l.estado_cultivo = 'activo' AND l.etapa_actual = 1 THEN 'Continuar etapa de siembra'
+                    WHEN l.estado_cultivo = 'activo' AND l.etapa_actual = 2 THEN 'Continuar etapa de desarrollo'
                     ELSE 'Sin etapas pendientes'
                 END AS actividad_pendiente
          FROM lotes l
          JOIN cultivos c ON l.id_cultivo = c.id_cultivo
-         WHERE (l.etapa_riego = 0 OR l.etapa_siembra = 0 OR l.etapa_cosecha = 0)
+         WHERE l.estado_cultivo IN ('activo', 'en_cosecha')
          {$whereCultivo}
          ORDER BY l.fecha_registro DESC
          LIMIT 100",
@@ -864,14 +950,35 @@ function ada_reglas_permisos(string $rol): string
         . $flujoSolicitudes;
 }
 
-function ada_llamar_gemini(string $rol, string $pregunta, string $contexto): string
+function ada_llamar_gemini(
+    string $rol,
+    string $pregunta,
+    string $contexto,
+    bool $primeraInteraccion,
+    bool $consultaRepetida
+): string
 {
     if (!function_exists('curl_init')) {
         throw new RuntimeException('La extensión cURL de PHP no está habilitada.');
     }
 
+    $nombre = ada_nombre_usuario();
+    $permisos = ada_permisos_por_rol($rol);
+    $modulos = implode(', ', $permisos['permitidos']);
+    $instruccionApertura = $primeraInteraccion
+        ? ada_saludo_actual() . ", {$nombre}. Soy ADA, tu asistente agrícola en SEMBRIEXPORT. Integra este saludo brevemente al inicio de la respuesta."
+        : 'No incluyas un saludo de presentación; responde directamente.';
+    $instruccionRepeticion = $consultaRepetida
+        ? 'La consulta coincide con la anterior. Indica brevemente que ya compartiste esta información y ofrece profundizar en un punto específico.'
+        : 'La consulta no está marcada como repetida.';
+
     $prompt = ADA_SYSTEM_PROMPT . "\n\n"
         . "Identidad interna del asistente: ADA. No repitas esta identidad salvo que el usuario pregunte quien eres.\n"
+        . "Nombre del usuario: {$nombre}\n"
+        . "Saludo actual: " . ada_saludo_actual() . "\n"
+        . "Módulos autorizados: {$modulos}\n"
+        . "Apertura: {$instruccionApertura}\n"
+        . "Repetición: {$instruccionRepeticion}\n"
         . ada_reglas_permisos($rol) . "\n\n"
         . "Contexto permitido del sistema SEMBRIEXPORT:\n{$contexto}\n\n"
         . "Pregunta del usuario:\n{$pregunta}";
@@ -957,7 +1064,7 @@ if ($pregunta === '') {
 $intencion = ada_clasificar_intencion($pregunta);
 
 if (!ada_intencion_autorizada($rol, $intencion)) {
-    ada_json(false, ADA_DENIED_MESSAGE, 403, $rol);
+    ada_json(false, ada_mensaje_denegado(), 403, $rol);
 }
 
 $enlaces = ada_enlaces_modulos($rol, $pregunta, $intencion);
@@ -966,7 +1073,9 @@ if (ada_es_orden_navegacion($pregunta) && $enlaces) {
     $destino = $enlaces[0];
     ada_json(
         true,
-        'Claro, te llevo a ' . preg_replace('/^(Abrir|Ir a|Registrar)\s+/u', '', $destino['label']) . '.',
+        ada_nombre_usuario() . ', te llevo a '
+            . preg_replace('/^(Abrir|Ir a|Registrar)\s+/u', '', $destino['label'])
+            . '.',
         200,
         $rol,
         [$destino],
@@ -975,18 +1084,38 @@ if (ada_es_orden_navegacion($pregunta) && $enlaces) {
 }
 
 if (ada_es_orden_navegacion($pregunta) && ada_pide_modulo_conocido($pregunta)) {
-    ada_json(false, ADA_DENIED_MESSAGE, 403, $rol);
+    ada_json(false, ada_mensaje_denegado(), 403, $rol);
 }
 
 if (!ada_api_key_configurada()) {
-    ada_json(false, 'La API Key de Gemini no está configurada. Actualiza asistente/config_gemini.php.', 500, $rol);
+    ada_json(
+        false,
+        ada_nombre_usuario()
+            . ', ADA no está disponible en este momento. Contacta al administrador para revisar la configuración del servicio.',
+        500,
+        $rol
+    );
 }
 
 try {
+    $primeraInteraccion = ada_es_primera_interaccion_del_dia();
+    $consultaRepetida = ada_consulta_repetida($pregunta);
     $contexto = ada_contexto_permitido($conn, $rol, $pregunta, $intencion);
-    $respuesta = ada_llamar_gemini($rol, $pregunta, $contexto);
+    $respuesta = ada_llamar_gemini(
+        $rol,
+        $pregunta,
+        $contexto,
+        $primeraInteraccion,
+        $consultaRepetida
+    );
+    ada_recordar_interaccion($pregunta);
     ada_json(true, $respuesta, 200, $rol, $enlaces);
 } catch (Throwable $exception) {
     error_log('ADA Gemini error: ' . $exception->getMessage());
-    ada_json(false, 'No pude comunicarme correctamente con Gemini. ' . $exception->getMessage(), 500, $rol);
+    ada_json(
+        false,
+        'No pude completar la consulta en este momento. Inténtalo nuevamente o contacta al administrador si el problema continúa.',
+        500,
+        $rol
+    );
 }

@@ -48,10 +48,14 @@ $badge = $factura['estado'] === 'Aprobada'
         : ($factura['estado'] === 'Anulada' ? 'secondary' : 'danger'));
 ?>
 
-<div class="row g-4">
-    <div class="col-md-6">
-        <h6><i class="fas fa-file-invoice"></i> Factura</h6>
-        <table class="table table-sm">
+<div class="admin-invoice-detail">
+<div class="admin-invoice-detail__grid">
+    <section class="admin-invoice-detail__card">
+        <div class="admin-invoice-detail__card-heading">
+            <span><i class="fas fa-file-invoice"></i></span>
+            <div><small>Documento</small><h3>Factura</h3></div>
+        </div>
+        <table class="table table-sm admin-invoice-detail__data">
             <tr><th>Número:</th><td><?php echo e($factura['numero_factura']); ?></td></tr>
             <tr><th>Pedido:</th><td><?php echo $factura['id_pedido'] ? '#' . (int) $factura['id_pedido'] : 'Sin pedido'; ?></td></tr>
             <tr><th>Fecha:</th><td><?php echo date('d/m/Y', strtotime($factura['fecha'])); ?></td></tr>
@@ -60,23 +64,31 @@ $badge = $factura['estado'] === 'Aprobada'
             <tr><th>Estado:</th><td><span class="badge bg-<?php echo $badge; ?>"><?php echo e($factura['estado']); ?></span></td></tr>
             <tr><th>Revisada por:</th><td><?php echo e($factura['revisor_nombre'] ?: 'Pendiente'); ?></td></tr>
         </table>
-    </div>
-    <div class="col-md-6">
-        <h6><i class="fas fa-truck"></i> Proveedor</h6>
-        <table class="table table-sm">
+    </section>
+    <section class="admin-invoice-detail__card">
+        <div class="admin-invoice-detail__card-heading">
+            <span><i class="fas fa-truck"></i></span>
+            <div><small>Origen de compra</small><h3>Proveedor</h3></div>
+        </div>
+        <table class="table table-sm admin-invoice-detail__data">
             <tr><th>Nombre:</th><td><?php echo e($factura['proveedor_nombre']); ?></td></tr>
             <tr><th>RUC/Cédula:</th><td><?php echo e($factura['ruc_cedula']); ?></td></tr>
             <tr><th>Teléfono:</th><td><?php echo e($factura['telefono'] ?: 'N/A'); ?></td></tr>
             <tr><th>Email:</th><td><?php echo e($factura['proveedor_email'] ?: 'N/A'); ?></td></tr>
             <tr><th>Observación:</th><td><?php echo e($factura['observaciones'] ?: 'Ninguna'); ?></td></tr>
         </table>
-    </div>
+    </section>
 </div>
 
-<hr>
-
-<h6><i class="fas fa-boxes-stacked"></i> Insumos recibidos</h6>
-<div class="table-responsive">
+<section class="admin-invoice-detail__items">
+    <div class="admin-invoice-detail__items-heading">
+        <div>
+            <span class="admin-invoice-detail__items-icon"><i class="fas fa-boxes-stacked"></i></span>
+            <div><small>Inventario</small><h3>Insumos recibidos</h3></div>
+        </div>
+        <span class="admin-invoice-detail__count"><?php echo count($detalles); ?> registros</span>
+    </div>
+<div class="table-responsive admin-invoice-detail__table-wrap">
     <table class="table table-striped align-middle">
         <thead>
             <tr>
@@ -107,4 +119,6 @@ $badge = $factura['estado'] === 'Aprobada'
             </tr>
         </tfoot>
     </table>
+</div>
+</section>
 </div>

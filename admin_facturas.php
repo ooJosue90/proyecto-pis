@@ -288,7 +288,7 @@ if ($tablesReady) {
                                                         data-invoice-number="<?php echo e($factura['numero_factura']); ?>"
                                                         data-invoice-provider="<?php echo e($factura['proveedor_nombre']); ?>"
                                                         data-invoice-total="$<?php echo number_format((float) $factura['total'], 2); ?>">
-                                                        <i class="fas fa-times"></i> Rechazar
+                                                        <i class="fas fa-xmark"></i> Rechazar
                                                     </button>
                                                 <?php endif; ?>
                                             </td>
@@ -306,7 +306,7 @@ if ($tablesReady) {
     </div>
 </div>
 
-<div class="modal fade warehouse-confirm-modal" id="adminInvoiceConfirmModal" tabindex="-1" aria-labelledby="adminInvoiceConfirmTitle" aria-hidden="true">
+<div class="modal fade warehouse-confirm-modal admin-premium-modal" id="adminInvoiceConfirmModal" tabindex="-1" aria-labelledby="adminInvoiceConfirmTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form id="adminInvoiceConfirmForm">
@@ -344,7 +344,7 @@ if ($tablesReady) {
 
                 <div class="modal-footer">
                     <button type="button" class="btn warehouse-modal-back" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn warehouse-modal-confirm" data-admin-invoice-modal-confirm>
+                    <button type="submit" class="btn warehouse-modal-confirm" data-admin-invoice-modal-confirm data-skip-loading="1">
                         <i class="fas fa-check"></i>
                         <span>Confirmar aprobación</span>
                     </button>
@@ -354,16 +354,24 @@ if ($tablesReady) {
     </div>
 </div>
 
-<div class="modal fade" id="modalDetallesFactura" tabindex="-1">
-    <div class="modal-dialog modal-xl">
+<div class="modal fade admin-premium-modal admin-invoice-detail-modal" id="modalDetallesFactura" tabindex="-1" aria-labelledby="modalDetallesFacturaTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detalles de la Factura de Compra</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <span class="admin-premium-modal__icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <div class="admin-premium-modal__heading">
+                    <span class="farmer-kicker">Control financiero</span>
+                    <h2 class="modal-title" id="modalDetallesFacturaTitle">Detalle de factura</h2>
+                    <p>Información de compra, proveedor e insumos recibidos.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body" id="detallesFacturaContent"></div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <span class="admin-premium-modal__security"><i class="fas fa-shield-halved"></i> Registro protegido</span>
+                <button type="button" class="btn admin-premium-modal__close" data-bs-dismiss="modal">
+                    <i class="fas fa-xmark"></i> Cerrar detalle
+                </button>
             </div>
         </div>
     </div>

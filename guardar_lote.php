@@ -40,10 +40,21 @@ if ($idCultivo <= 0 || $ubicacion === '' || $area <= 0 || !$cultivoPertenece) {
     exit();
 }
 
-$etapaRiego = in_array('Riego', $etapas, true) ? 1 : 0;
-$etapaSiembra = in_array('Siembra', $etapas, true) ? 1 : 0;
-$etapaCosecha = in_array('Cosecha', $etapas, true) ? 1 : 0;
-$etapaActual = $etapaCosecha ? 3 : ($etapaSiembra ? 2 : ($etapaRiego ? 1 : 0));
+$etapaActual = (int) ($data['etapa_actual'] ?? 0);
+
+if (!in_array($etapaActual, [1, 2, 3], true)) {
+    // Compatibilidad con clientes antiguos que envían nombres de etapas.
+    $etapaActual = in_array('Cosecha', $etapas, true)
+        ? 3
+        : (in_array('Desarrollo', $etapas, true) || in_array('Riego', $etapas, true)
+            ? 2
+            : 1);
+}
+
+$etapaSiembra = $etapaActual >= 1 ? 1 : 0;
+$etapaRiego = $etapaActual >= 2 ? 1 : 0;
+$etapaCosecha = $etapaActual === 3 ? 1 : 0;
+$estadoCultivo = $etapaActual === 3 ? 'en_cosecha' : 'activo';
 
 $conn->begin_transaction();
 
@@ -51,10 +62,11 @@ try {
     db_execute(
         $conn,
         "INSERT INTO lotes (
-            id_cultivo, ubicacion, area, etapa_actual, etapa_riego, etapa_siembra, etapa_cosecha, fecha_registro
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
-        "isdiiii",
-        [$idCultivo, $ubicacion, $area, $etapaActual, $etapaRiego, $etapaSiembra, $etapaCosecha]
+            id_cultivo, ubicacion, area, etapa_actual, estado_cultivo,
+            etapa_riego, etapa_siembra, etapa_cosecha, fecha_registro
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
+        "isdisiii",
+        [$idCultivo, $ubicacion, $area, $etapaActual, $estadoCultivo, $etapaRiego, $etapaSiembra, $etapaCosecha]
     );
 
     $loteId = $conn->insert_id;

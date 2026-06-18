@@ -8,6 +8,8 @@
 
 # Respaldos y scripts de base de datos
 *.sql
+!migrations/
+!migrations/*.sql
 *.sql.gz
 *.dump
 

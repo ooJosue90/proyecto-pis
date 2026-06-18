@@ -96,28 +96,23 @@ $lotes = db_fetch_all($conn, "
 <div class="container farmer-dashboard mt-4">
     <?php render_flash_messages(); ?>
 
-    <section class="farmer-page-heading">
-        <div>
-            <span class="farmer-kicker">Calculadora</span>
+    <section class="farmer-page-heading farmer-dashboard-hero">
+        <div class="farmer-hero-copy">
+            <span class="farmer-kicker">Planificación técnica</span>
             <h1>Calculadora de Insumos</h1>
+            <p>Seleccione un lote para estimar materiales, fertilizantes y recursos por etapa productiva.</p>
         </div>
-        <a href="agricultor.php?tab=insumos" class="btn btn-success farmer-primary-action">
-            <i class="fas fa-clipboard-list"></i>
-            Solicitar Insumos
-        </a>
+        <div class="farmer-hero-status">
+            <span class="farmer-hero-status-icon"><i class="fas fa-calculator"></i></span>
+            <div>
+                <small>Lotes disponibles</small>
+                <strong><i class="fas fa-circle"></i> <?php echo count($lotes); ?> para calcular</strong>
+            </div>
+        </div>
     </section>
 
     <section class="farmer-main-panel farmer-section-panel">
         <div class="farmer-tab-content calculator-dashboard">
-            <div class="record-hero calculator-hero">
-                <div>
-                    <span class="farmer-kicker">Planificación técnica</span>
-                    <h2>Calcular Insumos</h2>
-                    <p>Seleccione un lote para estimar materiales, fertilizantes y recursos por etapa productiva.</p>
-                </div>
-                <span class="record-hero-icon calculator-hero-icon" aria-hidden="true"><i class="fas fa-calculator"></i></span>
-            </div>
-
             <div class="calculator-workspace">
                 <div class="calculator-main-card">
                     <label class="record-field-card calculator-lot-card">
@@ -161,11 +156,11 @@ $lotes = db_fetch_all($conn, "
                         <span>Etapas de cálculo</span>
                         <strong>3</strong>
                     </article>
-                    <a href="agricultor.php?tab=insumos">
+                    <a href="agricultor.php?tab=insumos" class="farmer-action-button farmer-action-button--compact">
                         <i class="fas fa-paper-plane"></i>
                         Solicitar desde el panel
                     </a>
-                    <a href="registrar_solicitud.php">
+                    <a href="historial_solicitudes.php" class="farmer-action-button farmer-action-button--compact">
                         <i class="fas fa-clock-rotate-left"></i>
                         Ver historial
                     </a>

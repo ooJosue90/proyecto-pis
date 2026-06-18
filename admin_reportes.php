@@ -33,46 +33,54 @@ $cultivos_por_tipo = $conn->query("
 ");
 ?>
 
-<div class="row mt-4">
+<div class="row mt-4 admin-reports">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4><i class="fas fa-chart-bar"></i> Reportes del Sistema</h4>
+        <div class="card admin-reports__shell">
+            <div class="card-header admin-reports__header">
+                <span class="admin-reports__header-icon"><i class="fas fa-chart-pie"></i></span>
+                <div>
+                    <span class="admin-section-eyebrow">Analítica administrativa</span>
+                    <h4>Reportes del Sistema</h4>
+                    <p>Indicadores de usuarios, cultivos y actividad reciente.</p>
+                </div>
             </div>
             <div class="card-body">
                 <!-- Resumen Estadístico -->
-                <div class="row mb-4">
+                <div class="row mb-4 admin-reports__metrics">
                     <div class="col-md-4">
-                        <div class="card bg-primary text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-users fa-2x mb-2"></i>
+                        <article class="admin-reports__metric admin-reports__metric--users">
+                            <span class="admin-reports__metric-icon"><i class="fas fa-users"></i></span>
+                            <div>
+                                <span>Resumen de cuentas</span>
                                 <h3><?php echo $total_usuarios; ?></h3>
                                 <p>Total Usuarios</p>
                             </div>
-                        </div>
+                        </article>
                     </div>
                     <div class="col-md-4">
-                        <div class="card bg-success text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-leaf fa-2x mb-2"></i>
+                        <article class="admin-reports__metric admin-reports__metric--crops">
+                            <span class="admin-reports__metric-icon"><i class="fas fa-leaf"></i></span>
+                            <div>
+                                <span>Producción registrada</span>
                                 <h3><?php echo $total_cultivos; ?></h3>
                                 <p>Cultivos Registrados</p>
                             </div>
-                        </div>
+                        </article>
                     </div>
                     <div class="col-md-4">
-                        <div class="card bg-warning text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
+                        <article class="admin-reports__metric admin-reports__metric--lots">
+                            <span class="admin-reports__metric-icon"><i class="fas fa-map-location-dot"></i></span>
+                            <div>
+                                <span>Superficie operativa</span>
                                 <h3><?php echo $total_lotes; ?></h3>
                                 <p>Lotes Activos</p>
                             </div>
-                        </div>
+                        </article>
                     </div>
                 </div>
 
                 <!-- Tabs para diferentes reportes -->
-                <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                <ul class="nav nav-tabs admin-reports__tabs" id="reportTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-report" type="button">
                             <i class="fas fa-users"></i> Usuarios
@@ -90,12 +98,12 @@ $cultivos_por_tipo = $conn->query("
                     </li>
                 </ul>
 
-                <div class="tab-content" id="reportTabsContent">
+                <div class="tab-content admin-reports__content" id="reportTabsContent">
                     <!-- Reporte de Usuarios -->
                     <div class="tab-pane fade show active" id="usuarios-report">
                         <div class="row mt-3">
-                            <div class="col-md-6">
-                                <h5>Distribución por Rol</h5>
+                            <div class="col-md-6 admin-report-panel">
+                                <h5><span><i class="fas fa-chart-pie"></i></span> Distribución por Rol</h5>
                                 <div class="table-responsive">
                                     <table class="table table-striped">
                                         <thead>
@@ -125,8 +133,8 @@ $cultivos_por_tipo = $conn->query("
                                     </table>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <h5>Lista Completa de Usuarios</h5>
+                            <div class="col-md-6 admin-report-panel">
+                                <h5><span><i class="fas fa-user-group"></i></span> Lista Completa de Usuarios</h5>
                                 <div class="table-responsive app-scroll-panel-sm">
                                     <table class="table table-sm">
                                         <thead>
@@ -164,8 +172,8 @@ $cultivos_por_tipo = $conn->query("
                     <!-- Reporte de Cultivos -->
                     <div class="tab-pane fade" id="cultivos-report">
                         <div class="row mt-3">
-                            <div class="col-md-6">
-                                <h5>Cultivos por Tipo</h5>
+                            <div class="col-md-6 admin-report-panel">
+                                <h5><span><i class="fas fa-chart-column"></i></span> Cultivos por Tipo</h5>
                                 <?php if ($cultivos_por_tipo->num_rows > 0): ?>
                                 <div class="table-responsive">
                                     <table class="table table-striped">
@@ -187,13 +195,13 @@ $cultivos_por_tipo = $conn->query("
                                 </div>
                                 <?php else: ?>
                                 <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i> No hay cultivos registrados todavía.
+                                    <i class="fas fa-circle-info"></i> No hay cultivos registrados todavía.
                                     <br><small>Los agricultores pueden registrar cultivos desde su panel.</small>
                                 </div>
                                 <?php endif; ?>
                             </div>
-                            <div class="col-md-6">
-                                <h5>Últimos Cultivos Registrados</h5>
+                            <div class="col-md-6 admin-report-panel">
+                                <h5><span><i class="fas fa-clock-rotate-left"></i></span> Últimos Cultivos Registrados</h5>
                                 <?php if ($cultivos_recientes->num_rows > 0): ?>
                                 <div class="table-responsive app-scroll-panel-sm">
                                     <table class="table table-sm">
@@ -223,8 +231,8 @@ $cultivos_por_tipo = $conn->query("
                     <!-- Reporte de Actividad Reciente -->
                     <div class="tab-pane fade" id="actividad-report">
                         <div class="row mt-3">
-                            <div class="col-md-12">
-                                <h5>Última Actividad</h5>
+                            <div class="col-md-12 admin-report-panel">
+                                <h5><span><i class="fas fa-wave-square"></i></span> Última Actividad</h5>
                                 <?php
                                 // ejemplo: combinamos actividades de usuarios y cultivos
                                 $actividad = $conn->query("
@@ -265,7 +273,7 @@ $cultivos_por_tipo = $conn->query("
                                 </div>
                                 <?php else: ?>
                                 <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i> No hay actividad reciente registrada.
+                                    <i class="fas fa-circle-info"></i> No hay actividad reciente registrada.
                                 </div>
                                 <?php endif; ?>
                             </div>

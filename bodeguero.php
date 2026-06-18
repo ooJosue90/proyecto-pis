@@ -71,7 +71,7 @@ $solicitudes_procesadas = db_fetch_all($conn, "
 <?php render_head('Panel Bodeguero'); ?>
 <body class="farmer-dashboard-page warehouse-dashboard-page">
 <?php render_app_nav('fas fa-warehouse', 'Bodeguero - ' . current_user_name(), [
-    ['href' => 'bodeguero_facturas.php', 'label' => 'Registrar Factura', 'icon' => 'fas fa-file-invoice-dollar', 'class' => 'btn btn-success btn-sm'],
+    ['href' => 'bodeguero_facturas.php', 'label' => 'Registrar Factura', 'icon' => 'fas fa-file-invoice-dollar', 'class' => 'btn btn-sm warehouse-primary-action warehouse-primary-action--compact'],
     ['href' => 'logout.php', 'label' => 'Salir', 'icon' => 'fas fa-sign-out-alt', 'class' => 'btn btn-outline-light btn-sm'],
 ]); ?>
 
@@ -187,7 +187,7 @@ $solicitudes_procesadas = db_fetch_all($conn, "
                             <td><span class="badge bg-warning text-dark"><?php echo e($pedido['estado']); ?></span></td>
                             <td>
                                 <a
-                                    class="btn btn-success btn-sm warehouse-receipt-button"
+                                    class="btn btn-sm warehouse-receipt-button warehouse-primary-action warehouse-primary-action--compact"
                                     href="bodeguero_facturas.php?pedido_id=<?php echo (int) $pedido['id_pedidos']; ?>">
                                     <i class="fas fa-file-circle-plus"></i> Registrar comprobante
                                 </a>
@@ -246,7 +246,7 @@ $solicitudes_procesadas = db_fetch_all($conn, "
                             <div class="warehouse-action-group">
                                 <button
                                     type="button"
-                                    class="btn btn-success btn-sm warehouse-action-button"
+                                    class="btn btn-sm warehouse-action-button warehouse-primary-action warehouse-primary-action--compact"
                                     data-warehouse-action="entregar"
                                     data-request-id="<?php echo e($sol['id_producto_solicitud']); ?>"
                                     data-product="<?php echo e($sol['nombre']); ?>"
@@ -357,7 +357,7 @@ $solicitudes_procesadas = db_fetch_all($conn, "
 
                 <div class="modal-footer">
                     <button type="button" class="btn warehouse-modal-back" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn warehouse-modal-confirm" data-warehouse-modal-confirm>
+                    <button type="submit" class="btn warehouse-modal-confirm warehouse-primary-action warehouse-primary-action--compact" data-warehouse-modal-confirm>
                         <i class="fas fa-check"></i>
                         <span>Confirmar entrega</span>
                     </button>

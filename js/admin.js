@@ -32,6 +32,36 @@
             document.body.style.removeProperty('padding-right');
         },
 
+        mountDynamicModal: function (modalElement, ownerId) {
+            if (!modalElement) return null;
+
+            if (ownerId) modalElement.dataset.adminModalOwner = ownerId;
+            if (modalElement.parentElement !== document.body) {
+                document.body.appendChild(modalElement);
+            }
+
+            return modalElement;
+        },
+
+        cleanupOwnedModals: function (ownerId) {
+            if (!ownerId) return;
+
+            document.querySelectorAll('.modal[data-admin-modal-owner]').forEach(modalElement => {
+                if (modalElement.dataset.adminModalOwner !== ownerId || modalElement.classList.contains('show')) {
+                    return;
+                }
+
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    bootstrap.Modal.getInstance(modalElement)?.dispose();
+                }
+                document.querySelectorAll(`[data-purchase-modal-id="${modalElement.id}"]`)
+                    .forEach(menu => menu.remove());
+                modalElement.remove();
+            });
+
+            this.cleanupModalState();
+        },
+
         closeModal: function (modalElement) {
             return new Promise(resolve => {
                 if (!modalElement || typeof bootstrap === 'undefined' || !bootstrap.Modal) {
@@ -70,6 +100,8 @@
             const target = document.getElementById(targetId);
             if (!target) return Promise.reject(new Error('Target element not found: ' + targetId));
 
+            this.cleanupOwnedModals(targetId);
+
             // Cache simple (5 minutos)
             if (useCache && this.contentCache[file] && (Date.now() - this.contentCache[file].timestamp < 300000)) {
                 target.innerHTML = this.contentCache[file].content;
@@ -96,11 +128,11 @@
                     console.error(`Error cargando ${file}:`, error);
                     target.innerHTML = `
                         <div class="alert alert-danger">
-                            <h5><i class="fas fa-exclamation-triangle"></i> Error al cargar contenido</h5>
+                            <h5><i class="fas fa-triangle-exclamation"></i> Error al cargar contenido</h5>
                             <p>No se pudo cargar ${file}</p>
                             <p><strong>Error:</strong> ${error.message}</p>
                             <button class="btn btn-outline-danger btn-sm" onclick="Admin.loadContent('${file}', '${targetId}')">
-                                <i class="fas fa-redo"></i> Reintentar
+                                <i class="fas fa-rotate-right"></i> Reintentar
                             </button>
                         </div>
                     `;
@@ -113,6 +145,480 @@
             return this.loadContent(file, targetId, { useCache: true });
         },
 
+        setupUserRoleSelect: function (container) {
+            const root = container || document;
+
+            root.querySelectorAll('[data-user-role-select]').forEach(customSelect => {
+                if (customSelect.dataset.hasListener) return;
+                customSelect.dataset.hasListener = '1';
+
+                const nativeSelect = customSelect.querySelector('.admin-user-role__native');
+                const button = customSelect.querySelector('[data-user-role-button]');
+                const label = customSelect.querySelector('[data-user-role-label]');
+                const options = Array.from(customSelect.querySelectorAll('.admin-user-role__option'));
+                const form = customSelect.closest('form');
+
+                if (!nativeSelect || !button || !label) return;
+
+                const close = () => {
+                    customSelect.classList.remove('is-open');
+                    button.setAttribute('aria-expanded', 'false');
+                };
+
+                const sync = () => {
+                    const selected = options.find(option => option.dataset.value === nativeSelect.value);
+                    label.textContent = selected
+                        ? selected.querySelector('strong').textContent
+                        : 'Seleccione el nivel de acceso';
+                    options.forEach(option => {
+                        const isSelected = option === selected;
+                        option.classList.toggle('is-selected', isSelected);
+                        option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    });
+                    if (nativeSelect.value) customSelect.classList.remove('is-invalid');
+                };
+
+                button.addEventListener('click', () => {
+                    const willOpen = !customSelect.classList.contains('is-open');
+                    customSelect.classList.toggle('is-open', willOpen);
+                    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                });
+
+                options.forEach(option => {
+                    option.addEventListener('click', () => {
+                        nativeSelect.value = option.dataset.value || '';
+                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        sync();
+                        close();
+                        button.focus();
+                    });
+                });
+
+                customSelect.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') {
+                        close();
+                        button.focus();
+                    }
+                });
+
+                nativeSelect.addEventListener('invalid', event => {
+                    event.preventDefault();
+                    customSelect.classList.add('is-invalid');
+                    button.focus();
+                });
+
+                nativeSelect.addEventListener('change', sync);
+
+                document.addEventListener('click', event => {
+                    if (!customSelect.contains(event.target)) close();
+                });
+
+                form?.addEventListener('reset', () => {
+                    window.setTimeout(() => {
+                        sync();
+                        close();
+                    }, 0);
+                });
+
+                sync();
+            });
+        },
+
+        setupUserDeletion: function (container) {
+            const root = container || document;
+            const modalElement = root.querySelector('#adminUserDeleteModal');
+            const form = modalElement?.querySelector('#adminUserDeleteForm');
+
+            if (!modalElement || !form || form.dataset.hasListener) return;
+            form.dataset.hasListener = '1';
+
+            form.addEventListener('submit', async event => {
+                event.preventDefault();
+
+                const id = form.querySelector('#adminUserDeleteId')?.value || '';
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalContent = submitButton?.innerHTML || '';
+
+                if (!id || !submitButton) return;
+
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Eliminando...</span>';
+
+                const formData = new FormData();
+                formData.append('action', 'eliminar');
+                formData.append('id_usuario', id);
+
+                try {
+                    const response = await fetch('admin_usuarios.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.message || 'No se pudo eliminar el usuario');
+                    }
+
+                    await Admin.closeModal(modalElement);
+                    alert(data.message || 'Usuario eliminado exitosamente');
+                    Admin.loadUsuarios();
+                } catch (error) {
+                    console.error('Error al eliminar usuario:', error);
+                    alert(`Error: ${error.message || 'No se pudo eliminar el usuario'}`);
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalContent;
+                }
+            });
+        },
+
+        setupAdminLotSelect: function (container) {
+            const root = container || document;
+
+            root.querySelectorAll('select[data-admin-lot-select]').forEach(nativeSelect => {
+                if (nativeSelect.dataset.hasCustomSelect) return;
+                nativeSelect.dataset.hasCustomSelect = '1';
+                nativeSelect.classList.add('admin-lot-select__native');
+
+                const customSelect = document.createElement('div');
+                const button = document.createElement('button');
+                const menu = document.createElement('div');
+                const icon = document.createElement('i');
+                const label = document.createElement('span');
+                const arrow = document.createElement('i');
+
+                customSelect.className = 'admin-lot-select';
+                button.type = 'button';
+                button.className = 'admin-lot-select__button';
+                button.setAttribute('aria-haspopup', 'listbox');
+                button.setAttribute('aria-expanded', 'false');
+                icon.className = 'fas fa-location-dot';
+                icon.setAttribute('aria-hidden', 'true');
+                label.className = 'admin-lot-select__label';
+                arrow.className = 'fas fa-chevron-down';
+                arrow.setAttribute('aria-hidden', 'true');
+                menu.className = 'admin-lot-select__menu';
+                menu.setAttribute('role', 'listbox');
+                menu.setAttribute('aria-label', 'Seleccionar lote');
+
+                button.append(icon, label, arrow);
+                customSelect.append(button);
+                nativeSelect.insertAdjacentElement('afterend', customSelect);
+                document.body.appendChild(menu);
+
+                const options = Array.from(nativeSelect.options);
+                const positionMenu = () => {
+                    const rect = button.getBoundingClientRect();
+                    const viewportGap = 12;
+                    const spaceBelow = window.innerHeight - rect.bottom - viewportGap;
+                    const availableHeight = Math.max(120, spaceBelow - 8);
+
+                    menu.style.left = `${Math.round(rect.left)}px`;
+                    menu.style.width = `${Math.round(rect.width)}px`;
+                    menu.style.maxHeight = `${Math.min(210, availableHeight)}px`;
+                    menu.style.top = `${Math.round(rect.bottom + 7)}px`;
+                    menu.dataset.placement = 'bottom';
+                };
+                const sync = () => {
+                    const selectedOption = nativeSelect.selectedOptions[0] || options[0];
+                    label.textContent = nativeSelect.value
+                        ? selectedOption?.textContent.trim().replace(/\s+/g, ' ')
+                        : 'Seleccione un lote';
+                    menu.querySelectorAll('.admin-lot-select__option').forEach(option => {
+                        const isSelected = option.dataset.value === nativeSelect.value;
+                        option.classList.toggle('is-selected', isSelected);
+                        option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    });
+                };
+                const close = () => {
+                    customSelect.classList.remove('is-open');
+                    menu.classList.remove('is-open');
+                    button.setAttribute('aria-expanded', 'false');
+                };
+
+                options.forEach((nativeOption, index) => {
+                    if (index === 0 && nativeOption.value === '') return;
+
+                    const option = document.createElement('button');
+                    const optionIcon = document.createElement('i');
+                    const optionCopy = document.createElement('span');
+                    const optionTitle = document.createElement('strong');
+                    const optionHint = document.createElement('small');
+                    const text = nativeOption.textContent.trim().replace(/\s+/g, ' ');
+                    const parts = text.split(' - ');
+
+                    option.type = 'button';
+                    option.className = 'admin-lot-select__option';
+                    option.dataset.value = nativeOption.value;
+                    option.setAttribute('role', 'option');
+                    optionIcon.className = 'fas fa-seedling';
+                    optionTitle.textContent = parts.shift();
+                    optionHint.textContent = parts.join(' - ');
+                    optionCopy.append(optionTitle, optionHint);
+                    option.append(optionIcon, optionCopy);
+                    menu.appendChild(option);
+
+                    option.addEventListener('click', () => {
+                        nativeSelect.value = option.dataset.value;
+                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        sync();
+                        close();
+                        button.focus();
+                    });
+                });
+
+                button.addEventListener('click', () => {
+                    const willOpen = !customSelect.classList.contains('is-open');
+                    customSelect.classList.toggle('is-open', willOpen);
+                    menu.classList.toggle('is-open', willOpen);
+                    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                    if (willOpen) positionMenu();
+                });
+
+                const handleEscape = event => {
+                    if (event.key === 'Escape') {
+                        close();
+                        button.focus();
+                    }
+                };
+                customSelect.addEventListener('keydown', handleEscape);
+                menu.addEventListener('keydown', handleEscape);
+
+                document.addEventListener('click', event => {
+                    if (!customSelect.contains(event.target) && !menu.contains(event.target)) close();
+                });
+
+                window.addEventListener('resize', () => {
+                    if (customSelect.classList.contains('is-open')) positionMenu();
+                });
+                window.addEventListener('scroll', () => {
+                    if (customSelect.classList.contains('is-open')) positionMenu();
+                }, true);
+
+                nativeSelect.addEventListener('change', sync);
+                sync();
+            });
+        },
+
+        setupPurchaseSelects: function (container) {
+            const root = container || document;
+
+            root.querySelectorAll('select[data-purchase-select]').forEach(nativeSelect => {
+                if (nativeSelect.dataset.hasCustomSelect) return;
+                nativeSelect.dataset.hasCustomSelect = '1';
+                nativeSelect.classList.add('admin-purchase-select__native');
+
+                const customSelect = document.createElement('div');
+                const button = document.createElement('button');
+                const leadingIcon = document.createElement('i');
+                const label = document.createElement('span');
+                const arrow = document.createElement('i');
+                const menu = document.createElement('div');
+                const placeholder = nativeSelect.dataset.selectLabel || 'Seleccionar opción';
+                const optionIconClass = nativeSelect.dataset.optionIcon || 'fa-circle-check';
+                const options = Array.from(nativeSelect.options);
+
+                customSelect.className = 'admin-purchase-select';
+                button.type = 'button';
+                button.className = 'admin-purchase-select__button';
+                button.setAttribute('aria-haspopup', 'listbox');
+                button.setAttribute('aria-expanded', 'false');
+                leadingIcon.className = `fas ${nativeSelect.dataset.selectIcon || 'fa-list'}`;
+                leadingIcon.setAttribute('aria-hidden', 'true');
+                label.className = 'admin-purchase-select__label';
+                arrow.className = 'fas fa-chevron-down admin-purchase-select__arrow';
+                arrow.setAttribute('aria-hidden', 'true');
+                menu.className = 'admin-purchase-select__menu';
+                menu.setAttribute('role', 'listbox');
+                menu.setAttribute('aria-label', placeholder);
+                menu.dataset.purchaseModalId = nativeSelect.closest('.modal')?.id || '';
+
+                button.append(leadingIcon, label, arrow);
+                customSelect.append(button);
+                nativeSelect.insertAdjacentElement('afterend', customSelect);
+                document.body.appendChild(menu);
+
+                const positionMenu = () => {
+                    const rect = button.getBoundingClientRect();
+                    const viewportGap = 12;
+                    const roomBelow = window.innerHeight - rect.bottom - viewportGap;
+                    const roomAbove = rect.top - viewportGap;
+                    const openAbove = roomBelow < 190 && roomAbove > roomBelow;
+                    const maxHeight = Math.min(260, Math.max(130, openAbove ? roomAbove - 8 : roomBelow - 8));
+
+                    menu.style.left = `${Math.round(rect.left)}px`;
+                    menu.style.width = `${Math.round(rect.width)}px`;
+                    menu.style.maxHeight = `${Math.round(maxHeight)}px`;
+                    const menuHeight = Math.min(menu.scrollHeight, maxHeight);
+                    menu.style.top = openAbove
+                        ? `${Math.round(rect.top - menuHeight - 7)}px`
+                        : `${Math.round(rect.bottom + 7)}px`;
+                    menu.dataset.placement = openAbove ? 'top' : 'bottom';
+                };
+
+                const close = () => {
+                    customSelect.classList.remove('is-open');
+                    menu.classList.remove('is-open');
+                    button.setAttribute('aria-expanded', 'false');
+                };
+
+                const sync = () => {
+                    const selectedOption = nativeSelect.selectedOptions[0];
+                    label.textContent = nativeSelect.value
+                        ? selectedOption?.textContent.trim().replace(/\s+/g, ' ')
+                        : placeholder;
+                    customSelect.classList.toggle('has-value', Boolean(nativeSelect.value));
+                    menu.querySelectorAll('.admin-purchase-select__option').forEach(option => {
+                        const isSelected = option.dataset.value === nativeSelect.value;
+                        option.classList.toggle('is-selected', isSelected);
+                        option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    });
+                    if (nativeSelect.value) customSelect.classList.remove('is-invalid');
+                };
+
+                options.forEach(nativeOption => {
+                    if (!nativeOption.value) return;
+
+                    const option = document.createElement('button');
+                    const optionIcon = document.createElement('i');
+                    const optionLabel = document.createElement('span');
+                    const checkIcon = document.createElement('i');
+
+                    option.type = 'button';
+                    option.className = 'admin-purchase-select__option';
+                    option.dataset.value = nativeOption.value;
+                    option.setAttribute('role', 'option');
+                    optionIcon.className = `fas ${optionIconClass}`;
+                    optionIcon.setAttribute('aria-hidden', 'true');
+                    optionLabel.textContent = nativeOption.textContent.trim().replace(/\s+/g, ' ');
+                    checkIcon.className = 'fas fa-check admin-purchase-select__check';
+                    checkIcon.setAttribute('aria-hidden', 'true');
+                    option.append(optionIcon, optionLabel, checkIcon);
+                    menu.appendChild(option);
+
+                    option.addEventListener('click', () => {
+                        nativeSelect.value = option.dataset.value;
+                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        sync();
+                        close();
+                        button.focus();
+                    });
+                });
+
+                button.addEventListener('click', () => {
+                    const willOpen = !customSelect.classList.contains('is-open');
+                    document.querySelectorAll('.admin-purchase-select.is-open').forEach(select => {
+                        if (select !== customSelect) select.querySelector('button')?.click();
+                    });
+                    customSelect.classList.toggle('is-open', willOpen);
+                    menu.classList.toggle('is-open', willOpen);
+                    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                    if (willOpen) positionMenu();
+                });
+
+                const handleEscape = event => {
+                    if (event.key === 'Escape') {
+                        close();
+                        button.focus();
+                    }
+                };
+                customSelect.addEventListener('keydown', handleEscape);
+                menu.addEventListener('keydown', handleEscape);
+
+                document.addEventListener('click', event => {
+                    if (!customSelect.contains(event.target) && !menu.contains(event.target)) close();
+                });
+                window.addEventListener('resize', () => {
+                    if (customSelect.classList.contains('is-open')) positionMenu();
+                });
+                window.addEventListener('scroll', () => {
+                    if (customSelect.classList.contains('is-open')) positionMenu();
+                }, true);
+
+                nativeSelect.addEventListener('change', sync);
+                nativeSelect.addEventListener('invalid', event => {
+                    event.preventDefault();
+                    customSelect.classList.add('is-invalid');
+                    button.focus();
+                });
+                nativeSelect.form?.addEventListener('reset', () => {
+                    window.setTimeout(() => {
+                        sync();
+                        close();
+                    }, 0);
+                });
+
+                sync();
+            });
+        },
+
+        setupAdminLotHistory: function (container) {
+            const root = container || document;
+            const button = root.querySelector('[data-admin-lot-history]');
+            const nativeSelect = document.getElementById('selectorLote');
+            const content = document.getElementById('historialLoteContent');
+
+            if (!button || !nativeSelect || !content || button.dataset.hasListener) return;
+            button.dataset.hasListener = '1';
+
+            const clearHistoryResult = () => {
+                content.querySelectorAll(':scope > .app-table-tools, :scope > .app-table-pagination').forEach(element => {
+                    element.remove();
+                });
+                document.querySelectorAll('.app-table-filter__menu[data-app-table-owner="historialLoteContent"]').forEach(menu => {
+                    menu.remove();
+                });
+                content.replaceChildren();
+            };
+
+            button.addEventListener('click', async () => {
+                const loteId = nativeSelect.value;
+                const icon = button.querySelector('i');
+                const label = button.querySelector('span');
+                const customSelectButton = nativeSelect.nextElementSibling?.querySelector('.admin-lot-select__button');
+
+                clearHistoryResult();
+                document.querySelectorAll('.admin-lot-select__menu.is-open').forEach(menu => {
+                    menu.classList.remove('is-open');
+                });
+                nativeSelect.nextElementSibling?.classList.remove('is-open');
+                customSelectButton?.setAttribute('aria-expanded', 'false');
+
+                if (!loteId) {
+                    content.innerHTML = '<div class="alert alert-info"><i class="fas fa-circle-info"></i> Seleccione un lote para consultar su historial.</div>';
+                    customSelectButton?.focus();
+                    return;
+                }
+
+                button.disabled = true;
+                button.classList.add('is-loading');
+                if (icon) icon.className = 'fas fa-circle-notch fa-spin';
+                if (label) label.textContent = 'Cargando historial...';
+                content.innerHTML = '<div class="text-center"><i class="fas fa-circle-notch fa-spin"></i><p>Cargando historial...</p></div>';
+
+                try {
+                    const response = await fetch(`lote_historial.php?id=${encodeURIComponent(loteId)}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    const result = document.createElement('div');
+                    result.className = 'admin-lot-history-result';
+                    result.innerHTML = await response.text();
+                    content.replaceChildren(result);
+                    window.AppUI?.refresh?.(result);
+                } catch (error) {
+                    console.error('Error al cargar historial del lote:', error);
+                    content.innerHTML = '<div class="alert alert-danger"><i class="fas fa-triangle-exclamation"></i> No se pudo cargar el historial. Intente nuevamente.</div>';
+                } finally {
+                    button.disabled = false;
+                    button.classList.remove('is-loading');
+                    if (icon) icon.className = 'fas fa-magnifying-glass';
+                    if (label) label.textContent = 'Ver Historial Completo';
+                }
+            });
+        },
+
         // Conecta listeners/handlers para formularios y botones dinámicos dentro de un contenedor
         setupDynamicForms: function (container) {
             // container puede ser elemento o id string; si null => document
@@ -122,6 +628,10 @@
 
             this.setupRequestConfirmation(root);
             this.setupInvoiceConfirmation(root);
+            this.setupCropDeletion(root);
+            this.setupUserRoleSelect(root);
+            this.setupUserDeletion(root);
+            this.setupPurchaseSelects(root);
 
             const invoiceFilters = root.querySelector('#purchaseInvoiceFilters');
             if (invoiceFilters && !invoiceFilters.dataset.hasListener) {
@@ -386,6 +896,12 @@
                 }).catch(err => { console.error('Cancelar pedido:', err); alert('Error de conexión'); });
             };
             // --- FIN: Handlers para Proveedores y Pedidos ---
+
+            if (root.id) {
+                root.querySelectorAll('.modal').forEach(modalElement => {
+                    Admin.mountDynamicModal(modalElement, root.id);
+                });
+            }
         },
 
         // Pestañas: carga el contenido en la zona correspondiente
@@ -398,14 +914,18 @@
         loadPedidosProveedores: function () { return this.loadContent('admin_pedidos_proveedores.php', 'pedidos-proveedores-content', { useCache: false }); },
 
         setupRequestConfirmation: function (root) {
-            const modalElement = root.querySelector('#adminRequestConfirmModal');
+            const modalElement = this.mountDynamicModal(
+                root.querySelector('#adminRequestConfirmModal'),
+                root.id
+            );
             const form = root.querySelector('#adminRequestConfirmForm');
 
-            if (!modalElement || !form || typeof bootstrap === 'undefined') return;
+            const modalForm = form || modalElement?.querySelector('#adminRequestConfirmForm');
+            if (!modalElement || !modalForm || typeof bootstrap === 'undefined') return;
 
             const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-            const requestIdInput = form.querySelector('#adminRequestConfirmId');
-            const actionInput = form.querySelector('#adminRequestConfirmAction');
+            const requestIdInput = modalForm.querySelector('#adminRequestConfirmId');
+            const actionInput = modalForm.querySelector('#adminRequestConfirmAction');
             const title = modalElement.querySelector('#adminRequestConfirmTitle');
             const icon = modalElement.querySelector('[data-admin-request-modal-icon]');
             const message = modalElement.querySelector('[data-admin-request-modal-message]');
@@ -442,10 +962,10 @@
                 });
             });
 
-            if (form.dataset.adminRequestListener === '1') return;
-            form.dataset.adminRequestListener = '1';
+            if (modalForm.dataset.adminRequestListener === '1') return;
+            modalForm.dataset.adminRequestListener = '1';
 
-            form.addEventListener('submit', function (event) {
+            modalForm.addEventListener('submit', function (event) {
                 event.preventDefault();
 
                 const action = actionInput.value;
@@ -467,10 +987,8 @@
                         }
 
                         alert(data.message || 'Solicitud procesada correctamente.');
-                        modalElement.addEventListener('hidden.bs.modal', function () {
-                            Admin.loadSolicitudes();
-                        }, { once: true });
-                        modal.hide();
+                        return Admin.closeModal(modalElement)
+                            .then(() => Admin.loadSolicitudes());
                     })
                     .catch(error => {
                         console.error('Error procesando solicitud:', error);
@@ -484,14 +1002,18 @@
         },
 
         setupInvoiceConfirmation: function (root) {
-            const modalElement = root.querySelector('#adminInvoiceConfirmModal');
+            const modalElement = this.mountDynamicModal(
+                root.querySelector('#adminInvoiceConfirmModal'),
+                root.id
+            );
             const form = root.querySelector('#adminInvoiceConfirmForm');
 
-            if (!modalElement || !form || typeof bootstrap === 'undefined') return;
+            const modalForm = form || modalElement?.querySelector('#adminInvoiceConfirmForm');
+            if (!modalElement || !modalForm || typeof bootstrap === 'undefined') return;
 
             const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-            const invoiceIdInput = form.querySelector('#adminInvoiceConfirmId');
-            const actionInput = form.querySelector('#adminInvoiceConfirmAction');
+            const invoiceIdInput = modalForm.querySelector('#adminInvoiceConfirmId');
+            const actionInput = modalForm.querySelector('#adminInvoiceConfirmAction');
             const title = modalElement.querySelector('#adminInvoiceConfirmTitle');
             const icon = modalElement.querySelector('[data-admin-invoice-modal-icon]');
             const message = modalElement.querySelector('[data-admin-invoice-modal-message]');
@@ -530,10 +1052,10 @@
                 });
             });
 
-            if (form.dataset.adminInvoiceListener === '1') return;
-            form.dataset.adminInvoiceListener = '1';
+            if (modalForm.dataset.adminInvoiceListener === '1') return;
+            modalForm.dataset.adminInvoiceListener = '1';
 
-            form.addEventListener('submit', function (event) {
+            modalForm.addEventListener('submit', function (event) {
                 event.preventDefault();
 
                 const fd = new FormData();
@@ -553,13 +1075,89 @@
                         }
 
                         alert(data.message || 'Factura revisada correctamente.');
-                        modalElement.addEventListener('hidden.bs.modal', function () {
-                            Admin.loadFacturas();
-                        }, { once: true });
-                        modal.hide();
+                        return Admin.closeModal(modalElement)
+                            .then(() => Admin.loadFacturas());
                     })
                     .catch(error => {
                         console.error('Error revisando factura:', error);
+                        alert('Error de conexión');
+                    })
+                    .finally(() => {
+                        confirmButton.disabled = false;
+                        confirmButton.innerHTML = originalContent;
+                    });
+            });
+        },
+
+        setupCropDeletion: function (root) {
+            const modalElement = this.mountDynamicModal(
+                root.querySelector('#adminCropDeleteModal'),
+                root.id
+            );
+            if (!modalElement || typeof bootstrap === 'undefined') return;
+
+            const form = modalElement.querySelector('#adminCropDeleteForm');
+            const typeInput = modalElement.querySelector('#adminCropDeleteType');
+            const idInput = modalElement.querySelector('#adminCropDeleteId');
+            const title = modalElement.querySelector('#adminCropDeleteTitle');
+            const question = modalElement.querySelector('[data-admin-delete-question]');
+            const label = modalElement.querySelector('[data-admin-delete-label]');
+            const name = modalElement.querySelector('[data-admin-delete-name]');
+            const confirmButton = modalElement.querySelector('[data-admin-delete-confirm]');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+            root.querySelectorAll('[data-admin-crop-delete]').forEach(button => {
+                if (button.dataset.adminDeleteListener === '1') return;
+                button.dataset.adminDeleteListener = '1';
+
+                button.addEventListener('click', function () {
+                    if (button.disabled) return;
+
+                    const type = button.dataset.adminCropDelete;
+                    const isCrop = type === 'cultivo';
+
+                    typeInput.value = type;
+                    idInput.value = button.dataset.recordId || '';
+                    title.textContent = isCrop ? 'Eliminar cultivo' : 'Eliminar lote';
+                    question.textContent = isCrop
+                        ? '¿Confirma que desea eliminar este cultivo?'
+                        : '¿Confirma que desea eliminar este lote?';
+                    label.textContent = isCrop ? 'Cultivo seleccionado' : 'Lote seleccionado';
+                    name.textContent = button.dataset.recordName || `Registro #${idInput.value}`;
+                    modal.show();
+                });
+            });
+
+            if (!form || form.dataset.adminDeleteListener === '1') return;
+            form.dataset.adminDeleteListener = '1';
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const type = typeInput.value;
+                const isCrop = type === 'cultivo';
+                const originalContent = confirmButton.innerHTML;
+                const fd = new FormData();
+                fd.append('action', isCrop ? 'eliminar_cultivo' : 'eliminar_lote');
+                fd.append(isCrop ? 'id_cultivo' : 'id_lote', idInput.value);
+
+                confirmButton.disabled = true;
+                confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span> Eliminando...</span>';
+
+                fetch('admin_cultivos.php', { method: 'POST', body: fd })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert(data.message || 'No se pudo eliminar el registro.');
+                            return;
+                        }
+
+                        alert(data.message || 'Registro eliminado exitosamente.');
+                        return Admin.closeModal(modalElement)
+                            .then(() => Admin.loadCultivos());
+                    })
+                    .catch(error => {
+                        console.error('Error eliminando registro agrícola:', error);
                         alert('Error de conexión');
                     })
                     .finally(() => {
@@ -593,36 +1191,18 @@
                     if (container) container.innerHTML = html;
                     if (typeof bootstrap !== 'undefined') {
                         const modalEl = document.getElementById('modalDetallesCultivo');
-                        if (modalEl) new bootstrap.Modal(modalEl).show();
+                        if (modalEl) {
+                            this.mountDynamicModal(modalEl, 'cultivos-content');
+                            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                        }
                     }
                 }).catch(err => { console.error('Error cultivo detalle:', err); alert('Error al cargar los detalles del cultivo'); });
         },
 
         eliminarCultivo: function (id) {
-            if (!confirm('¿Está seguro de eliminar este cultivo? ADVERTENCIA: Si tiene lotes asociados, se eliminarán también.')) return;
-            const fd = new FormData();
-            fd.append('action', 'eliminar_cultivo');
-            fd.append('id_cultivo', id);
-            fetch('admin_cultivos.php', { method: 'POST', body: fd })
-                .then(r => r.text())
-                .then(text => {
-                    try {
-                        const data = JSON.parse(text);
-                        if (data.success) {
-                            alert('Cultivo eliminado exitosamente');
-                            Admin.loadCultivos();
-                        } else {
-                            alert('Error: ' + (data.message || 'Error desconocido'));
-                        }
-                    } catch (err) {
-                        console.error('Eliminar cultivo - respuesta inválida:', text, err);
-                        alert('Error en el servidor');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error eliminar cultivo:', err);
-                    alert('Error de conexión');
-                });
+            document.querySelector(
+                `[data-admin-crop-delete="cultivo"][data-record-id="${id}"]`
+            )?.click();
         },
 
         verDetalleLote: function (id) {
@@ -633,36 +1213,18 @@
                     if (container) container.innerHTML = html;
                     if (typeof bootstrap !== 'undefined') {
                         const modalEl = document.getElementById('modalDetalleLote');
-                        if (modalEl) new bootstrap.Modal(modalEl).show();
+                        if (modalEl) {
+                            this.mountDynamicModal(modalEl, 'cultivos-content');
+                            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                        }
                     }
                 }).catch(err => { console.error('Error lote detalle:', err); alert('Error al cargar los detalles del lote'); });
         },
 
         eliminarLote: function (id) {
-            if (!confirm('¿Está seguro de eliminar este lote?')) return;
-            const fd = new FormData();
-            fd.append('action', 'eliminar_lote');
-            fd.append('id_lote', id);
-            fetch('admin_cultivos.php', { method: 'POST', body: fd })
-                .then(r => r.text())
-                .then(text => {
-                    try {
-                        const data = JSON.parse(text);
-                        if (data.success) {
-                            alert('Lote eliminado exitosamente');
-                            Admin.loadCultivos();
-                        } else {
-                            alert('Error: ' + (data.message || 'Error desconocido'));
-                        }
-                    } catch (err) {
-                        console.error('Eliminar lote - respuesta inválida:', text, err);
-                        alert('Error en el servidor');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error eliminar lote:', err);
-                    alert('Error de conexión');
-                });
+            document.querySelector(
+                `[data-admin-crop-delete="lote"][data-record-id="${id}"]`
+            )?.click();
         },
 
         verDetallesFactura: function (id) {
@@ -673,13 +1235,24 @@
                     if (container) container.innerHTML = html;
                     if (typeof bootstrap !== 'undefined') {
                         const modalEl = document.getElementById('modalDetallesFactura');
-                        if (modalEl) new bootstrap.Modal(modalEl).show();
+                        if (modalEl) {
+                            this.mountDynamicModal(modalEl, 'facturas-content');
+                            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                        }
                     }
                 }).catch(err => { console.error('Error ver detalles factura:', err); alert('Error al cargar los detalles'); });
         },
 
         // Init: engancha listeners de pestañas (evita duplicar listeners)
         init: function () {
+            this.setupDynamicForms(document);
+            this.setupAdminLotSelect(document);
+            this.setupAdminLotHistory(document);
+
+            document.addEventListener('hidden.bs.modal', () => {
+                window.setTimeout(() => Admin.cleanupModalState(), 0);
+            });
+
             document.querySelectorAll('#adminTabsContent > .tab-pane').forEach(pane => {
                 if (pane.dataset.adminListener === '1') return;
                 pane.dataset.adminListener = '1';
@@ -772,7 +1345,10 @@
             if (editIdDisplay) editIdDisplay.value = id;
             if (editNombre) editNombre.value = nombre || '';
             if (editEmail) editEmail.value = email || '';
-            if (editRol) editRol.value = rol || '';
+            if (editRol) {
+                editRol.value = rol || '';
+                editRol.dispatchEvent(new Event('change', { bubbles: true }));
+            }
             if (editContrasena) editContrasena.value = '';
             const modal = document.getElementById('modalEditarUsuario');
             if (modal && typeof bootstrap !== 'undefined') {
@@ -781,31 +1357,25 @@
         }, 50);
     };
 
-    window.eliminarUsuario = function (id) {
-        if (!confirm('¿Desea eliminar este usuario?')) return;
-        const fd = new FormData();
-        fd.append('action', 'eliminar');
-        fd.append('id_usuario', id);
-        fetch('admin_usuarios.php', { method: 'POST', body: fd })
-            .then(r => r.text())
-            .then(text => {
-                try {
-                    const data = JSON.parse(text);
-                    if (data.success) {
-                        alert('Usuario eliminado exitosamente');
-                        Admin.loadUsuarios();
-                    } else {
-                        alert('Error: ' + (data.message || 'Error desconocido'));
-                    }
-                } catch (err) {
-                    console.error('Eliminar usuario - respuesta inválida:', text, err);
-                    alert('Error en el servidor');
-                }
-            })
-            .catch(err => {
-                console.error('Error eliminar usuario:', err);
-                alert('Error de conexión');
-            });
+    window.eliminarUsuario = function (trigger) {
+        const modalElement = document.getElementById('adminUserDeleteModal');
+        if (!modalElement || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+
+        const id = trigger?.dataset?.userId || String(trigger || '');
+        const name = trigger?.dataset?.userName || 'Usuario seleccionado';
+        const email = trigger?.dataset?.userEmail || 'Sin correo disponible';
+
+        const idInput = modalElement.querySelector('#adminUserDeleteId');
+        const idDisplay = modalElement.querySelector('#adminUserDeleteDisplayId');
+        const nameDisplay = modalElement.querySelector('#adminUserDeleteName');
+        const emailDisplay = modalElement.querySelector('#adminUserDeleteEmail');
+
+        if (idInput) idInput.value = id;
+        if (idDisplay) idDisplay.textContent = id;
+        if (nameDisplay) nameDisplay.textContent = name;
+        if (emailDisplay) emailDisplay.textContent = email;
+
+        bootstrap.Modal.getOrCreateInstance(modalElement).show();
     };
 
     // Aliases para solicitudes/facturas/cultivos usados por los PHP

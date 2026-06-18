@@ -1,0 +1,700 @@
+/* Purchase invoice module */
+.form-select,
+select.form-control {
+    width: 100%;
+    padding-right: 46px;
+    border: 1px solid rgba(20, 83, 45, 0.2);
+    border-radius: 12px;
+    background-color: #f8fbff;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #14532d 50%),
+        linear-gradient(135deg, #14532d 50%, transparent 50%),
+        linear-gradient(to right, rgba(20, 83, 45, 0.12), rgba(20, 83, 45, 0.12));
+    background-position:
+        calc(100% - 20px) 50%,
+        calc(100% - 14px) 50%,
+        calc(100% - 40px) 50%;
+    background-size: 6px 6px, 6px 6px, 1px 55%;
+    background-repeat: no-repeat;
+    color: #1f3529;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition:
+        border-color 0.16s ease,
+        background-color 0.16s ease,
+        box-shadow 0.16s ease;
+}
+
+.form-select:hover,
+select.form-control:hover {
+    border-color: rgba(20, 83, 45, 0.42);
+    background-color: #fff;
+}
+
+.form-select:focus,
+select.form-control:focus {
+    border-color: #15803d;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.13);
+    outline: 0;
+}
+
+.form-select:disabled,
+select.form-control:disabled {
+    border-color: #d8e2db;
+    background-color: #edf2ef;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+        linear-gradient(135deg, #94a3b8 50%, transparent 50%),
+        linear-gradient(to right, #d8e2db, #d8e2db);
+    color: #7b8b81;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+.form-select.is-invalid,
+select.form-control.is-invalid,
+.was-validated .form-select:invalid,
+.was-validated select.form-control:invalid {
+    border-color: #dc2626;
+}
+
+.form-select.is-valid,
+select.form-control.is-valid,
+.was-validated .form-select:valid,
+.was-validated select.form-control:valid {
+    border-color: #15803d;
+}
+
+.form-select[multiple],
+.form-select[size]:not([size="1"]),
+select.form-control[multiple],
+select.form-control[size]:not([size="1"]) {
+    padding-right: 14px;
+    background-image: none;
+    cursor: default;
+}
+
+.form-select option,
+select.form-control option {
+    background: #fff;
+    color: #1f3529;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    line-height: 1.5 !important;
+}
+
+.form-select option:checked,
+select.form-control option:checked {
+    background: #dcfce7;
+    color: #14532d;
+}
+
+.form-select option:disabled,
+select.form-control option:disabled {
+    color: #94a3b8;
+}
+
+.form-select optgroup,
+select.form-control optgroup {
+    background: #f0f7f2;
+    color: #14532d;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+}
+
+select,
+select option,
+select optgroup,
+.ag-select-button,
+.ag-select-option,
+.ag-select-option span {
+    font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+    font-style: normal !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+.purchase-invoice-dashboard {
+    width: min(100%, 1540px);
+    padding-inline: clamp(16px, 3vw, 44px);
+}
+
+.purchase-invoice-heading {
+    align-items: center;
+}
+
+.purchase-invoice-heading p {
+    max-width: 680px;
+    margin: 8px 0 0;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.purchase-invoice-heading-icon {
+    display: grid;
+    width: 64px;
+    height: 64px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid rgba(20, 83, 45, 0.14);
+    border-radius: 18px;
+    background: #fff;
+    color: #14532d;
+    box-shadow: 0 12px 28px rgba(20, 83, 45, 0.1);
+    font-size: 26px;
+}
+
+.purchase-invoice-card,
+.purchase-invoice-history-card,
+.admin-invoice-card {
+    overflow: hidden;
+}
+
+.purchase-invoice-card-header,
+.admin-invoice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 22px;
+}
+
+.purchase-invoice-card-header > div,
+.admin-invoice-header > div {
+    display: grid;
+    gap: 4px;
+}
+
+.purchase-invoice-card-header small {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.purchase-invoice-step,
+.admin-invoice-kicker {
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.purchase-invoice-main-fields {
+    padding: 20px;
+    border: 1px solid rgba(20, 83, 45, 0.1);
+    border-radius: 16px;
+    background: #f8fbf7;
+}
+
+.purchase-invoice-main-fields .form-label,
+.purchase-invoice-footer-grid .form-label {
+    margin-bottom: 8px;
+    color: #25352b;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.purchase-invoice-section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 4px 0 14px;
+}
+
+.purchase-invoice-section-heading h5 {
+    margin: 3px 0 0;
+    color: #173d25;
+    font-weight: 750;
+}
+
+.purchase-invoice-section-heading .btn {
+    white-space: nowrap;
+}
+
+.purchase-invoice-card .card-body {
+    padding: clamp(18px, 2.4vw, 30px);
+    background: #f6f9f7;
+}
+
+.purchase-invoice-card .form-control,
+.purchase-invoice-card .form-select,
+.purchase-invoice-card .input-group {
+    min-width: 0;
+}
+
+.purchase-invoice-card .form-control,
+.purchase-invoice-card .form-select {
+    min-height: 48px;
+}
+
+.purchase-invoice-card .form-control[readonly] {
+    border-color: #dce7df;
+    background: #f5f8f6;
+    color: #395044;
+    font-weight: 700;
+}
+
+.purchase-field {
+    min-width: 0;
+}
+
+.purchase-field .form-label {
+    margin-bottom: 8px;
+    color: #25352b;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.purchase-field:has(.purchase-premium-select.is-open) {
+    position: relative;
+    z-index: 30;
+}
+
+.purchase-premium-select__native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+}
+
+.purchase-premium-select {
+    position: relative;
+    min-width: 0;
+}
+
+.purchase-premium-select__button {
+    display: grid;
+    width: 100%;
+    min-height: 52px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    padding: 7px 14px 7px 8px;
+    border: 1px solid rgba(20, 83, 45, 0.2);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fff, #f7fbf8);
+    color: #718078;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 750;
+    text-align: left;
+    box-shadow: 0 8px 20px rgba(20, 83, 45, 0.06);
+    cursor: pointer;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.purchase-premium-select.has-value .purchase-premium-select__button {
+    color: #1f3529;
+}
+
+.purchase-premium-select__button:hover,
+.purchase-premium-select.is-open .purchase-premium-select__button {
+    border-color: rgba(21, 128, 61, 0.58);
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(20, 83, 45, 0.12);
+    transform: translateY(-1px);
+}
+
+.purchase-premium-select__button:focus-visible {
+    border-color: #15803d;
+    outline: 0;
+    box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.13), 0 12px 28px rgba(20, 83, 45, 0.1);
+}
+
+.purchase-premium-select__button:disabled {
+    border-color: #dbe5de;
+    background: #edf3ef;
+    color: #78877e;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.purchase-premium-select__icon,
+.purchase-premium-select__option-icon {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 11px;
+    background: linear-gradient(145deg, #e6f7eb, #f1fbf4);
+    color: #15803d;
+}
+
+.purchase-premium-select__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.purchase-premium-select__arrow {
+    color: #718078;
+    font-size: 11px;
+    transition: transform 180ms ease;
+}
+
+.purchase-premium-select.is-open .purchase-premium-select__arrow {
+    transform: rotate(180deg);
+}
+
+.purchase-premium-select.is-invalid .purchase-premium-select__button {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.11);
+}
+
+.purchase-premium-select__menu {
+    position: absolute;
+    inset: calc(100% + 9px) 0 auto;
+    z-index: 80;
+    display: none;
+    max-height: 290px;
+    gap: 5px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid rgba(20, 83, 45, 0.14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 24px 55px rgba(15, 23, 42, 0.18);
+    backdrop-filter: blur(16px);
+    scrollbar-color: #8ab796 #edf5ef;
+    scrollbar-width: thin;
+}
+
+.purchase-premium-select.is-open .purchase-premium-select__menu {
+    display: grid;
+    animation: appFadeIn 160ms ease both;
+}
+
+.purchase-premium-select__option {
+    display: grid;
+    width: 100%;
+    min-height: 54px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #26372d;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.purchase-premium-select__option > span:nth-child(2) {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.purchase-premium-select__option strong {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.purchase-premium-select__option small {
+    overflow: hidden;
+    color: #75837b;
+    font-size: 11px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.purchase-premium-select__option:hover,
+.purchase-premium-select__option:focus-visible,
+.purchase-premium-select__option.is-selected {
+    background: #edf8f0;
+    color: #14532d;
+    outline: 0;
+    transform: translateX(2px);
+}
+
+.purchase-premium-select__option.is-selected .purchase-premium-select__option-icon {
+    background: linear-gradient(145deg, #166534, #15803d);
+    color: #fff;
+}
+
+.purchase-premium-select__check {
+    color: #15803d;
+    font-size: 12px;
+    opacity: 0;
+}
+
+.purchase-premium-select__option.is-selected .purchase-premium-select__check {
+    opacity: 1;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__button {
+    border-color: #334155;
+    background: linear-gradient(180deg, #172235, #111c2d);
+    color: #94a3b8;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select.has-value .purchase-premium-select__button {
+    color: #e2e8f0;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__button:hover,
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select.is-open .purchase-premium-select__button {
+    border-color: #4ade80;
+    background: #17263a;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__button:disabled {
+    border-color: #283548;
+    background: #17202f;
+    color: #718096;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__icon,
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__option-icon {
+    background: rgba(34, 197, 94, 0.13);
+    color: #4ade80;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__menu {
+    border-color: rgba(74, 222, 128, 0.18);
+    background: rgba(18, 29, 45, 0.98);
+    box-shadow: 0 24px 55px rgba(0, 0, 0, 0.42);
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__option {
+    color: #dbe5df;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__option small {
+    color: #91a09a;
+}
+
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__option:hover,
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__option:focus-visible,
+:root:is([data-theme="dark"], [data-theme="night"]) .purchase-premium-select__option.is-selected {
+    background: rgba(34, 197, 94, 0.13);
+    color: #f0fdf4;
+}
+
+.purchase-invoice-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    gap: 24px;
+    align-items: start;
+}
+
+.purchase-invoice-form-column {
+    display: grid;
+    min-width: 0;
+    gap: 20px;
+}
+
+.purchase-form-section {
+    padding: clamp(18px, 2vw, 24px);
+    border: 1px solid rgba(20, 83, 45, 0.11);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(20, 83, 45, 0.055);
+}
+
+.purchase-form-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.purchase-form-section-number {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #166534, #15803d);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(21, 128, 61, 0.2);
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.purchase-form-section-heading h5 {
+    margin: 0;
+    color: #173d25;
+    font-size: 18px;
+    font-weight: 850;
+}
+
+.purchase-form-section-heading p {
+    margin: 3px 0 0;
+    color: #718078;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.purchase-invoice-main-fields {
+    display: grid;
+    grid-template-columns: minmax(280px, 1.45fr) minmax(200px, 0.85fr) minmax(170px, 0.65fr);
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.purchase-invoice-sidebar {
+    position: sticky;
+    top: 24px;
+    display: grid;
+    gap: 18px;
+    padding: 22px;
+    border: 1px solid rgba(20, 83, 45, 0.14);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 14px 36px rgba(20, 83, 45, 0.09);
+}
+
+.purchase-invoice-sidebar-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e7eee9;
+}
+
+.purchase-invoice-sidebar-title > span {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 13px;
+    background: #e9f7ed;
+    color: #15803d;
+    font-size: 18px;
+}
+
+.purchase-invoice-sidebar-title small {
+    color: #7b8b81;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.purchase-invoice-sidebar-title h5 {
+    margin: 1px 0 0;
+    color: #173d25;
+    font-size: 17px;
+    font-weight: 850;
+}
+
+.purchase-invoice-total-card {
+    padding: 20px;
+    border-radius: 17px;
+    background: linear-gradient(145deg, #14532d, #166534);
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(20, 83, 45, 0.18);
+}
+
+.purchase-invoice-total-card > span {
+    display: block;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.purchase-invoice-total-card > strong {
+    display: block;
+    margin: 8px 0 7px;
+    overflow-wrap: anywhere;
+    font-size: clamp(30px, 3vw, 42px);
+    line-height: 1;
+}
+
+.purchase-invoice-total-card > small {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.purchase-invoice-sidebar textarea {
+    min-height: 118px;
+    resize: vertical;
+}
+
+.purchase-invoice-checklist {
+    display: grid;
+    gap: 9px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #f4f8f5;
+    color: #526158;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.purchase-invoice-checklist span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.purchase-invoice-checklist i {
+    color: #16a34a;
+}
+
+.purchase-invoice-submit {
+    display: flex;
+    min-height: 52px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border-radius: 13px;
+    font-weight: 850;
+}
+
+.purchase-invoice-cancel {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px solid #d9e4dc;
+    border-radius: 13px;
+    background: #fff;
+    color: #526158;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(20, 83, 45, 0.05);
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}

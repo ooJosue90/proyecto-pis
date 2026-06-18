@@ -201,6 +201,21 @@ body.warehouse-report-page .btn-primary:disabled {
     transform: none;
 }
 
+body.admin-dashboard-page .admin-dashboard .admin-lot-history-button::before {
+    display: none !important;
+}
+
+body.admin-dashboard-page .admin-dashboard .admin-lot-history-button:is(:hover, :focus, :active) {
+    transform: none !important;
+}
+
+body.admin-dashboard-page .admin-dashboard .admin-lot-history-button::before,
+body.admin-dashboard-page .admin-dashboard .admin-lot-history-button:is(:hover, :focus)::before {
+    display: none !important;
+    content: none !important;
+    transform: none !important;
+}
+
 html[data-theme="dark"] body.app-shell-ready :is(
     .card,
     .modal-content,
@@ -280,6 +295,189 @@ html[data-theme="night"] body.app-shell-ready :is(.form-control, .form-select, .
     border-color: var(--border-color) !important;
     background-color: var(--input-bg) !important;
     color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search,
+html[data-theme="night"] body.app-shell-ready .app-table-search {
+    border-color: var(--border-color);
+    background:
+        linear-gradient(135deg, rgba(74, 222, 128, 0.045), transparent 58%),
+        var(--input-bg);
+    box-shadow:
+        0 10px 26px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search:hover,
+html[data-theme="night"] body.app-shell-ready .app-table-search:hover {
+    border-color: rgba(74, 222, 128, 0.42);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search:focus-within,
+html[data-theme="night"] body.app-shell-ready .app-table-search:focus-within {
+    border-color: #4ade80;
+    box-shadow:
+        0 0 0 4px rgba(74, 222, 128, 0.12),
+        0 14px 30px rgba(0, 0, 0, 0.24);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search :is(.input-group-text, .form-control),
+html[data-theme="night"] body.app-shell-ready .app-table-search :is(.input-group-text, .form-control) {
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search .input-group-text,
+html[data-theme="night"] body.app-shell-ready .app-table-search .input-group-text {
+    border-right-color: var(--border-color) !important;
+    background: rgba(74, 222, 128, 0.07) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search .input-group-text i,
+html[data-theme="night"] body.app-shell-ready .app-table-search .input-group-text i {
+    background: rgba(74, 222, 128, 0.12);
+    color: #86efac !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search:focus-within .input-group-text i,
+html[data-theme="night"] body.app-shell-ready .app-table-search:focus-within .input-group-text i {
+    background: #22c55e;
+    color: #052e16 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-search .form-control::placeholder,
+html[data-theme="night"] body.app-shell-ready .app-table-search .form-control::placeholder {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-field__trigger,
+html[data-theme="night"] body.app-shell-ready .app-date-field__trigger {
+    border-color: var(--border-color);
+    background: rgba(74, 222, 128, 0.1);
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-field:is(:hover, .is-open) .app-date-field__trigger,
+html[data-theme="night"] body.app-shell-ready .app-date-field:is(:hover, .is-open) .app-date-field__trigger {
+    background: #22c55e;
+    color: #052e16;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-picker,
+html[data-theme="night"] body.app-shell-ready .app-date-picker {
+    border-color: var(--border-color);
+    background:
+        radial-gradient(circle at 100% 0%, rgba(74, 222, 128, 0.09), transparent 15rem),
+        var(--bg-card);
+    box-shadow: 0 30px 75px rgba(0, 0, 0, 0.42);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__header,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__header,
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__footer,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__footer {
+    border-color: var(--border-color);
+    background: var(--app-surface-soft);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__header strong,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__header strong,
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__day,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__day {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.app-date-picker__header span, .app-date-picker__weekdays span),
+html[data-theme="night"] body.app-shell-ready :is(.app-date-picker__header span, .app-date-picker__weekdays span) {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__nav button,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__nav button {
+    border-color: var(--border-color);
+    background: var(--input-bg);
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__day.is-outside,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__day.is-outside {
+    color: var(--text-muted);
+    opacity: 0.58;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__day:hover:not(:disabled),
+html[data-theme="night"] body.app-shell-ready .app-date-picker__day:hover:not(:disabled),
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__footer button:hover,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__footer button:hover {
+    background: rgba(74, 222, 128, 0.12);
+    color: #bbf7d0;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-date-picker__footer button,
+html[data-theme="night"] body.app-shell-ready .app-date-picker__footer button {
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.app-table-filter__button, .app-table-filter__menu),
+html[data-theme="night"] body.app-shell-ready :is(.app-table-filter__button, .app-table-filter__menu) {
+    border-color: var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-filter__option,
+html[data-theme="night"] body.app-shell-ready .app-table-filter__option {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-status-capsule--all,
+html[data-theme="night"] body.app-shell-ready .app-table-status-capsule--all,
+html[data-theme="dark"] body.app-shell-ready .app-table-status-capsule--neutral,
+html[data-theme="night"] body.app-shell-ready .app-table-status-capsule--neutral,
+html[data-theme="dark"] body.app-shell-ready .app-table-status-capsule--default,
+html[data-theme="night"] body.app-shell-ready .app-table-status-capsule--default {
+    --status-capsule-bg: rgba(148, 163, 184, 0.14);
+    --status-capsule-border: rgba(148, 163, 184, 0.34);
+    --status-capsule-color: #dbe5f1;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-status-capsule--success,
+html[data-theme="night"] body.app-shell-ready .app-table-status-capsule--success {
+    --status-capsule-bg: rgba(34, 197, 94, 0.15);
+    --status-capsule-border: rgba(74, 222, 128, 0.38);
+    --status-capsule-color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-status-capsule--warning,
+html[data-theme="night"] body.app-shell-ready .app-table-status-capsule--warning {
+    --status-capsule-bg: rgba(245, 158, 11, 0.15);
+    --status-capsule-border: rgba(251, 191, 36, 0.4);
+    --status-capsule-color: #fcd34d;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-status-capsule--info,
+html[data-theme="night"] body.app-shell-ready .app-table-status-capsule--info {
+    --status-capsule-bg: rgba(59, 130, 246, 0.15);
+    --status-capsule-border: rgba(96, 165, 250, 0.4);
+    --status-capsule-color: #93c5fd;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-status-capsule--danger,
+html[data-theme="night"] body.app-shell-ready .app-table-status-capsule--danger {
+    --status-capsule-bg: rgba(239, 68, 68, 0.15);
+    --status-capsule-border: rgba(248, 113, 113, 0.4);
+    --status-capsule-color: #fca5a5;
+}
+
+html[data-theme="dark"] body.app-shell-ready .app-table-filter__button:hover,
+html[data-theme="dark"] body.app-shell-ready .app-table-filter.is-open .app-table-filter__button,
+html[data-theme="dark"] body.app-shell-ready .app-table-filter__option:is(:hover, :focus-visible, .is-selected),
+html[data-theme="night"] body.app-shell-ready .app-table-filter__button:hover,
+html[data-theme="night"] body.app-shell-ready .app-table-filter.is-open .app-table-filter__button,
+html[data-theme="night"] body.app-shell-ready .app-table-filter__option:is(:hover, :focus-visible, .is-selected) {
+    background: rgba(74, 222, 128, 0.12);
+    color: var(--text-main);
 }
 
 html[data-theme="dark"] body.app-shell-ready :is(.form-control, .form-select):disabled,
@@ -412,9 +610,116 @@ html[data-theme="night"] body.app-shell-ready .badge.bg-success {
     color: #86efac !important;
 }
 
+html[data-theme="dark"] body.app-shell-ready .admin-crop-status--active,
+html[data-theme="night"] body.app-shell-ready .admin-crop-status--active {
+    background: #123c24;
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-crop-status--harvest,
+html[data-theme="night"] body.app-shell-ready .admin-crop-status--harvest {
+    background: #4a320c;
+    color: #fcd34d;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-crop-status--finished,
+html[data-theme="night"] body.app-shell-ready .admin-crop-status--finished {
+    background: #12334a;
+    color: #7dd3fc;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-crop-status--cancelled,
+html[data-theme="night"] body.app-shell-ready .admin-crop-status--cancelled {
+    background: #4a1d24;
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-order-status--pendiente,
+html[data-theme="night"] body.app-shell-ready .admin-order-status--pendiente {
+    border-color: rgba(251, 191, 36, 0.55) !important;
+    background: #5b3708 !important;
+    color: #fde68a !important;
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.08);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-order-status--recibido,
+html[data-theme="night"] body.app-shell-ready .admin-order-status--recibido {
+    border-color: rgba(74, 222, 128, 0.4) !important;
+    background: #123c24 !important;
+    color: #bbf7d0 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-order-status--cancelado,
+html[data-theme="night"] body.app-shell-ready .admin-order-status--cancelado {
+    border-color: rgba(148, 163, 184, 0.42) !important;
+    background: #293548 !important;
+    color: #e2e8f0 !important;
+}
+
 html[data-theme="dark"] body.app-shell-ready .btn-close,
 html[data-theme="night"] body.app-shell-ready .btn-close {
     filter: invert(1) grayscale(1) brightness(1.8);
+}
+
+/* Buttons must not move or resize when hovered, focused or pressed. */
+:is(
+    button,
+    .btn,
+    .app-icon-button,
+    .farmer-action-button,
+    .harvest-finish-button,
+    .harvest-modal-submit,
+    .warehouse-primary-action,
+    .warehouse-action-button,
+    .warehouse-receipt-button,
+    .warehouse-print-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit,
+    .request-history-secondary-action,
+    .admin-delete-modal__confirm
+):is(:hover, :focus, :focus-visible, :active) {
+    transform: none !important;
+}
+
+:is(
+    button,
+    .btn,
+    .app-icon-button,
+    .farmer-action-button,
+    .harvest-finish-button,
+    .harvest-modal-submit,
+    .warehouse-primary-action,
+    .warehouse-action-button,
+    .warehouse-receipt-button,
+    .warehouse-print-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit,
+    .request-history-secondary-action,
+    .admin-delete-modal__confirm
+) {
+    transition-property: background-color, border-color, color, box-shadow, filter, opacity !important;
+}
+
+.app-date-field__trigger:is(:hover, :focus, :focus-visible, :active) {
+    transform: translateY(-50%) !important;
+}
+
+.app-date-field.is-open .app-date-field__trigger:is(:hover, :focus, :focus-visible, :active) {
+    transform: translateY(-50%) scale(1.04) !important;
+}
+
+:is(
+    .farmer-action-button,
+    .warehouse-primary-action,
+    .warehouse-receipt-button,
+    .warehouse-modal-confirm,
+    .purchase-invoice-submit,
+    .admin-dashboard .btn-primary,
+    .admin-dashboard .btn-success,
+    .admin-dashboard .btn-info
+)::before {
+    display: none !important;
+    content: none !important;
 }
 
 /* Dashboard de administrador: tarjetas personalizadas que no usan .card. */
@@ -454,6 +759,7 @@ html[data-theme="dark"] body.app-shell-ready :is(
     .admin-metric-value,
     .admin-metric-card p,
     .admin-panel-heading h2,
+    .admin-notification-item strong,
     .admin-notification-item p,
     .admin-empty-state strong
 ),
@@ -461,6 +767,7 @@ html[data-theme="night"] body.app-shell-ready :is(
     .admin-metric-value,
     .admin-metric-card p,
     .admin-panel-heading h2,
+    .admin-notification-item strong,
     .admin-notification-item p,
     .admin-empty-state strong
 ) {
@@ -472,14 +779,16 @@ html[data-theme="dark"] body.app-shell-ready :is(
     .admin-live-status,
     .admin-metric-detail,
     .admin-notification-item time,
-    .admin-empty-state span
+    .admin-empty-state span,
+    .admin-empty-state small
 ),
 html[data-theme="night"] body.app-shell-ready :is(
     .admin-section-eyebrow,
     .admin-live-status,
     .admin-metric-detail,
     .admin-notification-item time,
-    .admin-empty-state span
+    .admin-empty-state span,
+    .admin-empty-state small
 ) {
     color: var(--text-muted) !important;
 }
@@ -497,6 +806,12 @@ html[data-theme="night"] body.app-shell-ready .admin-empty-state {
     background: var(--app-surface-soft) !important;
 }
 
+html[data-theme="dark"] body.app-shell-ready .admin-notification-event-icon,
+html[data-theme="night"] body.app-shell-ready .admin-notification-event-icon {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: var(--accent-green) !important;
+}
+
 html[data-theme="night"] body.app-shell-ready .admin-metric-card,
 html[data-theme="night"] body.app-shell-ready .admin-notification-panel {
     box-shadow:
@@ -504,12 +819,25 @@ html[data-theme="night"] body.app-shell-ready .admin-notification-panel {
         0 18px 42px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Este panel conserva su tratamiento verde de estado en ambos temas. */
+/* El panel conserva el color semántico de su estado en ambos temas. */
 html[data-theme="dark"] body.app-shell-ready .admin-attention-panel,
 html[data-theme="night"] body.app-shell-ready .admin-attention-panel {
     border-color: rgba(74, 222, 128, 0.18) !important;
     background: linear-gradient(145deg, #12351f, #081d11) !important;
     color: #ffffff !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-attention-panel--warning,
+html[data-theme="night"] body.app-shell-ready .admin-attention-panel--warning {
+    border-color: rgba(251, 191, 36, 0.24) !important;
+    background: linear-gradient(145deg, #5c3408, #321d07) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-attention-panel--warning .admin-panel-icon--status,
+html[data-theme="night"] body.app-shell-ready .admin-attention-panel--warning .admin-panel-icon--status {
+    border-color: rgba(251, 191, 36, 0.18) !important;
+    background: rgba(251, 191, 36, 0.12) !important;
+    color: #fbbf24 !important;
 }
 
 html[data-theme="dark"] body.app-shell-ready .admin-attention-panel :is(h2, p, strong),
@@ -1073,6 +1401,295 @@ html[data-theme="night"] body.app-shell-ready .warehouse-modal-back {
     color: var(--text-main) !important;
 }
 
+html[data-theme="dark"] body.app-shell-ready .admin-premium-modal .modal-content,
+html[data-theme="night"] body.app-shell-ready .admin-premium-modal .modal-content {
+    border-color: var(--border-color) !important;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(34, 197, 94, 0.1), transparent 24rem),
+        var(--bg-card) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-premium-modal :is(.modal-header, .modal-footer),
+html[data-theme="night"] body.app-shell-ready .admin-premium-modal :is(.modal-header, .modal-footer),
+html[data-theme="dark"] body.app-shell-ready .admin-invoice-detail :is(.admin-invoice-detail__card-heading, .admin-invoice-detail__items-heading),
+html[data-theme="night"] body.app-shell-ready .admin-invoice-detail :is(.admin-invoice-detail__card-heading, .admin-invoice-detail__items-heading) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-invoice-detail :is(.admin-invoice-detail__card, .admin-invoice-detail__items),
+html[data-theme="night"] body.app-shell-ready .admin-invoice-detail :is(.admin-invoice-detail__card, .admin-invoice-detail__items) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-premium-modal__heading .modal-title, .admin-invoice-detail h3, .admin-invoice-detail__data td),
+html[data-theme="night"] body.app-shell-ready :is(.admin-premium-modal__heading .modal-title, .admin-invoice-detail h3, .admin-invoice-detail__data td) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-premium-modal__heading p, .admin-invoice-detail small, .admin-invoice-detail__data th, .admin-premium-modal__security),
+html[data-theme="night"] body.app-shell-ready :is(.admin-premium-modal__heading p, .admin-invoice-detail small, .admin-invoice-detail__data th, .admin-premium-modal__security) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-premium-modal__close,
+html[data-theme="night"] body.app-shell-ready .admin-premium-modal__close {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-modal__notice,
+html[data-theme="night"] body.app-shell-ready .admin-user-modal__notice {
+    border-color: var(--border-color);
+    background: var(--app-surface-soft);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-modal__notice > span,
+html[data-theme="night"] body.app-shell-ready .admin-user-modal__notice > span {
+    background: rgba(74, 222, 128, 0.12);
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-modal__notice strong,
+html[data-theme="night"] body.app-shell-ready .admin-user-modal__notice strong,
+html[data-theme="dark"] body.app-shell-ready .admin-user-field__label,
+html[data-theme="night"] body.app-shell-ready .admin-user-field__label {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-user-modal__notice p, .admin-user-field__help),
+html[data-theme="night"] body.app-shell-ready :is(.admin-user-modal__notice p, .admin-user-field__help) {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-field__label small,
+html[data-theme="night"] body.app-shell-ready .admin-user-field__label small {
+    background: var(--app-surface-soft);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-field__control > i,
+html[data-theme="night"] body.app-shell-ready .admin-user-field__control > i {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-field__control :is(.form-control, .form-select),
+html[data-theme="night"] body.app-shell-ready .admin-user-field__control :is(.form-control, .form-select) {
+    border-color: var(--border-color) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-role__button,
+html[data-theme="night"] body.app-shell-ready .admin-user-role__button,
+html[data-theme="dark"] body.app-shell-ready .admin-user-role__menu,
+html[data-theme="night"] body.app-shell-ready .admin-user-role__menu {
+    border-color: var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-role__option,
+html[data-theme="night"] body.app-shell-ready .admin-user-role__option {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-role__option > i,
+html[data-theme="night"] body.app-shell-ready .admin-user-role__option > i,
+html[data-theme="dark"] body.app-shell-ready .admin-user-role__option:is(:hover, :focus-visible, .is-selected),
+html[data-theme="night"] body.app-shell-ready .admin-user-role__option:is(:hover, :focus-visible, .is-selected) {
+    background: rgba(74, 222, 128, 0.12);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-role__option small,
+html[data-theme="night"] body.app-shell-ready .admin-user-role__option small {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-lot-history-controls,
+html[data-theme="night"] body.app-shell-ready .admin-lot-history-controls {
+    border-bottom-color: var(--border-color);
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-lot-select__button, .admin-lot-select__menu),
+html[data-theme="night"] body.app-shell-ready :is(.admin-lot-select__button, .admin-lot-select__menu) {
+    border-color: var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-lot-select__option,
+html[data-theme="night"] body.app-shell-ready .admin-lot-select__option {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-lot-select__option small,
+html[data-theme="night"] body.app-shell-ready .admin-lot-select__option small {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-lot-select__option > i,
+html[data-theme="night"] body.app-shell-ready .admin-lot-select__option > i,
+html[data-theme="dark"] body.app-shell-ready .admin-lot-select__option:is(:hover, :focus-visible, .is-selected),
+html[data-theme="night"] body.app-shell-ready .admin-lot-select__option:is(:hover, :focus-visible, .is-selected) {
+    background: rgba(74, 222, 128, 0.12);
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-user-modal__cancel,
+html[data-theme="night"] body.app-shell-ready .admin-user-modal__cancel {
+    border-color: var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-crop-detail__hero, .admin-crop-detail__grid article, .admin-crop-detail__description, .admin-delete-modal__record),
+html[data-theme="night"] body.app-shell-ready :is(.admin-crop-detail__hero, .admin-crop-detail__grid article, .admin-crop-detail__description, .admin-delete-modal__record) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-crop-detail__hero h3, .admin-crop-detail__grid article > strong, .admin-crop-detail__description p, .admin-delete-modal__record strong),
+html[data-theme="night"] body.app-shell-ready :is(.admin-crop-detail__hero h3, .admin-crop-detail__grid article > strong, .admin-crop-detail__description p, .admin-delete-modal__record strong) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-crop-detail__hero small, .admin-crop-detail__hero p, .admin-crop-detail__grid article > span, .admin-crop-detail__description > span, .admin-delete-modal__record span),
+html[data-theme="night"] body.app-shell-ready :is(.admin-crop-detail__hero small, .admin-crop-detail__hero p, .admin-crop-detail__grid article > span, .admin-crop-detail__description > span, .admin-delete-modal__record span) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-delete-modal__warning,
+html[data-theme="night"] body.app-shell-ready .admin-delete-modal__warning {
+    border-color: rgba(248, 113, 113, 0.24) !important;
+    background: rgba(127, 29, 29, 0.18) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-delete-modal__warning strong,
+html[data-theme="night"] body.app-shell-ready .admin-delete-modal__warning strong {
+    color: #fecaca !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-delete-modal__warning span,
+html[data-theme="night"] body.app-shell-ready .admin-delete-modal__warning span {
+    color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-reports__shell, .admin-report-panel > .table-responsive),
+html[data-theme="night"] body.app-shell-ready :is(.admin-reports__shell, .admin-report-panel > .table-responsive) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__shell > .card-body,
+html[data-theme="night"] body.app-shell-ready .admin-reports__shell > .card-body,
+html[data-theme="dark"] body.app-shell-ready .admin-reports__content,
+html[data-theme="night"] body.app-shell-ready .admin-reports__content {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__metric,
+html[data-theme="night"] body.app-shell-ready .admin-reports__metric {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__metric-icon,
+html[data-theme="night"] body.app-shell-ready .admin-reports__metric-icon {
+    background: color-mix(in srgb, var(--report-metric-accent) 16%, var(--app-surface-soft)) !important;
+    color: var(--report-metric-accent) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__metric h3,
+html[data-theme="night"] body.app-shell-ready .admin-reports__metric h3 {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__metric :is(p, div > span),
+html[data-theme="night"] body.app-shell-ready .admin-reports__metric :is(p, div > span) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-reports__header, .admin-reports__tabs, .admin-report-panel > .app-table-tools),
+html[data-theme="night"] body.app-shell-ready :is(.admin-reports__header, .admin-reports__tabs, .admin-report-panel > .app-table-tools) {
+    border-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.admin-reports__header h4, .admin-report-panel > h5),
+html[data-theme="night"] body.app-shell-ready :is(.admin-reports__header h4, .admin-report-panel > h5) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__header p,
+html[data-theme="night"] body.app-shell-ready .admin-reports__header p {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__tabs .nav-link.active,
+html[data-theme="night"] body.app-shell-ready .admin-reports__tabs .nav-link.active,
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel .app-table-pagination .btn,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel .app-table-pagination .btn {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__tabs .nav-link,
+html[data-theme="night"] body.app-shell-ready .admin-reports__tabs .nav-link {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__tabs .nav-link:is(:hover, .active),
+html[data-theme="night"] body.app-shell-ready .admin-reports__tabs .nav-link:is(:hover, .active) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-reports__tabs .nav-link i,
+html[data-theme="night"] body.app-shell-ready .admin-reports__tabs .nav-link i,
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel > h5 > span i,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel > h5 > span i {
+    color: #4ade80 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel > h5 > span,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel > h5 > span {
+    background: rgba(34, 197, 94, 0.13) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel .table thead th,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel .table thead th {
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel .table tbody td,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel .table tbody td {
+    border-color: var(--border-color) !important;
+    background: transparent !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel .table-striped > tbody > tr:nth-of-type(odd) > *,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background: rgba(255, 255, 255, 0.025) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel .table tbody tr:hover > *,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel .table tbody tr:hover > * {
+    background: rgba(74, 222, 128, 0.08) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .admin-report-panel .app-table-pagination .btn:disabled,
+html[data-theme="night"] body.app-shell-ready .admin-report-panel .app-table-pagination .btn:disabled {
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+    opacity: 0.62;
+}
+
 /* Registro e historial de facturas de compra. */
 html[data-theme="dark"] body.app-shell-ready .purchase-invoice-heading,
 html[data-theme="night"] body.app-shell-ready .purchase-invoice-heading {
@@ -1514,6 +2131,97 @@ html[data-theme="night"] body.app-shell-ready .record-stage-group .form-check:ho
     background: rgba(74, 222, 128, 0.08) !important;
 }
 
+html[data-theme="dark"] body.app-shell-ready :is(.lot-stage-planner, .lot-stage-card),
+html[data-theme="night"] body.app-shell-ready :is(.lot-stage-planner, .lot-stage-card) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow-sm) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-planner__header h3,
+html[data-theme="night"] body.app-shell-ready .lot-stage-planner__header h3,
+html[data-theme="dark"] body.app-shell-ready .lot-stage-copy strong,
+html[data-theme="night"] body.app-shell-ready .lot-stage-copy strong {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-planner__header p,
+html[data-theme="night"] body.app-shell-ready .lot-stage-planner__header p,
+html[data-theme="dark"] body.app-shell-ready .lot-stage-copy small,
+html[data-theme="night"] body.app-shell-ready .lot-stage-copy small,
+html[data-theme="dark"] body.app-shell-ready .lot-stage-dates label > span,
+html[data-theme="night"] body.app-shell-ready .lot-stage-dates label > span {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-planner__badge,
+html[data-theme="night"] body.app-shell-ready .lot-stage-planner__badge {
+    border-color: rgba(74, 222, 128, 0.22) !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-card--riego .lot-stage-icon,
+html[data-theme="night"] body.app-shell-ready .lot-stage-card--riego .lot-stage-icon {
+    border: 1px solid rgba(96, 165, 250, 0.24);
+    background: rgba(59, 130, 246, 0.16) !important;
+    color: #93c5fd !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-card--riego .lot-stage-icon i,
+html[data-theme="night"] body.app-shell-ready .lot-stage-card--riego .lot-stage-icon i {
+    color: #93c5fd !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-card--siembra .lot-stage-icon,
+html[data-theme="night"] body.app-shell-ready .lot-stage-card--siembra .lot-stage-icon {
+    border: 1px solid rgba(74, 222, 128, 0.24);
+    background: rgba(34, 197, 94, 0.16) !important;
+    color: #86efac !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-card--siembra .lot-stage-icon i,
+html[data-theme="night"] body.app-shell-ready .lot-stage-card--siembra .lot-stage-icon i {
+    color: #86efac !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-card--cosecha .lot-stage-icon,
+html[data-theme="night"] body.app-shell-ready .lot-stage-card--cosecha .lot-stage-icon {
+    border: 1px solid rgba(251, 191, 36, 0.24);
+    background: rgba(245, 158, 11, 0.16) !important;
+    color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-card--cosecha .lot-stage-icon i,
+html[data-theme="night"] body.app-shell-ready .lot-stage-card--cosecha .lot-stage-icon i {
+    color: #fcd34d !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-toggle,
+html[data-theme="night"] body.app-shell-ready .lot-stage-toggle {
+    border-bottom-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-check,
+html[data-theme="night"] body.app-shell-ready .lot-stage-check {
+    border-color: var(--border-color);
+    background: var(--input-bg);
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-toggle:has(input:checked) .lot-stage-check,
+html[data-theme="night"] body.app-shell-ready .lot-stage-toggle:has(input:checked) .lot-stage-check {
+    border-color: var(--accent-green);
+    background: var(--accent-green);
+    color: #06210f;
+}
+
+html[data-theme="dark"] body.app-shell-ready .lot-stage-toggle:has(input:checked) .lot-stage-check i,
+html[data-theme="night"] body.app-shell-ready .lot-stage-toggle:has(input:checked) .lot-stage-check i {
+    color: #06210f !important;
+}
+
 /* Selector agricola personalizado. */
 html[data-theme="dark"] body.app-shell-ready .ag-select-button,
 html[data-theme="night"] body.app-shell-ready .ag-select-button {
@@ -1552,6 +2260,14 @@ html[data-theme="dark"] body.app-shell-ready .ag-select-option:is(:hover, :focus
 html[data-theme="night"] body.app-shell-ready .ag-select-option:is(:hover, :focus-visible, .is-selected) {
     background: var(--app-surface-soft) !important;
     color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .ag-select--supply .ag-select-button > i:first-child,
+html[data-theme="night"] body.app-shell-ready .ag-select--supply .ag-select-button > i:first-child,
+html[data-theme="dark"] body.app-shell-ready .ag-select--supply .ag-select-option > i,
+html[data-theme="night"] body.app-shell-ready .ag-select--supply .ag-select-option > i {
+    background: rgba(74, 222, 128, 0.12);
+    color: #86efac !important;
 }
 
 html[data-theme="dark"] body.app-shell-ready .ag-select-empty,
@@ -1830,6 +2546,231 @@ html[data-theme="night"] body.app-shell-ready .calculator-insumo-row span {
     color: var(--accent-green) !important;
 }
 
+/* Historial premium de solicitudes del agricultor. */
+html[data-theme="dark"] body.app-shell-ready :is(.request-history-metric, .request-history-card),
+html[data-theme="night"] body.app-shell-ready :is(.request-history-metric, .request-history-card) {
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--app-shadow) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-hero,
+html[data-theme="night"] body.app-shell-ready .request-history-hero {
+    border-color: rgba(74, 222, 128, 0.18) !important;
+    background:
+        radial-gradient(circle at 84% 14%, rgba(74, 222, 128, 0.14), transparent 25%),
+        linear-gradient(135deg, #0d2517 0%, #123a22 56%, #092416 100%) !important;
+    box-shadow: var(--app-shadow-lg) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-hero :is(h1, p),
+html[data-theme="night"] body.app-shell-ready .request-history-hero :is(h1, p),
+html[data-theme="dark"] body.app-shell-ready .request-history-hero__visual strong,
+html[data-theme="night"] body.app-shell-ready .request-history-hero__visual strong {
+    color: #fff !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-hero p,
+html[data-theme="night"] body.app-shell-ready .request-history-hero p,
+html[data-theme="dark"] body.app-shell-ready .request-history-hero__visual small,
+html[data-theme="night"] body.app-shell-ready .request-history-hero__visual small {
+    color: rgba(255, 255, 255, 0.64) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-hero .farmer-kicker,
+html[data-theme="night"] body.app-shell-ready .request-history-hero .farmer-kicker {
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-hero__visual,
+html[data-theme="night"] body.app-shell-ready .request-history-hero__visual {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-secondary-action,
+html[data-theme="night"] body.app-shell-ready .request-history-secondary-action {
+    border-color: rgba(255, 255, 255, 0.17) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-secondary-action:hover,
+html[data-theme="night"] body.app-shell-ready .request-history-secondary-action:hover {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+}
+
+html[data-theme="night"] body.app-shell-ready .request-history-hero {
+    background:
+        radial-gradient(circle at 84% 14%, rgba(74, 222, 128, 0.11), transparent 25%),
+        linear-gradient(135deg, #031008 0%, #082516 56%, #020b06 100%) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-metric :is(small, p),
+html[data-theme="night"] body.app-shell-ready .request-history-metric :is(small, p),
+html[data-theme="dark"] body.app-shell-ready .request-history-card__header p,
+html[data-theme="night"] body.app-shell-ready .request-history-card__header p {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .request-history-metric strong,
+    .request-history-card__header h2,
+    .request-history-product strong,
+    .request-history-lot strong,
+    .request-history-date strong,
+    .request-history-quantity,
+    .request-history-empty h3
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .request-history-metric strong,
+    .request-history-card__header h2,
+    .request-history-product strong,
+    .request-history-lot strong,
+    .request-history-date strong,
+    .request-history-quantity,
+    .request-history-empty h3
+) {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .request-history-metric__icon,
+    .request-history-product > span,
+    .request-history-empty > span
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .request-history-metric__icon,
+    .request-history-product > span,
+    .request-history-empty > span
+) {
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-metric--pending .request-history-metric__icon,
+html[data-theme="night"] body.app-shell-ready .request-history-metric--pending .request-history-metric__icon {
+    border-color: rgba(251, 191, 36, 0.2);
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-metric--approved .request-history-metric__icon,
+html[data-theme="night"] body.app-shell-ready .request-history-metric--approved .request-history-metric__icon {
+    border-color: rgba(96, 165, 250, 0.2);
+    background: rgba(59, 130, 246, 0.12) !important;
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-count,
+html[data-theme="night"] body.app-shell-ready .request-history-count {
+    border-color: rgba(74, 222, 128, 0.22) !important;
+    background: rgba(74, 222, 128, 0.1) !important;
+    color: var(--accent-green) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-search input,
+html[data-theme="night"] body.app-shell-ready .request-history-search input {
+    border-color: var(--border-color) !important;
+    background: var(--input-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-search input:focus,
+html[data-theme="night"] body.app-shell-ready .request-history-search input:focus {
+    border-color: var(--accent-green) !important;
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-search input::placeholder,
+html[data-theme="night"] body.app-shell-ready .request-history-search input::placeholder,
+html[data-theme="dark"] body.app-shell-ready :is(.request-history-search i, .request-history-filter > span),
+html[data-theme="night"] body.app-shell-ready :is(.request-history-search i, .request-history-filter > span) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-table-wrap,
+html[data-theme="night"] body.app-shell-ready .request-history-table-wrap {
+    border-top-color: var(--border-color) !important;
+    background: var(--table-bg) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-table th,
+html[data-theme="night"] body.app-shell-ready .request-history-table th {
+    border-bottom-color: var(--border-color) !important;
+    background: var(--app-surface-soft) !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-table td,
+html[data-theme="night"] body.app-shell-ready .request-history-table td {
+    border-bottom-color: var(--border-color) !important;
+    background: var(--table-bg) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-table tbody tr:hover td,
+html[data-theme="night"] body.app-shell-ready .request-history-table tbody tr:hover td {
+    background: var(--app-surface-soft) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(
+    .request-history-lot small,
+    .request-history-date small,
+    .request-history-quantity small,
+    .request-history-notes,
+    .request-history-empty p
+),
+html[data-theme="night"] body.app-shell-ready :is(
+    .request-history-lot small,
+    .request-history-date small,
+    .request-history-quantity small,
+    .request-history-notes,
+    .request-history-empty p
+) {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-status--pending,
+html[data-theme="night"] body.app-shell-ready .request-history-status--pending {
+    border-color: rgba(251, 191, 36, 0.24);
+    background: rgba(245, 158, 11, 0.14);
+    color: #fcd34d;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-status--approved,
+html[data-theme="night"] body.app-shell-ready .request-history-status--approved {
+    border-color: rgba(96, 165, 250, 0.24);
+    background: rgba(59, 130, 246, 0.14);
+    color: #93c5fd;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-status--delivered,
+html[data-theme="night"] body.app-shell-ready .request-history-status--delivered {
+    border-color: rgba(74, 222, 128, 0.24);
+    background: rgba(34, 197, 94, 0.14);
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .request-history-status--rejected,
+html[data-theme="night"] body.app-shell-ready .request-history-status--rejected {
+    border-color: rgba(248, 113, 113, 0.24);
+    background: rgba(239, 68, 68, 0.14);
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.request-history-status--cancelled, .request-history-status--neutral),
+html[data-theme="night"] body.app-shell-ready :is(.request-history-status--cancelled, .request-history-status--neutral) {
+    border-color: var(--border-color);
+    background: var(--app-surface-soft);
+    color: var(--text-muted);
+}
+
 /* Historial, tabla, mapa y panel lateral. */
 html[data-theme="dark"] body.app-shell-ready .farmer-lotes-card,
 html[data-theme="night"] body.app-shell-ready .farmer-lotes-card {
@@ -1853,6 +2794,143 @@ html[data-theme="dark"] body.app-shell-ready .farmer-lotes-card .table-responsiv
 html[data-theme="night"] body.app-shell-ready .farmer-lotes-card .table-responsive {
     border-color: var(--border-color) !important;
     background: var(--table-bg) !important;
+}
+
+html[data-theme="dark"] body.app-shell-ready .crop-status--activo,
+html[data-theme="night"] body.app-shell-ready .crop-status--activo {
+    border-color: rgba(74, 222, 128, 0.25);
+    background: rgba(34, 197, 94, 0.14);
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .crop-status--en-cosecha,
+html[data-theme="night"] body.app-shell-ready .crop-status--en-cosecha {
+    border-color: rgba(251, 191, 36, 0.34);
+    background: rgba(245, 158, 11, 0.16);
+    color: #fcd34d;
+}
+
+html[data-theme="dark"] body.app-shell-ready .crop-status--finalizado,
+html[data-theme="night"] body.app-shell-ready .crop-status--finalizado {
+    border-color: rgba(52, 211, 153, 0.3);
+    background: rgba(16, 185, 129, 0.16);
+    color: #6ee7b7;
+}
+
+html[data-theme="dark"] body.app-shell-ready .crop-status--cancelado,
+html[data-theme="night"] body.app-shell-ready .crop-status--cancelado {
+    border-color: rgba(248, 113, 113, 0.28);
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-finish-button,
+html[data-theme="night"] body.app-shell-ready .harvest-finish-button {
+    border-color: #4ade80;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #052e16;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-closed-state,
+html[data-theme="night"] body.app-shell-ready .harvest-closed-state {
+    color: #34d399;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-no-action,
+html[data-theme="night"] body.app-shell-ready .harvest-no-action {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-premium-modal .modal-content,
+html[data-theme="night"] body.app-shell-ready .harvest-premium-modal .modal-content {
+    border-color: var(--border-color);
+    background:
+        radial-gradient(circle at 100% 0%, rgba(245, 158, 11, 0.08), transparent 24rem),
+        var(--bg-card);
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-premium-modal :is(.modal-header, .modal-footer),
+html[data-theme="night"] body.app-shell-ready .harvest-premium-modal :is(.modal-header, .modal-footer) {
+    border-color: var(--border-color);
+    background: var(--app-surface-soft);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-modal-heading .modal-title,
+html[data-theme="night"] body.app-shell-ready .harvest-modal-heading .modal-title,
+html[data-theme="dark"] body.app-shell-ready .harvest-lot-summary strong,
+html[data-theme="night"] body.app-shell-ready .harvest-lot-summary strong {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.harvest-modal-heading p, .harvest-lot-summary small, .harvest-modal-security),
+html[data-theme="night"] body.app-shell-ready :is(.harvest-modal-heading p, .harvest-lot-summary small, .harvest-modal-security) {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready :is(.harvest-lot-summary, .harvest-field),
+html[data-theme="night"] body.app-shell-ready :is(.harvest-lot-summary, .harvest-field) {
+    border-color: var(--border-color);
+    background: var(--app-surface-soft);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-lot-summary__icon,
+html[data-theme="night"] body.app-shell-ready .harvest-lot-summary__icon {
+    background: rgba(34, 197, 94, 0.14);
+    color: #86efac;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-lot-summary__status,
+html[data-theme="night"] body.app-shell-ready .harvest-lot-summary__status {
+    border-color: rgba(251, 191, 36, 0.34);
+    background: rgba(245, 158, 11, 0.16);
+    color: #fcd34d;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-field > span,
+html[data-theme="night"] body.app-shell-ready .harvest-field > span {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-field > span small,
+html[data-theme="night"] body.app-shell-ready .harvest-field > span small {
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-field :is(.form-control, .form-select),
+html[data-theme="night"] body.app-shell-ready .harvest-field :is(.form-control, .form-select) {
+    border-color: var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-close-notice,
+html[data-theme="night"] body.app-shell-ready .harvest-close-notice {
+    border-color: rgba(251, 191, 36, 0.25);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-close-notice > span,
+html[data-theme="night"] body.app-shell-ready .harvest-close-notice > span {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-close-notice strong,
+html[data-theme="night"] body.app-shell-ready .harvest-close-notice strong {
+    color: #fde68a;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-close-notice p,
+html[data-theme="night"] body.app-shell-ready .harvest-close-notice p {
+    color: #d6c28b;
+}
+
+html[data-theme="dark"] body.app-shell-ready .harvest-modal-cancel,
+html[data-theme="night"] body.app-shell-ready .harvest-modal-cancel {
+    border-color: var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-main);
 }
 
 html[data-theme="dark"] body.app-shell-ready .farmer-field-footer,
@@ -1900,4 +2978,198 @@ html[data-theme="dark"] body.app-shell-ready .farmer-add-button i,
 html[data-theme="night"] body.app-shell-ready .farmer-add-button i {
     background: rgba(74, 222, 128, 0.12) !important;
     color: var(--accent-green) !important;
+}
+
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.app-shell-ready
+    .farmer-add-button.farmer-action-button {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #fff !important;
+}
+
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.app-shell-ready
+    .farmer-add-button.farmer-action-button i {
+    background: transparent !important;
+    color: currentColor !important;
+}
+
+/* Primary farmer actions keep the same identity in dark and night themes. */
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.app-shell-ready
+    .farmer-action-button {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 16px 30px rgba(0, 0, 0, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.app-shell-ready
+    .farmer-action-button
+    i {
+    background: transparent !important;
+    color: currentColor !important;
+}
+
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.app-shell-ready
+    .farmer-action-button:is(:hover, :focus) {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 42%),
+        linear-gradient(135deg, #18743a, #0a431f) !important;
+    color: #ffffff !important;
+}
+
+/* Warehouse actions preserve the same forest gradient in every appearance. */
+body .warehouse-primary-action {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #ffffff !important;
+    text-shadow: none;
+    box-shadow:
+        0 16px 30px rgba(7, 95, 29, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    filter: none;
+}
+
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body
+    .warehouse-primary-action {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 16px 30px rgba(0, 0, 0, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+body .warehouse-primary-action:is(:hover, :focus),
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body
+    .warehouse-primary-action:is(:hover, :focus) {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 42%),
+        linear-gradient(135deg, #18743a, #0a431f) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 20px 38px rgba(7, 95, 29, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    filter: none;
+}
+
+body .warehouse-confirm-modal.is-cancel .warehouse-primary-action {
+    border-color: #dc2626 !important;
+    background: #dc2626 !important;
+    box-shadow: 0 12px 24px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* Administrator actions preserve the same forest gradient in every appearance. */
+body.admin-dashboard-page
+    .admin-dashboard
+    :is(.btn-primary, .btn-success, .btn-info),
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm {
+    overflow: hidden;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    border-radius: 17px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #ffffff !important;
+    text-shadow: none;
+    box-shadow:
+        0 16px 30px rgba(7, 95, 29, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    filter: none;
+}
+
+body.admin-dashboard-page
+    .admin-dashboard
+    :is(.btn-primary, .btn-success, .btn-info)::before,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm::before {
+    position: absolute;
+    top: -70%;
+    left: 0;
+    z-index: auto;
+    inset: auto;
+    width: 22%;
+    height: 240%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+    content: "";
+    opacity: 0;
+    transform: translateX(-180%) rotate(20deg);
+    transition:
+        opacity 120ms ease,
+        transform 480ms ease;
+    pointer-events: none;
+}
+
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.admin-dashboard-page
+    .admin-dashboard
+    :is(.btn-primary, .btn-success, .btn-info),
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent 42%),
+        linear-gradient(135deg, #166534, #0b4d24) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 16px 30px rgba(0, 0, 0, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+body.admin-dashboard-page
+    .admin-dashboard
+    :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus),
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus),
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.admin-dashboard-page
+    .admin-dashboard
+    :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus),
+:is(html[data-theme="dark"], html[data-theme="night"])
+    body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus) {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 42%),
+        linear-gradient(135deg, #18743a, #0a431f) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 20px 38px rgba(7, 95, 29, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    filter: none;
+}
+
+body.admin-dashboard-page
+    .admin-dashboard
+    :is(.btn-primary, .btn-success, .btn-info):is(:hover, :focus)::before,
+body.admin-dashboard-page
+    .warehouse-confirm-modal:not(.is-cancel)
+    .warehouse-modal-confirm:is(:hover, :focus)::before {
+    opacity: 1;
+    transform: translateX(600%) rotate(20deg);
 }

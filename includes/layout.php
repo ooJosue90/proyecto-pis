@@ -30,7 +30,7 @@ function render_head(string $title, array $extraStyles = [], array $extraScripts
     </script>
     <link rel="icon" type="image/x-icon" href="assets/mango.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet">
     <link href="css/dashboard.css?v=<?= filemtime(__DIR__ . '/../css/dashboard.css'); ?>" rel="stylesheet">
     <link href="asistente/asistente_virtual.css?v=<?= filemtime(__DIR__ . '/../asistente/asistente_virtual.css'); ?>" rel="stylesheet">
     <?php foreach ($extraStyles as $href): ?>
@@ -80,6 +80,7 @@ function app_nav_items(): array
         return [
             ['label' => 'Dashboard', 'icon' => 'fas fa-chart-pie', 'href' => 'agricultor.php'],
             ['label' => 'Calculadora', 'icon' => 'fas fa-calculator', 'href' => 'calcular_insumos.php'],
+            ['label' => 'Historial', 'icon' => 'fas fa-clock-rotate-left', 'href' => 'historial_solicitudes.php'],
         ];
     }
 
@@ -246,44 +247,26 @@ function render_ada_chat(): void
 
     $role = $_SESSION['rol'];
     $userName = current_user_name();
-    $capabilities = [
-        ['icon' => '🌱', 'label' => 'Cultivos'],
-        ['icon' => '📍', 'label' => 'Lotes'],
-        ['icon' => '📋', 'label' => 'Solicitudes'],
-        ['icon' => '🐛', 'label' => 'Plagas'],
-    ];
     $quickActions = [
-        ['label' => 'Mi monitoreo', 'prompt' => 'Muéstrame todos los datos de monitoreo de mis lotes'],
-        ['label' => 'Mis solicitudes', 'prompt' => 'Muéstrame mis solicitudes registradas'],
-        ['label' => 'Mis lotes', 'prompt' => 'Muéstrame mis lotes registrados'],
-        ['label' => 'Actividades pendientes', 'prompt' => 'Muéstrame mis actividades agrícolas pendientes'],
+        ['icon' => 'fas fa-chart-line', 'label' => 'Mi monitoreo', 'prompt' => 'Muéstrame todos los datos de monitoreo de mis lotes'],
+        ['icon' => 'fas fa-clipboard-list', 'label' => 'Mis solicitudes', 'prompt' => 'Muéstrame mis solicitudes registradas'],
+        ['icon' => 'fas fa-location-dot', 'label' => 'Mis lotes', 'prompt' => 'Muéstrame mis lotes registrados'],
+        ['icon' => 'fas fa-list-check', 'label' => 'Tareas pendientes', 'prompt' => 'Muéstrame mis actividades agrícolas pendientes'],
     ];
 
     if ($role === 'Administrador') {
-        $capabilities = [
-            ['icon' => '👥', 'label' => 'Usuarios'],
-            ['icon' => '📦', 'label' => 'Inventario'],
-            ['icon' => '📄', 'label' => 'Facturas'],
-            ['icon' => '📊', 'label' => 'Reportes'],
-        ];
         $quickActions = [
-            ['label' => 'Monitoreo general', 'prompt' => 'Muéstrame todos los datos de monitoreo de los lotes'],
-            ['label' => 'Usuarios', 'prompt' => 'Lista los usuarios registrados en el sistema'],
-            ['label' => 'Actividad reciente', 'prompt' => 'Muéstrame la actividad agrícola reciente y las tareas pendientes'],
-            ['label' => 'Resumen general', 'prompt' => 'Muéstrame el resumen general del sistema'],
+            ['icon' => 'fas fa-chart-line', 'label' => 'Monitoreo general', 'prompt' => 'Muéstrame todos los datos de monitoreo de los lotes'],
+            ['icon' => 'fas fa-users', 'label' => 'Usuarios', 'prompt' => 'Lista los usuarios registrados en el sistema'],
+            ['icon' => 'fas fa-clock-rotate-left', 'label' => 'Actividad reciente', 'prompt' => 'Muéstrame la actividad agrícola reciente y las tareas pendientes'],
+            ['icon' => 'fas fa-chart-pie', 'label' => 'Resumen general', 'prompt' => 'Muéstrame el resumen general del sistema'],
         ];
     } elseif ($role === 'Bodeguero') {
-        $capabilities = [
-            ['icon' => '📦', 'label' => 'Inventario'],
-            ['icon' => '🧪', 'label' => 'Insumos'],
-            ['icon' => '📄', 'label' => 'Facturas'],
-            ['icon' => '📋', 'label' => 'Solicitudes'],
-        ];
         $quickActions = [
-            ['label' => 'Ver inventario', 'prompt' => 'Muéstrame el inventario de insumos'],
-            ['label' => 'Insumos bajos', 'prompt' => 'Muéstrame los insumos con stock bajo en inventario'],
-            ['label' => 'Facturas', 'prompt' => 'Muéstrame las facturas registradas'],
-            ['label' => 'Solicitudes pendientes', 'prompt' => 'Muéstrame las solicitudes pendientes por atender'],
+            ['icon' => 'fas fa-boxes-stacked', 'label' => 'Ver inventario', 'prompt' => 'Muéstrame el inventario de insumos'],
+            ['icon' => 'fas fa-triangle-exclamation', 'label' => 'Insumos bajos', 'prompt' => 'Muéstrame los insumos con stock bajo en inventario'],
+            ['icon' => 'fas fa-file-invoice-dollar', 'label' => 'Facturas', 'prompt' => 'Muéstrame las facturas registradas'],
+            ['icon' => 'fas fa-clipboard-check', 'label' => 'Solicitudes pendientes', 'prompt' => 'Muéstrame las solicitudes pendientes por atender'],
         ];
     }
     ?>
@@ -292,7 +275,7 @@ function render_ada_chat(): void
             <img src="assets/img/ada-avatar.jpg" alt="ADA">
         </button>
 
-        <section class="ada-chat__window" aria-label="Chat de ADA">
+        <section class="ada-chat__window" aria-label="Chat de ADA" aria-hidden="true">
             <header class="ada-chat__header">
                 <div class="ada-chat__brand">
                     <span class="ada-chat__avatar">
@@ -301,10 +284,9 @@ function render_ada_chat(): void
                     <div>
                         <div class="ada-chat__title-row">
                             <strong>ADA</strong>
-                            <span class="ada-chat__status"><i></i> En línea</span>
+                            <span class="ada-chat__status"><i></i> Disponible</span>
                         </div>
-                        <span>Especialista SEMBRIEXPORT</span>
-                        <small>Inventario • Facturación • Insumos</small>
+                        <span>Asistente de decisiones agrícolas</span>
                     </div>
                 </div>
                 <button class="ada-chat__close" type="button" data-ada-close aria-label="Cerrar ADA">
@@ -314,23 +296,29 @@ function render_ada_chat(): void
 
             <div class="ada-chat__messages" data-ada-messages>
                 <div class="ada-welcome-card">
-                    <h3>👋 Bienvenido <?= e($userName); ?></h3>
-                    <p>Puedo ayudarte con:</p>
-                    <div class="ada-capability-grid">
-                        <?php foreach ($capabilities as $capability): ?>
-                            <span><?= e($capability['icon']); ?> <?= e($capability['label']); ?></span>
+                    <span class="ada-welcome-card__eyebrow">Asistencia inteligente</span>
+                    <h3>Hola, <?= e($userName); ?></h3>
+                    <p>Consulta información del sistema o elige una sugerencia para empezar.</p>
+                </div>
+                <div class="ada-suggestions">
+                    <span class="ada-suggestions__label">Sugerencias</span>
+                    <div class="ada-quick-actions" aria-label="Sugerencias de consulta">
+                        <?php foreach ($quickActions as $action): ?>
+                            <button type="button" data-ada-quick="<?= e($action['prompt']); ?>">
+                                <i class="<?= e($action['icon']); ?>" aria-hidden="true"></i>
+                                <span><?= e($action['label']); ?></span>
+                                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                            </button>
                         <?php endforeach; ?>
                     </div>
-                </div>
-                <div class="ada-quick-actions" aria-label="Accesos rápidos de ADA">
-                    <?php foreach ($quickActions as $action): ?>
-                        <button type="button" data-ada-quick="<?= e($action['prompt']); ?>"><?= e($action['label']); ?></button>
-                    <?php endforeach; ?>
                 </div>
             </div>
 
             <form class="ada-chat__form" data-ada-form>
-                <input class="ada-chat__input" type="text" data-ada-input placeholder="Ej: ¿Qué insumos tienen stock bajo?" autocomplete="off">
+                <div class="ada-chat__input-wrap">
+                    <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>
+                    <input class="ada-chat__input" type="text" data-ada-input placeholder="Escribe tu consulta..." autocomplete="off">
+                </div>
                 <button class="ada-chat__send" type="submit" data-ada-send data-skip-loading="1" aria-label="Enviar pregunta">
                     <i class="fas fa-paper-plane"></i>
                 </button>

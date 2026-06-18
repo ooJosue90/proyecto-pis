@@ -54,6 +54,118 @@ function user_owns_lote(mysqli $conn, string $userId, int $loteId): bool
     ) > 0;
 }
 
+function crop_stage_label(int $stage): string
+{
+    return match ($stage) {
+        1 => 'Siembra',
+        2 => 'Desarrollo',
+        3 => 'Cosecha',
+        default => 'Sin etapa',
+    };
+}
+
+function crop_status_label(string $status): string
+{
+    return match ($status) {
+        'en_cosecha' => 'En cosecha',
+        'finalizado' => 'Finalizado',
+        'cancelado' => 'Cancelado',
+        default => 'Activo',
+    };
+}
+
+function crop_status_icon(string $status): string
+{
+    return match ($status) {
+        'en_cosecha' => 'fas fa-wheat-awn',
+        'finalizado' => 'fas fa-circle-check',
+        'cancelado' => 'fas fa-circle-xmark',
+        default => 'fas fa-seedling',
+    };
+}
+
+// Finalizar cosecha y registrar la producción real
+if (($_POST['accion'] ?? '') === 'finalizar_cosecha') {
+    $id_lote = (int) ($_POST['id_lote'] ?? 0);
+    $cantidad_cosechada = (float) ($_POST['cantidad_cosechada'] ?? 0);
+    $unidad_cosecha = trim($_POST['unidad_cosecha'] ?? '');
+    $fecha_cosecha = post_date_or_null('fecha_cosecha');
+    $observacion = trim($_POST['observacion'] ?? '');
+
+    if ($id_lote <= 0 || !user_owns_lote($conn, $id_usuario, $id_lote)) {
+        flash('error', 'Seleccione un lote válido.');
+        redirect('agricultor.php');
+    }
+
+    if ($cantidad_cosechada <= 0) {
+        flash('error', 'La cantidad cosechada debe ser mayor que cero.');
+        redirect('agricultor.php');
+    }
+
+    if ($unidad_cosecha === '' || $fecha_cosecha === null || !valid_date_or_null($fecha_cosecha)) {
+        flash('error', 'Complete la unidad y la fecha real de cosecha.');
+        redirect('agricultor.php');
+    }
+
+    $conn->begin_transaction();
+
+    try {
+        $lote = db_fetch_one(
+            $conn,
+            "SELECT l.id_lote, l.estado_cultivo, c.tipo
+             FROM lotes l
+             INNER JOIN cultivos c ON l.id_cultivo = c.id_cultivo
+             WHERE l.id_lote = ? AND c.id_usuario = ?
+             FOR UPDATE",
+            "is",
+            [$id_lote, $id_usuario]
+        );
+
+        if (!$lote || $lote['estado_cultivo'] !== 'en_cosecha') {
+            throw new RuntimeException('El lote ya no está disponible para finalizar su cosecha.');
+        }
+
+        db_execute(
+            $conn,
+            "INSERT INTO productos_finales (
+                id_usuario, id_lote, nombre_producto, cantidad,
+                unidad_medida, observaciones, fecha
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "sisdsss",
+            [
+                $id_usuario,
+                $id_lote,
+                $lote['tipo'],
+                $cantidad_cosechada,
+                $unidad_cosecha,
+                $observacion === '' ? null : $observacion,
+                $fecha_cosecha . ' 00:00:00',
+            ]
+        );
+
+        db_execute(
+            $conn,
+            "UPDATE lotes
+             SET estado_cultivo = 'finalizado',
+                 fecha_fin_cosecha_real = ?
+             WHERE id_lote = ? AND estado_cultivo = 'en_cosecha'",
+            "si",
+            [$fecha_cosecha, $id_lote]
+        );
+
+        $conn->commit();
+        flash('mensaje', 'Cosecha finalizada y producción registrada correctamente.');
+    } catch (Throwable $exception) {
+        $conn->rollback();
+        error_log('Error al finalizar cosecha: ' . $exception->getMessage());
+        flash('error', $exception instanceof RuntimeException
+            ? $exception->getMessage()
+            : 'No se pudo finalizar la cosecha.');
+    }
+
+    redirect('agricultor.php');
+}
+
 // Registrar cultivo
 if (($_POST['accion'] ?? '') === 'registrar_cultivo' || isset($_POST['registrar_cultivo'])) {
     $tipo = trim($_POST['tipo'] ?? '');
@@ -85,10 +197,13 @@ if (($_POST['accion'] ?? '') === 'registrar_lote' || isset($_POST['registrar_lot
     $id_cultivo = (int) ($_POST['id_cultivo'] ?? 0);
     $ubicacion = trim($_POST['ubicacion'] ?? '');
     $area = (float) ($_POST['area'] ?? 0);
-    $etapa_riego = isset($_POST['etapa_riego']) ? 1 : 0;
     $etapa_siembra = isset($_POST['etapa_siembra']) ? 1 : 0;
+    $etapa_riego = isset($_POST['etapa_riego']) ? 1 : 0;
     $etapa_cosecha = isset($_POST['etapa_cosecha']) ? 1 : 0;
-    $etapa_actual = $etapa_cosecha ? 3 : ($etapa_siembra ? 2 : ($etapa_riego ? 1 : 0));
+    $etapa_actual = $etapa_cosecha === 1
+        ? 3
+        : ($etapa_riego === 1 ? 2 : ($etapa_siembra === 1 ? 1 : 0));
+    $estado_cultivo = $etapa_actual === 3 ? 'en_cosecha' : 'activo';
     $fecha_inicio_riego = post_date_or_null('fecha_inicio_riego');
     $fecha_fin_riego = post_date_or_null('fecha_fin_riego');
     $fecha_inicio_siembra = post_date_or_null('fecha_inicio_siembra');
@@ -134,16 +249,18 @@ if (($_POST['accion'] ?? '') === 'registrar_lote' || isset($_POST['registrar_lot
         db_execute(
             $conn,
             "INSERT INTO lotes (
-                id_cultivo, ubicacion, area, etapa_actual, etapa_riego, etapa_siembra, etapa_cosecha,
+                id_cultivo, ubicacion, area, etapa_actual, estado_cultivo,
+                etapa_riego, etapa_siembra, etapa_cosecha,
                 fecha_inicio_riego, fecha_fin_riego, fecha_inicio_siembra, fecha_fin_siembra,
                 fecha_inicio_cosecha, fecha_fin_cosecha, fecha_registro
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-            "isdiiiissssss",
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
+            "isdisiiissssss",
             [
                 $id_cultivo,
                 $ubicacion,
                 $area,
                 $etapa_actual,
+                $estado_cultivo,
                 $etapa_riego,
                 $etapa_siembra,
                 $etapa_cosecha,
@@ -366,10 +483,10 @@ $insumos = db_fetch_all($conn, "SELECT id_insumos, nombre, cantidad, unidad_medi
 
 // Estadísticas
 $total_lotes = count($lotes);
-$etapas = ['Riego'=>0,'Siembra'=>0,'Cosecha'=>0];
+$etapas = ['Siembra'=>0,'Desarrollo'=>0,'Cosecha'=>0];
 foreach ($lotes as $l) {
-    if($l['etapa_actual']==1) $etapas['Riego']++;
-    elseif($l['etapa_actual']==2) $etapas['Siembra']++;
+    if($l['etapa_actual']==1) $etapas['Siembra']++;
+    elseif($l['etapa_actual']==2) $etapas['Desarrollo']++;
     elseif($l['etapa_actual']==3) $etapas['Cosecha']++;
 }
 ?>
@@ -412,9 +529,9 @@ foreach ($lotes as $l) {
                 <span class="farmer-stat-icon"><i class="fas fa-droplet"></i></span>
                 <span class="farmer-stat-status">Activo</span>
             </div>
-            <strong><?php echo $etapas['Riego']; ?></strong>
-            <p>Lotes en riego</p>
-            <span class="farmer-stat-detail"><i class="fas fa-water"></i> Etapa hídrica</span>
+            <strong><?php echo $etapas['Desarrollo']; ?></strong>
+            <p>Lotes en desarrollo</p>
+            <span class="farmer-stat-detail"><i class="fas fa-water"></i> Crecimiento y gestión hídrica</span>
         </article>
 
         <article class="farmer-stat-card farmer-stat-card--siembra">
@@ -478,7 +595,7 @@ foreach ($lotes as $l) {
                                 <input type="date" name="fecha_siembra" class="form-control" required>
                             </label>
                         </div>
-                        <button type="submit" name="registrar_cultivo" class="btn btn-success w-100 farmer-submit">
+                        <button type="submit" name="registrar_cultivo" class="btn w-100 farmer-submit farmer-action-button farmer-action-button--primary">
                             <span>Registrar cultivo</span>
                         </button>
                     </form>
@@ -496,8 +613,8 @@ foreach ($lotes as $l) {
                             <span class="record-hero-icon" aria-hidden="true"><i class="fas fa-map-location-dot"></i></span>
                         </div>
 
-                        <div class="farmer-form-grid record-field-grid">
-                            <label class="record-field-card">
+                        <div class="farmer-form-grid record-field-grid lot-primary-grid">
+                            <label class="record-field-card lot-crop-field">
                                 <span>Cultivo</span>
                                 <div class="ag-select" data-ag-select>
                                     <input type="hidden" name="id_cultivo" data-ag-select-value>
@@ -530,40 +647,85 @@ foreach ($lotes as $l) {
                             </label>
                         </div>
 
-                        <div class="farmer-stage-group record-stage-group">
-                            <span>Etapas</span>
-                            <label class="form-check">
-                                <input type="checkbox" name="etapa_riego" class="form-check-input">
-                                <span>Riego</span>
-                            </label>
-                            <label class="form-check">
-                                <input type="checkbox" name="etapa_siembra" class="form-check-input">
-                                <span>Siembra</span>
-                            </label>
-                            <label class="form-check">
-                                <input type="checkbox" name="etapa_cosecha" class="form-check-input">
-                                <span>Cosecha</span>
-                            </label>
-                        </div>
+                        <section class="lot-stage-planner" aria-labelledby="lot-stage-title">
+                            <header class="lot-stage-planner__header">
+                                <div>
+                                    <span class="farmer-kicker">Cronograma productivo</span>
+                                    <h3 id="lot-stage-title">Etapas y fechas del lote</h3>
+                                    <p>Seleccione la etapa actual y defina los periodos estimados de trabajo.</p>
+                                </div>
+                                <span class="lot-stage-planner__badge"><i class="fas fa-calendar-days"></i> Planificación</span>
+                            </header>
 
-                        <div class="farmer-form-grid farmer-form-grid--dates record-date-grid">
-                            <fieldset class="record-field-card">
-                                <legend>Fechas Riego</legend>
-                                <input type="date" name="fecha_inicio_riego" class="form-control" aria-label="Inicio Riego">
-                                <input type="date" name="fecha_fin_riego" class="form-control" aria-label="Fin Riego">
-                            </fieldset>
-                            <fieldset class="record-field-card">
-                                <legend>Fechas Siembra</legend>
-                                <input type="date" name="fecha_inicio_siembra" class="form-control" aria-label="Inicio Siembra">
-                                <input type="date" name="fecha_fin_siembra" class="form-control" aria-label="Fin Siembra">
-                            </fieldset>
-                            <fieldset class="record-field-card">
-                                <legend>Fechas Cosecha</legend>
-                                <input type="date" name="fecha_inicio_cosecha" class="form-control" aria-label="Inicio Cosecha">
-                                <input type="date" name="fecha_fin_cosecha" class="form-control" aria-label="Fin Cosecha">
-                            </fieldset>
-                        </div>
-                        <button type="submit" name="registrar_lote" class="btn btn-success w-100 farmer-submit">
+                            <div class="lot-stage-grid">
+                                <article class="lot-stage-card lot-stage-card--riego">
+                                    <label class="lot-stage-toggle">
+                                        <input type="checkbox" name="etapa_riego" value="1" class="form-check-input">
+                                        <span class="lot-stage-icon"><i class="fas fa-droplet"></i></span>
+                                        <span class="lot-stage-copy">
+                                            <strong>Desarrollo</strong>
+                                            <small>Crecimiento y gestión hídrica</small>
+                                        </span>
+                                        <span class="lot-stage-check"><i class="fas fa-check"></i></span>
+                                    </label>
+                                    <div class="lot-stage-dates">
+                                        <label>
+                                            <span>Fecha de inicio</span>
+                                            <input type="date" name="fecha_inicio_riego" class="form-control">
+                                        </label>
+                                        <label>
+                                            <span>Fecha de finalización</span>
+                                            <input type="date" name="fecha_fin_riego" class="form-control">
+                                        </label>
+                                    </div>
+                                </article>
+
+                                <article class="lot-stage-card lot-stage-card--siembra">
+                                    <label class="lot-stage-toggle">
+                                        <input type="checkbox" name="etapa_siembra" value="1" class="form-check-input">
+                                        <span class="lot-stage-icon"><i class="fas fa-seedling"></i></span>
+                                        <span class="lot-stage-copy">
+                                            <strong>Siembra</strong>
+                                            <small>Implantación y desarrollo inicial</small>
+                                        </span>
+                                        <span class="lot-stage-check"><i class="fas fa-check"></i></span>
+                                    </label>
+                                    <div class="lot-stage-dates">
+                                        <label>
+                                            <span>Fecha de inicio</span>
+                                            <input type="date" name="fecha_inicio_siembra" class="form-control">
+                                        </label>
+                                        <label>
+                                            <span>Fecha de finalización</span>
+                                            <input type="date" name="fecha_fin_siembra" class="form-control">
+                                        </label>
+                                    </div>
+                                </article>
+
+                                <article class="lot-stage-card lot-stage-card--cosecha">
+                                    <label class="lot-stage-toggle">
+                                        <input type="checkbox" name="etapa_cosecha" value="1" class="form-check-input">
+                                        <span class="lot-stage-icon"><i class="fas fa-wheat-awn"></i></span>
+                                        <span class="lot-stage-copy">
+                                            <strong>Cosecha</strong>
+                                            <small>Recolección en curso, todavía no finalizada</small>
+                                        </span>
+                                        <span class="lot-stage-check"><i class="fas fa-check"></i></span>
+                                    </label>
+                                    <div class="lot-stage-dates">
+                                        <label>
+                                            <span>Fecha de inicio</span>
+                                            <input type="date" name="fecha_inicio_cosecha" class="form-control">
+                                        </label>
+                                        <label>
+                                            <span>Fecha de finalización</span>
+                                            <input type="date" name="fecha_fin_cosecha" class="form-control">
+                                        </label>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+                        <button type="submit" name="registrar_lote" class="btn w-100 farmer-submit farmer-action-button farmer-action-button--primary">
                             <span>Registrar lote</span>
                         </button>
                     </form>
@@ -685,7 +847,7 @@ foreach ($lotes as $l) {
                             </p>
                         </section>
 
-                        <button type="submit" name="registrar_plaga" class="btn btn-success w-100 farmer-submit pest-submit">
+                        <button type="submit" name="registrar_plaga" class="btn w-100 farmer-submit farmer-action-button farmer-action-button--primary pest-submit">
                             <span>Registrar monitoreo</span>
                         </button>
                     </form>
@@ -738,9 +900,9 @@ foreach ($lotes as $l) {
                                             <h2>Insumos solicitados</h2>
                                             <p>Agregue cada insumo y la cantidad requerida por hectárea.</p>
                                         </div>
-                                        <button type="button" class="btn btn-outline-primary farmer-add-button" data-add-supply-product>
+                                        <button type="button" class="btn farmer-add-button farmer-action-button farmer-action-button--compact" data-add-supply-product data-app-no-ripple>
                                             <i class="fas fa-plus"></i>
-                                            Agregar insumo
+                                            <span>Agregar insumo</span>
                                         </button>
                                     </div>
                                     <div class="farmer-products-list" data-supply-products></div>
@@ -751,7 +913,7 @@ foreach ($lotes as $l) {
                                     <textarea name="observaciones" class="form-control" placeholder="Notas para bodega o administración"></textarea>
                                 </label>
 
-                                <button type="submit" name="solicitar_insumos_manual" class="btn btn-success w-100 farmer-submit supply-submit">
+                                <button type="submit" name="solicitar_insumos_manual" class="btn w-100 farmer-submit farmer-action-button farmer-action-button--primary supply-submit">
                                     <span>Enviar solicitud de insumos</span>
                                 </button>
                             </form>
@@ -769,7 +931,7 @@ foreach ($lotes as $l) {
                                     <i class="fas fa-calculator"></i>
                                     Calcular cantidades
                                 </a>
-                                <a href="registrar_solicitud.php">
+                                <a href="historial_solicitudes.php">
                                     <i class="fas fa-clock-rotate-left"></i>
                                     Ver historial
                                 </a>
@@ -793,13 +955,15 @@ foreach ($lotes as $l) {
                                 <th>Ubicación</th>
                                 <th>Área</th>
                                 <th>Etapa</th>
+                                <th>Estado</th>
                                 <th>Plagas</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($lotes)): ?>
                                 <tr>
-                                    <td colspan="6" class="farmer-empty-row">
+                                    <td colspan="8" class="farmer-empty-row">
                                         <i class="fas fa-circle-info"></i>
                                         No hay lotes registrados recientemente
                                     </td>
@@ -811,8 +975,31 @@ foreach ($lotes as $l) {
                                     <td><?php echo e($l['tipo_cultivo']); ?></td>
                                     <td><?php echo e($l['ubicacion']); ?></td>
                                     <td><?php echo e($l['area']); ?></td>
-                                    <td><?php echo $l['etapa_actual']==1?'Riego':($l['etapa_actual']==2?'Siembra':($l['etapa_actual']==3?'Cosecha':'-')); ?></td>
+                                    <td><?php echo e(crop_stage_label((int) $l['etapa_actual'])); ?></td>
+                                    <td>
+                                        <span class="crop-status crop-status--<?php echo e(str_replace('_', '-', $l['estado_cultivo'])); ?>">
+                                            <i class="<?php echo e(crop_status_icon($l['estado_cultivo'])); ?>" aria-hidden="true"></i>
+                                            <?php echo e(crop_status_label($l['estado_cultivo'])); ?>
+                                        </span>
+                                    </td>
                                     <td><?php echo e($l['plagas'] ?: '-'); ?></td>
+                                    <td>
+                                        <?php if ($l['estado_cultivo'] === 'en_cosecha'): ?>
+                                            <button
+                                                type="button"
+                                                class="harvest-finish-button farmer-action-button farmer-action-button--compact"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#finalizarCosechaModal"
+                                                data-harvest-lot-id="<?php echo (int) $l['id_lote']; ?>"
+                                                data-harvest-lot-name="<?php echo e($l['ubicacion'] . ' - ' . $l['tipo_cultivo']); ?>">
+                                                <i class="fas fa-check-circle"></i> Finalizar cosecha
+                                            </button>
+                                        <?php elseif ($l['estado_cultivo'] === 'finalizado'): ?>
+                                            <span class="harvest-closed-state"><i class="fas fa-lock"></i> Cerrado</span>
+                                        <?php else: ?>
+                                            <span class="harvest-no-action">Sin acciones</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -842,7 +1029,7 @@ foreach ($lotes as $l) {
                     </div>
                     <div class="farmer-stage-legend">
                         <span><i class="farmer-dot farmer-dot--siembra"></i>Siembra</span>
-                        <span><i class="farmer-dot farmer-dot--riego"></i>Riego</span>
+                        <span><i class="farmer-dot farmer-dot--riego"></i>Desarrollo</span>
                         <span><i class="farmer-dot farmer-dot--cosecha"></i>Cosecha</span>
                     </div>
                 </div>
@@ -857,6 +1044,78 @@ foreach ($lotes as $l) {
                 <i class="fas fa-sun"></i>
             </section>
         </aside>
+    </div>
+</div>
+
+<div class="modal fade harvest-premium-modal" id="finalizarCosechaModal" tabindex="-1" aria-labelledby="finalizarCosechaTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="agricultor.php">
+                <input type="hidden" name="accion" value="finalizar_cosecha">
+                <input type="hidden" name="id_lote" data-harvest-lot-input>
+                <div class="modal-header">
+                    <span class="harvest-modal-icon" aria-hidden="true">
+                        <i class="fas fa-wheat-awn"></i>
+                    </span>
+                    <div class="harvest-modal-heading">
+                        <span class="farmer-kicker">Cierre productivo</span>
+                        <h2 class="modal-title" id="finalizarCosechaTitle">Finalizar cosecha</h2>
+                        <p>Registra el resultado real y cierra el ciclo productivo del lote.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="harvest-lot-summary">
+                        <span class="harvest-lot-summary__icon"><i class="fas fa-location-dot"></i></span>
+                        <div>
+                            <small>Lote seleccionado</small>
+                            <strong data-harvest-lot-label></strong>
+                        </div>
+                        <span class="harvest-lot-summary__status"><i class="fas fa-wheat-awn"></i> En cosecha</span>
+                    </div>
+
+                    <div class="harvest-form-grid">
+                        <label class="harvest-field">
+                            <span><i class="fas fa-scale-balanced"></i> Cantidad cosechada</span>
+                            <input type="number" name="cantidad_cosechada" min="0.01" step="0.01" class="form-control" placeholder="Ej. 1250" required>
+                        </label>
+                        <label class="harvest-field">
+                            <span><i class="fas fa-boxes-stacked"></i> Unidad de medida</span>
+                            <select name="unidad_cosecha" class="form-select" required>
+                                <option value="">Seleccione</option>
+                                <option value="kg">Kilogramos (kg)</option>
+                                <option value="toneladas">Toneladas</option>
+                                <option value="cajas">Cajas</option>
+                                <option value="unidades">Unidades</option>
+                            </select>
+                        </label>
+                        <label class="harvest-field harvest-field--wide">
+                            <span><i class="fas fa-calendar-check"></i> Fecha real de cosecha</span>
+                            <input type="date" name="fecha_cosecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                        </label>
+                        <label class="harvest-field harvest-field--wide">
+                            <span><i class="fas fa-note-sticky"></i> Observación <small>Opcional</small></span>
+                            <textarea name="observacion" class="form-control" rows="3" placeholder="Calidad, clasificación, pérdidas u otra novedad de la cosecha"></textarea>
+                        </label>
+                    </div>
+
+                    <div class="harvest-close-notice">
+                        <span><i class="fas fa-lock"></i></span>
+                        <div>
+                            <strong>Cierre definitivo del ciclo</strong>
+                            <p>Al confirmar, el lote pasará a Finalizado y la producción quedará registrada.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="harvest-modal-security"><i class="fas fa-shield-halved"></i> Registro protegido por validación</span>
+                    <button type="button" class="harvest-modal-cancel" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="harvest-modal-submit farmer-action-button farmer-action-button--compact">
+                        <i class="fas fa-circle-check"></i> Guardar y finalizar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -878,19 +1137,36 @@ function escapeSupplyHtml(value) {
         .replace(/'/g, '&#039;');
 }
 
-function buildSupplyInsumoOptions() {
-    return '<option value="">Selecciona insumo</option>' + supplyInsumosOptions.map((insumo) => (
-        `<option value="${escapeSupplyHtml(insumo.id)}">${escapeSupplyHtml(insumo.label)}</option>`
-    )).join('');
+function buildSupplyInsumoSelect(index) {
+    const options = supplyInsumosOptions.map((insumo) => `
+        <button type="button" class="ag-select-option" data-value="${escapeSupplyHtml(insumo.id)}" role="option">
+            <i class="fas fa-box-open" aria-hidden="true"></i>
+            <span>${escapeSupplyHtml(insumo.label)}</span>
+        </button>
+    `).join('');
+
+    return `
+        <div class="ag-select ag-select--supply" data-ag-select>
+            <input type="hidden" name="productos[${index}][id_insumo]" data-ag-select-value>
+            <button type="button" class="ag-select-button" data-ag-select-button aria-haspopup="listbox" aria-expanded="false">
+                <i class="fas fa-flask-vial" aria-hidden="true"></i>
+                <span data-ag-select-label>Selecciona insumo</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="ag-select-menu" data-ag-select-menu role="listbox" aria-label="Seleccionar insumo">
+                ${options}
+            </div>
+        </div>
+    `;
 }
 
 const ctx = document.getElementById('etapaChart').getContext('2d');
 const etapaChart = new Chart(ctx,{
     type:'doughnut',
     data:{
-        labels:['Siembra','Riego','Cosecha'],
+        labels:['Siembra','Desarrollo','Cosecha'],
         datasets:[{
-            data:[<?php echo $etapas['Siembra'].','.$etapas['Riego'].','.$etapas['Cosecha']; ?>],
+            data:[<?php echo $etapas['Siembra'].','.$etapas['Desarrollo'].','.$etapas['Cosecha']; ?>],
             backgroundColor:['#08752b','#145ee8','#ffb43b'],
             borderColor: document.documentElement.dataset.theme === 'light'
                 ? '#ffffff'
@@ -920,7 +1196,15 @@ window.addEventListener('app:themechange', function(event) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const selects = Array.from(document.querySelectorAll('[data-ag-select]'));
+    const harvestModal = document.getElementById('finalizarCosechaModal');
+
+    harvestModal?.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        harvestModal.querySelector('[data-harvest-lot-input]').value = button?.dataset.harvestLotId || '';
+        harvestModal.querySelector('[data-harvest-lot-label]').textContent = button?.dataset.harvestLotName || 'este lote';
+    });
+
+    const getSelects = () => Array.from(document.querySelectorAll('[data-ag-select]'));
 
     function closeSelect(select) {
         select.classList.remove('is-open');
@@ -928,14 +1212,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function closeAll(except = null) {
-        selects.forEach((select) => {
+        getSelects().forEach((select) => {
             if (select !== except) {
                 closeSelect(select);
             }
         });
     }
 
-    selects.forEach((select) => {
+    function initializeSelect(select) {
+        if (!select || select.dataset.agSelectBound === '1') {
+            return;
+        }
+        select.dataset.agSelectBound = '1';
+
         const button = select.querySelector('[data-ag-select-button]');
         const value = select.querySelector('[data-ag-select-value]');
         const label = select.querySelector('[data-ag-select-label]');
@@ -957,6 +1246,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeSelect(select);
             });
         });
+    }
+
+    getSelects().forEach(initializeSelect);
+    document.addEventListener('ag-select:mount', function(event) {
+        initializeSelect(event.detail?.select);
     });
 
     document.addEventListener('click', function(event) {
@@ -1010,9 +1304,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="farmer-product-grid">
                 <label>
                     <span>Insumo</span>
-                    <select name="productos[${supplyProductIndex}][id_insumo]" class="form-select" required>
-                        ${buildSupplyInsumoOptions()}
-                    </select>
+                    ${buildSupplyInsumoSelect(supplyProductIndex)}
                 </label>
                 <label>
                     <span>Cantidad por hectárea</span>
@@ -1023,12 +1315,21 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         container.appendChild(row);
+        document.dispatchEvent(new CustomEvent('ag-select:mount', {
+            detail: { select: row.querySelector('[data-ag-select]') }
+        }));
         supplyProductIndex++;
 
         row.querySelector('.remove-producto').addEventListener('click', function() {
             if (container.children.length === 1) {
-                row.querySelector('select').value = '';
-                row.querySelector('input').value = '';
+                const select = row.querySelector('[data-ag-select]');
+                select.querySelector('[data-ag-select-value]').value = '';
+                select.querySelector('[data-ag-select-label]').textContent = 'Selecciona insumo';
+                select.querySelectorAll('.ag-select-option').forEach((option) => {
+                    option.classList.remove('is-selected');
+                });
+                select.classList.remove('is-invalid', 'is-open');
+                row.querySelector('input[type="number"]').value = '';
                 return;
             }
 

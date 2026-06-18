@@ -33,6 +33,14 @@
 
         setupTheme() {
             const root = document.documentElement;
+
+            if (document.body.classList.contains('auth-login-page')) {
+                root.dataset.themePreference = 'light';
+                root.dataset.theme = 'light';
+                root.style.colorScheme = 'light';
+                return;
+            }
+
             const media = window.matchMedia('(prefers-color-scheme: dark)');
             const appearance = document.querySelector('[data-app-appearance]');
             const toggle = appearance?.querySelector('[data-app-theme-toggle]');
@@ -132,6 +140,7 @@
             this.enhanceCards(root);
             this.enhanceTables(root);
             this.enhanceForms(root);
+            this.enhanceDateInputs(root);
             this.enhanceButtons(root);
             this.enhanceProgress(root);
             this.enhanceCounters(root);
@@ -140,6 +149,232 @@
 
         enhanceAll() {
             this.refresh(document);
+        },
+
+        enhanceDateInputs(root) {
+            const inputs = [];
+            if (root.matches?.('input[type="date"]')) inputs.push(root);
+            root.querySelectorAll?.('input[type="date"]').forEach((input) => inputs.push(input));
+
+            inputs.forEach((input) => {
+                if (input.dataset.appDateBound === '1') return;
+                input.dataset.appDateBound = '1';
+
+                const wrapper = document.createElement('div');
+                const trigger = document.createElement('button');
+                wrapper.className = 'app-date-field';
+                trigger.type = 'button';
+                trigger.className = 'app-date-field__trigger';
+                trigger.setAttribute('aria-label', 'Abrir calendario');
+                trigger.innerHTML = '<i class="fas fa-calendar-days" aria-hidden="true"></i>';
+
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.append(input, trigger);
+                input.classList.add('app-date-field__input');
+                input.type = 'text';
+                input.inputMode = 'none';
+                input.pattern = '\\d{4}-\\d{2}-\\d{2}';
+                input.setAttribute('autocomplete', 'off');
+                input.setAttribute('aria-haspopup', 'dialog');
+                input.addEventListener('beforeinput', (event) => event.preventDefault());
+                input.addEventListener('paste', (event) => event.preventDefault());
+
+                const open = () => this.openDatePicker(input, trigger);
+                input.addEventListener('click', open);
+                input.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        open();
+                    }
+                });
+                trigger.addEventListener('click', open);
+            });
+        },
+
+        openDatePicker(input, trigger) {
+            this.datePickerState ||= {};
+            const state = this.datePickerState;
+            const parseDate = (value) => {
+                const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!match) return null;
+                const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+                return Number.isNaN(date.getTime()) ? null : date;
+            };
+            const formatValue = (date) => [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0'),
+            ].join('-');
+            const selected = parseDate(input.value);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (!state.element) {
+                const picker = document.createElement('div');
+                picker.className = 'app-date-picker';
+                picker.setAttribute('role', 'dialog');
+                picker.setAttribute('aria-modal', 'false');
+                picker.setAttribute('aria-label', 'Seleccionar fecha');
+                document.body.appendChild(picker);
+                state.element = picker;
+
+                document.addEventListener('pointerdown', (event) => {
+                    if (!state.input || picker.contains(event.target)) return;
+                    if (state.input.closest('.app-date-field')?.contains(event.target)) return;
+                    this.closeDatePicker();
+                });
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && state.input) {
+                        this.closeDatePicker();
+                        state.trigger?.focus();
+                    }
+                });
+                window.addEventListener('resize', () => this.positionDatePicker());
+                window.addEventListener('scroll', () => {
+                    if (state.input) this.closeDatePicker();
+                }, true);
+            }
+
+            state.input = input;
+            state.trigger = trigger;
+            state.view = new Date(
+                (selected || today).getFullYear(),
+                (selected || today).getMonth(),
+                1
+            );
+            state.parseDate = parseDate;
+            state.formatValue = formatValue;
+            this.renderDatePicker();
+            state.element.classList.add('is-open');
+            input.closest('.app-date-field')?.classList.add('is-open');
+            this.positionDatePicker();
+        },
+
+        closeDatePicker() {
+            const state = this.datePickerState;
+            if (!state?.element) return;
+            state.input?.closest('.app-date-field')?.classList.remove('is-open');
+            state.element.classList.remove('is-open');
+            state.input = null;
+            state.trigger = null;
+        },
+
+        positionDatePicker() {
+            const state = this.datePickerState;
+            if (!state?.input || !state.element?.classList.contains('is-open')) return;
+            const rect = state.input.closest('.app-date-field').getBoundingClientRect();
+            const width = Math.min(340, window.innerWidth - 24);
+            const height = state.element.offsetHeight || 390;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow >= height + 12
+                ? rect.bottom + 8
+                : Math.max(12, rect.top - height - 8);
+            const left = Math.min(
+                Math.max(12, rect.left),
+                Math.max(12, window.innerWidth - width - 12)
+            );
+
+            Object.assign(state.element.style, {
+                width: `${width}px`,
+                top: `${top}px`,
+                left: `${left}px`,
+            });
+        },
+
+        renderDatePicker() {
+            const state = this.datePickerState;
+            if (!state?.input || !state.element) return;
+
+            const input = state.input;
+            const view = state.view;
+            const selected = state.parseDate(input.value);
+            const min = state.parseDate(input.getAttribute('min'));
+            const max = state.parseDate(input.getAttribute('max'));
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const monthLabel = new Intl.DateTimeFormat('es-EC', {
+                month: 'long',
+                year: 'numeric',
+            }).format(view);
+            const firstDay = new Date(view.getFullYear(), view.getMonth(), 1);
+            const mondayOffset = (firstDay.getDay() + 6) % 7;
+            const gridStart = new Date(view.getFullYear(), view.getMonth(), 1 - mondayOffset);
+            const sameDay = (first, second) => first && second
+                && first.getFullYear() === second.getFullYear()
+                && first.getMonth() === second.getMonth()
+                && first.getDate() === second.getDate();
+            const isDisabled = (date) => (min && date < min) || (max && date > max);
+
+            const days = Array.from({ length: 42 }, (_, index) => {
+                const date = new Date(gridStart);
+                date.setDate(gridStart.getDate() + index);
+                const outside = date.getMonth() !== view.getMonth();
+                const disabled = isDisabled(date);
+                const classes = [
+                    'app-date-picker__day',
+                    outside ? 'is-outside' : '',
+                    sameDay(date, today) ? 'is-today' : '',
+                    sameDay(date, selected) ? 'is-selected' : '',
+                ].filter(Boolean).join(' ');
+
+                return `<button type="button" class="${classes}" data-date="${state.formatValue(date)}" ${disabled ? 'disabled' : ''} aria-label="${date.toLocaleDateString('es-EC')}">${date.getDate()}</button>`;
+            }).join('');
+
+            state.element.innerHTML = `
+                <div class="app-date-picker__header">
+                    <div>
+                        <span>Seleccionar fecha</span>
+                        <strong>${monthLabel}</strong>
+                    </div>
+                    <div class="app-date-picker__nav">
+                        <button type="button" data-date-prev aria-label="Mes anterior"><i class="fas fa-chevron-left"></i></button>
+                        <button type="button" data-date-next aria-label="Mes siguiente"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="app-date-picker__weekdays" aria-hidden="true">
+                    <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+                </div>
+                <div class="app-date-picker__days">${days}</div>
+                <div class="app-date-picker__footer">
+                    <button type="button" data-date-clear><i class="fas fa-eraser"></i> Borrar</button>
+                    <button type="button" data-date-today><i class="fas fa-calendar-check"></i> Hoy</button>
+                </div>
+            `;
+
+            state.element.querySelector('[data-date-prev]').addEventListener('click', () => {
+                state.view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
+                this.renderDatePicker();
+                this.positionDatePicker();
+            });
+            state.element.querySelector('[data-date-next]').addEventListener('click', () => {
+                state.view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
+                this.renderDatePicker();
+                this.positionDatePicker();
+            });
+            state.element.querySelector('[data-date-clear]').addEventListener('click', () => {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                this.closeDatePicker();
+                input.focus();
+            });
+            state.element.querySelector('[data-date-today]').addEventListener('click', () => {
+                if (isDisabled(today)) return;
+                input.value = state.formatValue(today);
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                this.closeDatePicker();
+                input.focus();
+            });
+            state.element.querySelectorAll('[data-date]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    input.value = button.dataset.date;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                    this.closeDatePicker();
+                    input.focus();
+                });
+            });
         },
 
         setupNotifications() {
@@ -282,10 +517,23 @@
             if (!document.querySelector('.app-sidebar')) return;
 
             document.body.classList.add('app-shell-ready');
+            const mobileSidebarQuery = window.matchMedia('(max-width: 991px)');
 
-            if (localStorage.getItem('appSidebarCollapsed') === '1') {
-                document.body.classList.add('app-sidebar-collapsed');
-            }
+            const syncSidebarMode = () => {
+                if (mobileSidebarQuery.matches) {
+                    document.body.classList.remove('app-sidebar-collapsed');
+                    return;
+                }
+
+                document.body.classList.toggle(
+                    'app-sidebar-collapsed',
+                    localStorage.getItem('appSidebarCollapsed') === '1'
+                );
+                document.body.classList.remove('app-mobile-nav-open');
+            };
+
+            syncSidebarMode();
+            mobileSidebarQuery.addEventListener?.('change', syncSidebarMode);
 
             const currentPath = window.location.pathname.split('/').pop() || 'index.html';
             document.querySelectorAll('.app-sidebar-link[href]').forEach((link) => {
@@ -298,7 +546,7 @@
                 button.dataset.appSidebarToggleBound = '1';
 
                 button.addEventListener('click', () => {
-                    if (window.matchMedia('(max-width: 991px)').matches) {
+                    if (mobileSidebarQuery.matches) {
                         document.body.classList.toggle('app-mobile-nav-open');
                         return;
                     }
@@ -438,6 +686,11 @@
                 if (element.dataset.appView === '1') return;
                 element.dataset.appView = '1';
                 element.classList.add('app-view-enter');
+                element.addEventListener('animationend', (event) => {
+                    if (event.animationName === 'appViewIn') {
+                        element.classList.remove('app-view-enter');
+                    }
+                });
             });
         },
 
@@ -485,28 +738,10 @@
                 });
             });
 
-            const buttons = [];
-            const buttonSelector = '.btn:not([data-app-ripple]), .app-icon-button:not([data-app-ripple])';
-            if (root.matches?.(buttonSelector)) buttons.push(root);
-            root.querySelectorAll?.(buttonSelector).forEach((button) => buttons.push(button));
-
-            buttons.forEach((button) => {
-                    button.dataset.appRipple = '1';
-                    button.addEventListener('pointerdown', (event) => {
-                        if (!this.motionAllowed() || button.disabled) return;
-
-                        const rect = button.getBoundingClientRect();
-                        const ripple = document.createElement('span');
-                        const size = Math.max(rect.width, rect.height) * 1.4;
-                        ripple.className = 'app-button-ripple';
-                        ripple.style.width = `${size}px`;
-                        ripple.style.height = `${size}px`;
-                        ripple.style.left = `${event.clientX - rect.left - size / 2}px`;
-                        ripple.style.top = `${event.clientY - rect.top - size / 2}px`;
-                        button.appendChild(ripple);
-                        ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
-                    });
-                });
+            root.querySelectorAll?.('.app-button-ripple').forEach((ripple) => ripple.remove());
+            root.querySelectorAll?.('[data-app-ripple]').forEach((button) => {
+                button.removeAttribute('data-app-ripple');
+            });
         },
 
         enhanceProgress(root) {
@@ -531,10 +766,36 @@
                 let currentPage = 1;
                 let query = '';
                 let status = '';
+                const normalizeHeading = (value) => String(value || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .trim()
+                    .toLowerCase();
+                const headings = Array.from(table.tHead?.rows[0]?.cells || []);
+                const filterColumnIndex = headings.findIndex((heading) => {
+                    const value = normalizeHeading(heading.textContent);
+                    return value === 'estado' || value === 'rol';
+                });
+                const filterHeading = filterColumnIndex >= 0
+                    ? normalizeHeading(headings[filterColumnIndex].textContent)
+                    : '';
+                const filterAllLabel = filterHeading === 'rol' ? 'Todos los roles' : 'Todos los estados';
 
                 const wrapper = table.closest('.table-responsive') || table.parentElement;
+                const tableOwner = table.closest('[id]')?.id || '';
+                const tableHost = wrapper.parentElement;
+                if (tableOwner) {
+                    tableHost.querySelectorAll(
+                        `:scope > .app-table-tools[data-app-table-owner="${tableOwner}"], ` +
+                        `:scope > .app-table-pagination[data-app-table-owner="${tableOwner}"]`
+                    ).forEach(element => element.remove());
+                    document.querySelectorAll(
+                        `.app-table-filter__menu[data-app-table-owner="${tableOwner}"]`
+                    ).forEach(element => element.remove());
+                }
                 const tools = document.createElement('div');
                 tools.className = 'app-table-tools';
+                if (tableOwner) tools.dataset.appTableOwner = tableOwner;
                 tools.innerHTML = `
                     <div class="app-table-tools-left">
                         <div class="input-group app-table-search">
@@ -543,9 +804,14 @@
                         </div>
                     </div>
                     <div class="app-table-tools-right">
-                        <select class="form-select form-select-sm app-table-status" aria-label="Filtrar por estado">
-                            <option value="">Todos los estados</option>
-                        </select>
+                        <div class="app-table-filter">
+                            <button type="button" class="app-table-filter__button" aria-haspopup="listbox" aria-expanded="false">
+                                <i class="fas fa-filter" aria-hidden="true"></i>
+                                <span>${filterAllLabel}</span>
+                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                            </button>
+                            <div class="app-table-filter__menu" role="listbox" aria-label="Filtrar por ${filterHeading || 'estado'}"></div>
+                        </div>
                     </div>
                 `;
 
@@ -553,6 +819,7 @@
 
                 const pagination = document.createElement('div');
                 pagination.className = 'app-table-pagination';
+                if (tableOwner) pagination.dataset.appTableOwner = tableOwner;
                 pagination.innerHTML = `
                     <span class="app-table-page-info"></span>
                     <button type="button" class="btn btn-sm btn-outline-primary" data-prev><i class="fas fa-chevron-left"></i></button>
@@ -561,32 +828,109 @@
                 wrapper.parentElement.insertBefore(pagination, wrapper.nextSibling);
 
                 const searchInput = tools.querySelector('input[type="search"]');
-                const statusSelect = tools.querySelector('.app-table-status');
+                const statusFilter = tools.querySelector('.app-table-filter');
+                const statusButton = tools.querySelector('.app-table-filter__button');
+                const statusLabel = statusButton.querySelector('span');
+                const statusMenu = tools.querySelector('.app-table-filter__menu');
+                if (tableOwner) statusMenu.dataset.appTableOwner = tableOwner;
                 const statusValues = new Set();
+                const statusTone = (value) => {
+                    const normalized = normalizeHeading(value);
+                    if (!normalized) return 'all';
+                    if (/pendiente|espera|revision|cosecha|warning/.test(normalized)) return 'warning';
+                    if (/aprobado|procesando|informacion|administrador/.test(normalized)) return 'info';
+                    if (/entregado|activo|finalizado|completado|agricultor/.test(normalized)) return 'success';
+                    if (/rechazado|error|critico/.test(normalized)) return 'danger';
+                    if (/cancelado|inactivo|bodeguero/.test(normalized)) return 'neutral';
+                    return 'default';
+                };
+                const setCurrentStatus = (value, label) => {
+                    statusLabel.textContent = label;
+                    statusLabel.className = 'app-table-filter__current';
+                };
+                const positionStatusMenu = () => {
+                    const rect = statusButton.getBoundingClientRect();
+                    const viewportGap = 12;
+                    const desiredHeight = Math.min(statusMenu.scrollHeight || 280, 280);
+                    const spaceBelow = window.innerHeight - rect.bottom - viewportGap;
+                    const spaceAbove = rect.top - viewportGap;
+                    const openAbove = spaceBelow < Math.min(desiredHeight, 190) && spaceAbove > spaceBelow;
+                    const availableHeight = Math.max(120, openAbove ? spaceAbove - 8 : spaceBelow - 8);
+                    const width = Math.min(Math.max(rect.width, 270), window.innerWidth - (viewportGap * 2));
+                    const left = Math.min(
+                        Math.max(viewportGap, rect.right - width),
+                        window.innerWidth - width - viewportGap
+                    );
+
+                    statusMenu.style.left = `${Math.round(left)}px`;
+                    statusMenu.style.width = `${Math.round(width)}px`;
+                    statusMenu.style.maxHeight = `${Math.min(280, availableHeight)}px`;
+                    statusMenu.style.top = openAbove
+                        ? `${Math.round(rect.top - Math.min(desiredHeight, availableHeight) - 7)}px`
+                        : `${Math.round(rect.bottom + 7)}px`;
+                    statusMenu.dataset.placement = openAbove ? 'top' : 'bottom';
+                };
+                const closeStatusMenu = () => {
+                    statusFilter.classList.remove('is-open');
+                    statusMenu.classList.remove('is-open');
+                    statusButton.setAttribute('aria-expanded', 'false');
+                };
+                const getRowStatus = (row) => {
+                    if (filterColumnIndex < 0) return '';
+                    const cell = row.cells[filterColumnIndex];
+                    const statusElement = cell?.querySelector('.app-table-status-capsule, .badge');
+                    return (statusElement?.textContent || cell?.textContent || '').trim();
+                };
 
                 rows.forEach((row) => {
-                    row.querySelectorAll('.badge').forEach((badge) => {
-                        const value = badge.textContent.trim();
-                        if (value) statusValues.add(value);
-                    });
+                    const value = getRowStatus(row);
+                    if (filterHeading === 'estado' && value) {
+                        const cell = row.cells[filterColumnIndex];
+                        let capsule = cell.querySelector('.app-table-status-capsule');
+
+                        if (!capsule) {
+                            capsule = document.createElement('span');
+                            cell.replaceChildren(capsule);
+                        }
+
+                        capsule.className = `app-table-status-capsule app-table-status-capsule--${statusTone(value)}`;
+                        capsule.textContent = value;
+                    }
+                    if (value) statusValues.add(value);
                 });
 
-                statusValues.forEach((value) => {
-                    const option = document.createElement('option');
-                    option.value = value.toLowerCase();
-                    option.textContent = value;
-                    statusSelect.appendChild(option);
-                });
+                const addFilterOption = (value, label) => {
+                    const option = document.createElement('button');
+                    const optionLabel = document.createElement('span');
+                    const checkIcon = document.createElement('i');
+                    option.type = 'button';
+                    option.className = 'app-table-filter__option';
+                    option.dataset.value = value;
+                    option.setAttribute('role', 'option');
+                    option.setAttribute('aria-selected', value === '' ? 'true' : 'false');
+                    optionLabel.className = 'app-table-filter__option-label';
+                    optionLabel.textContent = label;
+                    checkIcon.className = 'fas fa-check';
+                    checkIcon.setAttribute('aria-hidden', 'true');
+                    option.append(optionLabel, checkIcon);
+                    statusMenu.appendChild(option);
+                };
 
-                if (statusValues.size === 0) {
-                    statusSelect.parentElement.remove();
+                if (filterColumnIndex < 0 || statusValues.size === 0) {
+                    statusFilter.remove();
+                } else {
+                    addFilterOption('', filterAllLabel);
+                    Array.from(statusValues)
+                        .sort((first, second) => first.localeCompare(second, 'es'))
+                        .forEach((value) => addFilterOption(value.toLowerCase(), value));
+                    document.body.appendChild(statusMenu);
+                    setCurrentStatus('', filterAllLabel);
                 }
 
                 const getFilteredRows = () => rows.filter((row) => {
                     const text = row.textContent.toLowerCase();
                     const matchesQuery = !query || text.includes(query);
-                    const matchesStatus = !status || Array.from(row.querySelectorAll('.badge'))
-                        .some((badge) => badge.textContent.trim().toLowerCase() === status);
+                    const matchesStatus = !status || getRowStatus(row).toLowerCase() === status;
                     return matchesQuery && matchesStatus;
                 });
 
@@ -622,11 +966,53 @@
                     render();
                 });
 
-                statusSelect.addEventListener('change', () => {
-                    status = statusSelect.value;
-                    currentPage = 1;
-                    render();
-                });
+                if (statusFilter.isConnected) {
+                    statusButton.addEventListener('click', () => {
+                        const willOpen = !statusFilter.classList.contains('is-open');
+                        statusFilter.classList.toggle('is-open', willOpen);
+                        statusMenu.classList.toggle('is-open', willOpen);
+                        statusButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                        if (willOpen) positionStatusMenu();
+                    });
+
+                    statusMenu.addEventListener('click', (event) => {
+                        const option = event.target.closest('.app-table-filter__option');
+                        if (!option) return;
+
+                        status = option.dataset.value || '';
+                        setCurrentStatus(status, option.querySelector('span').textContent);
+                        statusMenu.querySelectorAll('.app-table-filter__option').forEach(item => {
+                            const isSelected = item === option;
+                            item.classList.toggle('is-selected', isSelected);
+                            item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                        });
+                        closeStatusMenu();
+                        currentPage = 1;
+                        render();
+                    });
+
+                    const handleFilterEscape = (event) => {
+                        if (event.key === 'Escape') {
+                            closeStatusMenu();
+                            statusButton.focus();
+                        }
+                    };
+                    statusFilter.addEventListener('keydown', handleFilterEscape);
+                    statusMenu.addEventListener('keydown', handleFilterEscape);
+
+                    document.addEventListener('click', (event) => {
+                        if (!statusFilter.contains(event.target) && !statusMenu.contains(event.target)) {
+                            closeStatusMenu();
+                        }
+                    });
+
+                    window.addEventListener('resize', () => {
+                        if (statusFilter.classList.contains('is-open')) positionStatusMenu();
+                    });
+                    window.addEventListener('scroll', () => {
+                        if (statusFilter.classList.contains('is-open')) positionStatusMenu();
+                    }, true);
+                }
 
                 pagination.querySelector('[data-prev]').addEventListener('click', () => {
                     currentPage = Math.max(1, currentPage - 1);

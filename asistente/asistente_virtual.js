@@ -10,18 +10,24 @@
     const input = chat.querySelector('[data-ada-input]');
     const messages = chat.querySelector('[data-ada-messages]');
     const sendButton = chat.querySelector('[data-ada-send]');
+    const chatWindow = chat.querySelector('.ada-chat__window');
     const endpoint = chat.dataset.endpoint || 'asistente/asistente_virtual.php';
     let typingNode = null;
 
     function abrirChat() {
         chat.classList.add('is-open');
         toggle.setAttribute('aria-expanded', 'true');
+        chatWindow.setAttribute('aria-hidden', 'false');
         setTimeout(() => input.focus(), 120);
     }
 
     function cerrarChat() {
+        if (!chat.classList.contains('is-open')) return;
+
         chat.classList.remove('is-open');
         toggle.setAttribute('aria-expanded', 'false');
+        chatWindow.setAttribute('aria-hidden', 'true');
+        toggle.focus();
     }
 
     function agregarTextoConFormato(contenedor, texto) {

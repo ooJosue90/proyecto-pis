@@ -9,6 +9,32 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $id_lote = intval($_GET['id']);
 
+function historial_estado_tono(string $estado): string
+{
+    $normalizado = trim($estado);
+    $normalizado = function_exists('mb_strtolower')
+        ? mb_strtolower($normalizado, 'UTF-8')
+        : strtolower($normalizado);
+
+    if (preg_match('/pendiente|espera|revisi[oó]n|cosecha/', $normalizado)) {
+        return 'warning';
+    }
+    if (preg_match('/aprobado|procesando|informaci[oó]n/', $normalizado)) {
+        return 'info';
+    }
+    if (preg_match('/entregado|activo|finalizado|completado/', $normalizado)) {
+        return 'success';
+    }
+    if (preg_match('/rechazado|error|cr[ií]tico/', $normalizado)) {
+        return 'danger';
+    }
+    if (preg_match('/cancelado|inactivo/', $normalizado)) {
+        return 'neutral';
+    }
+
+    return 'default';
+}
+
 // Obtener historial de solicitudes para el lote
 $sql = "
     SELECT ps.*, u.nombre as agricultor_nombre
@@ -36,12 +62,15 @@ echo "<table class='table table-striped'>";
 echo "<thead><tr><th>ID</th><th>Agricultor</th><th>Producto</th><th>Cantidad</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>";
 
 while ($row = $result->fetch_assoc()) {
+    $estado = trim((string) ($row['estado'] ?? 'Sin estado'));
+    $estado_tono = historial_estado_tono($estado);
+
     echo "<tr>";
     echo "<td>" . htmlspecialchars($row['id_producto_solicitud']) . "</td>";
     echo "<td>" . htmlspecialchars($row['agricultor_nombre']) . "</td>";
     echo "<td>" . htmlspecialchars($row['nombre']) . "</td>";
     echo "<td>" . htmlspecialchars($row['cantidad_solicitada']) . "</td>";
-    echo "<td>" . htmlspecialchars($row['estado']) . "</td>";
+    echo "<td><span class='app-table-status-capsule app-table-status-capsule--" . $estado_tono . "'>" . htmlspecialchars($estado) . "</span></td>";
     echo "<td>" . htmlspecialchars($row['fecha']) . "</td>";
     echo "</tr>";
 }
