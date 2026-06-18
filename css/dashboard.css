@@ -9830,17 +9830,23 @@ body,
 @media (max-width: 991px) {
     .auth-login-shell {
         grid-template-columns: 1fr;
+        align-content: start;
+        background: #f8fbf8;
     }
 
     .auth-login-aside {
         display: flex;
-        min-height: 430px;
+        min-height: clamp(260px, 38svh, 360px);
+        align-items: flex-start;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 28px clamp(22px, 5vw, 42px) 44px;
     }
 
     .auth-login-story {
         width: min(100%, 700px);
-        margin-block: auto;
-        padding-block: 80px 50px;
+        margin: auto 0 0;
+        padding-block: 34px 0;
     }
 
     .auth-login-metrics {
@@ -9848,48 +9854,207 @@ body,
     }
 
     .auth-login-panel {
-        min-height: 690px;
-        padding-block: 92px 72px;
+        min-height: auto;
+        margin-top: -28px;
+        padding-block: 78px 44px;
+        border-radius: 30px 30px 0 0;
+        box-shadow: 0 -18px 42px rgba(15, 23, 42, 0.08);
     }
 }
 
-@media (max-width: 575px) {
+@media (max-width: 767px) {
+    .auth-login-page {
+        min-height: 100svh;
+        background: #07130c;
+    }
+
+    .auth-login-shell {
+        position: relative;
+        display: grid;
+        min-height: 100svh;
+        overflow: hidden;
+        background: #07130c;
+    }
+
     .auth-login-aside {
-        min-height: 330px;
-        padding: 28px 22px;
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        min-height: 100%;
+        padding: max(20px, env(safe-area-inset-top)) 20px 0;
+        background:
+            linear-gradient(180deg, rgba(3, 12, 7, 0.82), rgba(4, 14, 8, 0.54) 42%, rgba(248, 251, 248, 0.96) 78%),
+            linear-gradient(90deg, rgba(6, 17, 10, 0.54), rgba(10, 36, 20, 0.18)),
+            url("../assets/img/products-02.jpg") center top/cover;
     }
 
-    .auth-login-aside::before {
-        inset: 12px;
-        border-radius: 20px;
-    }
-
-    .auth-login-story {
-        padding: 52px 0 20px;
-    }
-
-    .auth-login-aside .auth-login-story h1 {
-        max-width: 340px;
-        font-size: clamp(40px, 13vw, 54px);
-    }
-
-    .auth-login-aside .auth-login-story p {
+    .auth-login-aside::before,
+    .auth-login-aside::after {
         display: none;
     }
 
+    .auth-login-brand {
+        position: absolute;
+        top: max(18px, env(safe-area-inset-top));
+        left: 18px;
+        z-index: 4;
+        gap: 9px;
+        width: fit-content;
+        max-width: calc(100% - 132px);
+        font-size: 13px;
+        line-height: 1;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.38);
+    }
+
+    .auth-login-brand span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .auth-login-brand .public-brand-mark {
+        width: 30px;
+        height: 30px;
+        flex: 0 0 30px;
+    }
+
+    .auth-login-story,
+    .auth-login-aside .auth-login-story p,
     .auth-login-metrics {
         display: none;
     }
 
     .auth-login-panel {
-        min-height: 680px;
-        padding: 88px 16px 62px;
+        position: relative;
+        z-index: 1;
+        min-height: 100svh;
+        margin-top: 0;
+        padding: 112px 16px 32px;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .auth-login-panel-top {
-        top: 28px;
-        right: 22px;
-        left: 22px;
+        top: max(18px, env(safe-area-inset-top));
+        right: 18px;
+        left: auto;
+        z-index: 3;
+        justify-content: flex-end;
+        width: fit-content;
+        max-width: calc(100% - 150px);
+    }
+
+    .auth-login-home,
+    .auth-login-security {
+        color: rgba(255, 255, 255, 0.86);
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
+    }
+
+    .auth-login-home {
+        min-height: 32px;
+        padding: 0 11px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        background: rgba(5, 18, 10, 0.34);
+        font-size: 10px;
+        backdrop-filter: blur(12px);
+    }
+
+    .auth-login-home:hover {
+        background: rgba(220, 252, 231, 0.16);
+        color: #fff;
+    }
+
+    .auth-login-card {
+        width: min(100%, 420px);
+        margin-inline: auto;
+        padding: 28px 20px 24px;
+        border-color: rgba(255, 255, 255, 0.72);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow:
+            0 28px 70px rgba(3, 12, 7, 0.24),
+            0 8px 24px rgba(15, 23, 42, 0.08),
+            inset 0 1px 0 #fff;
+    }
+
+    .auth-login-heading .auth-title {
+        font-size: clamp(29px, 7vw, 36px);
+        letter-spacing: -0.035em;
+    }
+
+    .auth-login-heading .auth-subtitle {
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    .auth-login-panel .auth-login-form {
+        gap: 13px;
+        margin-top: 20px;
+    }
+
+    .auth-login-panel .auth-links {
+        display: grid;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        align-items: start;
+        gap: 12px;
+    }
+
+    .auth-login-panel .auth-links a {
+        justify-self: end;
+        max-width: 145px;
+        text-align: right;
+        line-height: 1.35;
+    }
+
+    .auth-login-panel .auth-input-wrap .form-control,
+    .auth-login-submit {
+        min-height: 50px;
+    }
+
+    .auth-login-help {
+        display: none;
+    }
+
+    .auth-login-footer {
+        position: static;
+        margin: 18px 0 0;
+        color: rgba(20, 42, 27, 0.52);
+    }
+}
+
+@media (max-width: 575px) {
+    .auth-login-aside {
+        padding: max(17px, env(safe-area-inset-top)) 18px 0;
+    }
+
+    .auth-login-brand {
+        top: max(16px, env(safe-area-inset-top));
+        left: 16px;
+        max-width: calc(100% - 124px);
+        font-size: 11px;
+    }
+
+    .auth-login-brand .public-brand-mark {
+        width: 28px;
+        height: 28px;
+        flex-basis: 28px;
+    }
+
+    .auth-login-panel {
+        min-height: 100svh;
+        margin-top: 0;
+        padding: 104px 10px 28px;
+        border-radius: 0;
+    }
+
+    .auth-login-panel-top {
+        top: max(16px, env(safe-area-inset-top));
+        right: 16px;
+        left: auto;
+        max-width: 112px;
     }
 
     .auth-login-security {
@@ -9897,22 +10062,16 @@ body,
     }
 
     .auth-login-heading .auth-title {
-        font-size: 34px;
+        font-size: 29px;
     }
 
     .auth-login-card {
-        padding: 26px 20px;
-        border-radius: 22px;
+        padding: 25px 16px 22px;
+        border-radius: 19px;
     }
 
     .auth-login-card::before {
         left: 28px;
-    }
-
-    .auth-login-panel .auth-links {
-        align-items: center;
-        flex-direction: row;
-        gap: 12px;
     }
 
     .auth-login-footer {
@@ -15956,32 +16115,99 @@ body.auth-page.auth-login-page .auth-login-panel .auth-input-wrap .form-control:
 @media (max-width: 991px) {
     .auth-shell.auth-login-shell {
         grid-template-columns: 1fr;
+        align-content: start;
+        background: #f8fbf8;
     }
 
     .auth-aside.auth-login-aside {
-        min-height: 430px;
+        min-height: clamp(260px, 38svh, 360px);
+        padding: 28px clamp(22px, 5vw, 42px) 44px;
     }
 
     .auth-panel.auth-login-panel {
-        min-height: 690px;
-        padding-block: 92px 72px;
+        min-height: auto;
+        margin-top: -28px;
+        padding-block: 78px 44px;
+        border-radius: 30px 30px 0 0;
+        box-shadow: 0 -18px 42px rgba(15, 23, 42, 0.08);
+    }
+}
+
+@media (max-width: 767px) {
+    body.auth-page.auth-login-page,
+    .auth-shell.auth-login-shell {
+        min-height: 100svh;
+        background: #07130c;
+    }
+
+    .auth-aside.auth-login-aside {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        min-height: 100%;
+        padding: max(20px, env(safe-area-inset-top)) 20px 0;
+        background:
+            linear-gradient(180deg, rgba(3, 12, 7, 0.82), rgba(4, 14, 8, 0.54) 42%, rgba(248, 251, 248, 0.96) 78%),
+            linear-gradient(90deg, rgba(6, 17, 10, 0.54), rgba(10, 36, 20, 0.18)),
+            url("../assets/img/products-02.jpg") center top/cover;
+    }
+
+    .auth-panel.auth-login-panel {
+        position: relative;
+        z-index: 1;
+        min-height: 100svh;
+        margin-top: 0;
+        padding: 112px 16px 32px;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .auth-login-brand {
+        position: absolute;
+        top: max(18px, env(safe-area-inset-top));
+        left: 18px;
+        z-index: 4;
+        max-width: calc(100% - 132px);
+    }
+
+    .auth-login-panel-top {
+        top: max(18px, env(safe-area-inset-top));
+        right: 18px;
+        left: auto;
+        width: fit-content;
+        max-width: calc(100% - 150px);
+        justify-content: flex-end;
     }
 }
 
 @media (max-width: 575px) {
     .auth-aside.auth-login-aside {
-        min-height: 330px;
-        padding: 28px 22px;
+        padding: max(17px, env(safe-area-inset-top)) 18px 0;
     }
 
     .auth-aside.auth-login-aside::before {
-        inset: 12px;
-        border-radius: 20px;
+        display: none;
     }
 
     .auth-panel.auth-login-panel {
-        min-height: 680px;
-        padding: 88px 16px 62px;
+        min-height: 100svh;
+        margin-top: 0;
+        padding: 104px 10px 28px;
+        border-radius: 0;
+    }
+
+    .auth-login-brand {
+        top: max(16px, env(safe-area-inset-top));
+        left: 16px;
+        max-width: calc(100% - 124px);
+    }
+
+    .auth-login-panel-top {
+        top: max(16px, env(safe-area-inset-top));
+        right: 16px;
+        left: auto;
+        max-width: 112px;
     }
 }
 
