@@ -46,6 +46,584 @@
     --ada-green-soft: #d6f2dc;
 }
 
+/* Warehouse documents: invoices and processed requests */
+.warehouse-document-page {
+    min-height: 100vh;
+    background: var(--admin-bg);
+}
+
+.warehouse-document-content {
+    width: min(100%, 1500px);
+    margin: 0 auto;
+    padding: 28px clamp(18px, 3vw, 42px) 46px;
+}
+
+.warehouse-document-page .warehouse-topbar-action {
+    border: 0;
+    cursor: pointer;
+}
+
+.warehouse-document-hero,
+.purchase-invoice-heading {
+    display: flex;
+    min-height: 168px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    margin: 0 0 22px;
+    padding: clamp(24px, 3vw, 38px);
+    overflow: hidden;
+    border: 1px solid rgba(31, 95, 71, .12);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 88% 18%, rgba(255, 255, 255, .24), transparent 24%),
+        linear-gradient(130deg, #173d25 0%, #21613d 62%, #348558 100%);
+    box-shadow: 0 20px 46px rgba(23, 61, 37, .16);
+    color: #fff;
+}
+
+.warehouse-document-hero h1,
+.purchase-invoice-heading h1 {
+    margin: 4px 0 8px;
+    color: #fff;
+    font-family: "Raleway", sans-serif;
+    font-size: clamp(30px, 3.4vw, 48px);
+    font-weight: 900;
+    letter-spacing: -.035em;
+}
+
+.warehouse-document-hero p,
+.purchase-invoice-heading p {
+    max-width: 720px;
+    margin: 0;
+    color: rgba(255, 255, 255, .78);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.warehouse-document-hero .farmer-kicker,
+.purchase-invoice-heading .farmer-kicker {
+    color: #bde8ca;
+}
+
+.warehouse-document-hero__icon,
+.purchase-invoice-heading-icon {
+    display: grid;
+    width: 94px;
+    height: 94px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, .12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2);
+    backdrop-filter: blur(14px);
+}
+
+.warehouse-document-hero__icon .material-symbols-outlined,
+.purchase-invoice-heading-icon i {
+    color: #fff;
+    font-size: 42px;
+}
+
+.warehouse-document-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.warehouse-document-metrics article {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--admin-border);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(23, 32, 42, .06);
+}
+
+.warehouse-document-metrics article > .material-symbols-outlined {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 13px;
+    background: #e8eefc;
+    color: #3454a5;
+}
+
+.warehouse-document-metrics article.is-success > span { background: #dcf5e4; color: #217548; }
+.warehouse-document-metrics article.is-danger > span { background: #fee7e6; color: #b53f37; }
+.warehouse-document-metrics article.is-muted > span { background: #edf0f2; color: #66727e; }
+
+.warehouse-document-metrics small,
+.warehouse-document-metrics strong {
+    display: block;
+}
+
+.warehouse-document-metrics small {
+    margin-bottom: 2px;
+    color: var(--admin-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.warehouse-document-metrics strong {
+    color: var(--admin-text);
+    font-size: 27px;
+    line-height: 1;
+}
+
+.warehouse-document-card,
+.purchase-invoice-card,
+.purchase-invoice-history-card {
+    overflow: visible;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 22px !important;
+    background: #fff;
+    box-shadow: 0 16px 38px rgba(23, 32, 42, .08);
+}
+
+.warehouse-document-card__header,
+.purchase-invoice-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 21px 24px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+    border-radius: 22px 22px 0 0 !important;
+    background: #fff !important;
+}
+
+.warehouse-document-card__header > div,
+.purchase-invoice-card-header > div {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.warehouse-document-card__header > div > .material-symbols-outlined,
+.purchase-invoice-card-header h5 i {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 12px;
+    background: #e4f2e8;
+    color: #246947;
+}
+
+.warehouse-document-card__header small,
+.purchase-invoice-card-header small {
+    color: var(--admin-muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.warehouse-document-card__header h2,
+.purchase-invoice-card-header h5 {
+    margin: 2px 0 0;
+    color: var(--admin-text);
+    font-family: "Raleway", sans-serif;
+    font-size: 19px;
+    font-weight: 900;
+}
+
+.purchase-invoice-card-header h5 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.purchase-invoice-step,
+.warehouse-document-count {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #e8f3eb;
+    color: #246947;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.warehouse-document-toolbar {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(210px, 280px);
+    gap: 12px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--admin-border);
+    background: #f8faf8;
+}
+
+.warehouse-document-search,
+.warehouse-document-filter {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border: 1px solid #d7dfda;
+    border-radius: 13px;
+    background: #fff;
+    color: #718078;
+}
+
+.warehouse-document-search:focus-within,
+.warehouse-document-filter:focus-within {
+    border-color: #31805a;
+    box-shadow: 0 0 0 4px rgba(49, 128, 90, .1);
+}
+
+.warehouse-document-search input,
+.warehouse-document-filter select {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--admin-text);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.warehouse-document-table-wrap {
+    border: 0;
+    border-radius: 0;
+}
+
+.warehouse-document-table {
+    min-width: 1000px;
+    margin: 0;
+}
+
+.warehouse-document-table thead th,
+.purchase-history-table thead th {
+    padding: 13px 16px;
+    border: 0;
+    background: #eef2ee;
+    color: #637069;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.warehouse-document-table tbody td,
+.purchase-history-table tbody td {
+    padding: 16px;
+    border-color: #edf1ee;
+    color: #34413a;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.warehouse-document-table tbody tr:hover td,
+.purchase-history-table tbody tr:hover td {
+    background: #f7fbf8;
+}
+
+.warehouse-document-id {
+    display: inline-flex;
+    padding: 6px 9px;
+    border-radius: 9px;
+    background: #edf2ef;
+    color: #415149;
+    font-weight: 900;
+}
+
+.warehouse-document-product {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #244f37;
+    font-weight: 800;
+}
+
+.warehouse-document-product .material-symbols-outlined { font-size: 18px; }
+
+.warehouse-document-status {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.warehouse-document-status.is-success { background: #dcf5e4; color: #217548; }
+.warehouse-document-status.is-danger { background: #fee7e6; color: #b53f37; }
+.warehouse-document-status.is-muted { background: #edf0f2; color: #66727e; }
+
+.warehouse-document-empty {
+    padding: 42px 20px !important;
+    color: var(--admin-muted) !important;
+    text-align: center;
+}
+
+.warehouse-document-empty > * { display: block; margin: 4px auto; }
+.warehouse-document-empty > .material-symbols-outlined { font-size: 38px; }
+
+.warehouse-document-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 17px 24px;
+    border-top: 1px solid var(--admin-border);
+    color: var(--admin-muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.warehouse-document-print {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 7px;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 11px;
+    background: #173d25;
+    color: #fff;
+    font-weight: 800;
+}
+
+/* Purchase invoice workspace */
+.purchase-invoice-dashboard .card-body { padding: clamp(18px, 2.5vw, 30px); }
+
+.purchase-invoice-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    gap: 22px;
+    align-items: start;
+}
+
+.purchase-invoice-form-column { display: grid; gap: 18px; }
+
+.purchase-form-section {
+    padding: clamp(18px, 2.2vw, 26px);
+    border: 1px solid #dfe7e1;
+    border-radius: 18px;
+    background: #fbfdfb;
+}
+
+.purchase-form-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e4eae6;
+}
+
+.purchase-form-section-number {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 12px;
+    background: #173d25;
+    color: #fff;
+    font-weight: 900;
+}
+
+.purchase-form-section-heading h5 { margin: 0; color: var(--admin-text); font-size: 17px; font-weight: 900; }
+.purchase-form-section-heading p { margin: 3px 0 0; color: var(--admin-muted); font-size: 12px; font-weight: 650; }
+
+.purchase-invoice-main-fields,
+.purchase-order-summary,
+.purchase-receipt-grid,
+.purchase-new-item-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.purchase-invoice-main-fields .purchase-field--order { grid-column: 1 / -1; }
+.purchase-order-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 16px; }
+.purchase-receipt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.purchase-field { min-width: 0; }
+.purchase-field label { margin: 0 0 7px; color: #435149; font-size: 12px; font-weight: 850; }
+
+.purchase-field .form-control,
+.purchase-field .form-select,
+.purchase-field .input-group-text,
+.purchase-premium-select__button {
+    min-height: 46px;
+    border: 1px solid #d5ded8;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--admin-text);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.purchase-field .form-control:focus,
+.purchase-field .form-select:focus,
+.purchase-premium-select__button:focus {
+    border-color: #31805a;
+    box-shadow: 0 0 0 4px rgba(49, 128, 90, .1);
+}
+
+.purchase-field .form-control[readonly] { background: #f0f4f1; color: #526158; }
+
+.purchase-invoice-sidebar {
+    position: sticky;
+    top: 94px;
+    padding: 22px;
+    border: 1px solid #d9e3dc;
+    border-radius: 19px;
+    background: linear-gradient(150deg, #f2f8f4, #fff);
+    box-shadow: 0 16px 32px rgba(23, 61, 37, .09);
+}
+
+.purchase-invoice-sidebar-title { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.purchase-invoice-sidebar-title > span { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 12px; background: #dcefe2; color: #246947; }
+.purchase-invoice-sidebar-title small { display: block; color: var(--admin-muted); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+.purchase-invoice-sidebar-title h5 { margin: 2px 0 0; color: var(--admin-text); font-size: 17px; font-weight: 900; }
+
+.purchase-invoice-total-card {
+    margin-bottom: 18px;
+    padding: 20px;
+    border-radius: 16px;
+    background: #173d25;
+    color: #fff;
+}
+
+.purchase-invoice-total-card span,
+.purchase-invoice-total-card small { display: block; color: rgba(255, 255, 255, .68); font-size: 11px; font-weight: 700; }
+.purchase-invoice-total-card strong { display: block; margin: 6px 0; font-size: 32px; line-height: 1; }
+
+.purchase-invoice-checklist { display: grid; gap: 8px; margin: 18px 0; color: #456052; font-size: 12px; font-weight: 750; }
+.purchase-invoice-checklist i { margin-right: 5px; color: #2e8a5a; }
+
+.purchase-invoice-submit {
+    width: 100%;
+    min-height: 48px;
+    border: 0;
+    border-radius: 13px;
+    background: #173d25;
+    color: #fff;
+    font-weight: 900;
+}
+
+.purchase-invoice-cancel {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 9px;
+    border-radius: 11px;
+    color: #59675f;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.purchase-invoice-history-card { margin-top: 22px; }
+.purchase-history-wrap { overflow: auto; border-radius: 0 0 22px 22px; }
+.purchase-history-table { min-width: 760px; margin: 0; }
+
+.purchase-inventory-link,
+.purchase-new-item {
+    margin: 16px 0;
+    padding: 18px;
+    border: 1px solid #cfe1d5;
+    border-radius: 16px;
+    background: #f1f8f3;
+}
+
+.purchase-inventory-link { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(280px, 1.2fr); gap: 16px; align-items: center; }
+.purchase-inventory-link-copy,
+.purchase-new-item-heading { display: flex; align-items: center; gap: 12px; }
+.purchase-inventory-link-icon,
+.purchase-new-item-heading > span { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border-radius: 11px; background: #d9eee0; color: #246947; }
+.purchase-inventory-link p,
+.purchase-new-item-heading p { margin: 2px 0 0; color: var(--admin-muted); font-size: 11px; }
+.purchase-new-item-heading { margin-bottom: 16px; }
+.purchase-new-item-grid .purchase-field--full { grid-column: 1 / -1; }
+
+.purchase-premium-select { position: relative; }
+.purchase-premium-select__native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0 !important; pointer-events: none; }
+.purchase-premium-select__button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 0 13px; text-align: left; }
+.purchase-premium-select__label { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.purchase-premium-select__icon { color: #2f7d5c; }
+.purchase-premium-select__arrow { color: #849087; font-size: 11px; }
+.purchase-premium-select__menu { position: absolute; z-index: 50; top: calc(100% + 7px); left: 0; display: none; width: 100%; max-height: 280px; overflow-y: auto; padding: 7px; border: 1px solid #d4dfd7; border-radius: 14px; background: #fff; box-shadow: 0 18px 38px rgba(23, 32, 42, .16); }
+.purchase-premium-select.is-open .purchase-premium-select__menu { display: grid; gap: 4px; }
+.purchase-premium-select__option { display: grid; grid-template-columns: 32px minmax(0, 1fr) 18px; gap: 9px; align-items: center; width: 100%; padding: 9px; border: 0; border-radius: 10px; background: transparent; color: var(--admin-text); text-align: left; }
+.purchase-premium-select__option:hover,
+.purchase-premium-select__option.is-selected { background: #edf6f0; }
+.purchase-premium-select__option span:first-child { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: #e5f1e9; color: #2c7550; }
+.purchase-premium-select__option strong,
+.purchase-premium-select__option small { display: block; }
+.purchase-premium-select__option strong { font-size: 12px; }
+.purchase-premium-select__option small { margin-top: 2px; color: var(--admin-muted); font-size: 10px; }
+.purchase-premium-select__check { visibility: hidden; color: #26754d; }
+.purchase-premium-select__option.is-selected .purchase-premium-select__check { visibility: visible; }
+
+@media (max-width: 1100px) {
+    .warehouse-document-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .purchase-invoice-workspace { grid-template-columns: 1fr; }
+    .purchase-invoice-sidebar { position: static; }
+    .purchase-order-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+    .warehouse-document-content { padding: 18px 12px 32px; }
+    .warehouse-document-hero,
+    .purchase-invoice-heading { min-height: 0; padding: 24px 20px; border-radius: 19px; }
+    .warehouse-document-hero__icon,
+    .purchase-invoice-heading-icon { display: none; }
+    .warehouse-document-metrics,
+    .warehouse-document-toolbar,
+    .purchase-invoice-main-fields,
+    .purchase-order-summary,
+    .purchase-receipt-grid,
+    .purchase-new-item-grid,
+    .purchase-inventory-link { grid-template-columns: 1fr; }
+    .purchase-invoice-main-fields .purchase-field--order,
+    .purchase-new-item-grid .purchase-field--full { grid-column: auto; }
+    .warehouse-document-card__header,
+    .purchase-invoice-card-header,
+    .warehouse-document-card__footer { align-items: flex-start; flex-direction: column; }
+    .purchase-invoice-dashboard .card-body { padding: 14px; }
+    .purchase-form-section { padding: 16px; }
+}
+
+@media print {
+    .warehouse-document-page { background: #fff !important; }
+    .warehouse-document-page .sidebar,
+    .warehouse-document-page .admin-reference-topbar,
+    .warehouse-document-page .no-print,
+    .warehouse-document-page .ada-chat-widget { display: none !important; }
+    .warehouse-document-page .admin-inner-container { margin: 0 !important; width: 100% !important; }
+    .warehouse-document-content { width: 100%; max-width: none; padding: 0; }
+    .warehouse-document-hero { min-height: 0; margin-bottom: 16px; padding: 20px; border-radius: 0; box-shadow: none; print-color-adjust: exact; }
+    .warehouse-document-hero__icon { width: 64px; height: 64px; }
+    .warehouse-document-metrics { gap: 8px; margin-bottom: 14px; }
+    .warehouse-document-metrics article { padding: 10px; border-radius: 8px; box-shadow: none; }
+    .warehouse-document-card { border-radius: 0 !important; box-shadow: none; }
+    .warehouse-document-table { min-width: 0; }
+    .warehouse-document-table thead th,
+    .warehouse-document-table tbody td { padding: 8px; font-size: 9px; }
+}
+
 *,
 *::before,
 *::after {
@@ -13516,5 +14094,130 @@ body.admin-dashboard-page .farmer-lots-table tbody td:first-child {
     #fitoDetailModal .phytosanitary-detail__hero > .app-table-status-capsule {
         grid-column: 1 / -1;
         justify-self: start;
+    }
+}
+
+@media (max-width: 700px) {
+    .warehouse-document-page {
+        overflow-x: hidden !important;
+    }
+
+    .warehouse-document-page .admin-tablet-shell {
+        width: 100% !important;
+        max-width: 100%;
+        height: 100dvh;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    .warehouse-document-page .sidebar {
+        display: none;
+    }
+
+    .warehouse-document-page .admin-inner-container {
+        width: 100%;
+        min-width: 0;
+        height: 100dvh;
+        margin-left: 0;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .warehouse-document-page .admin-reference-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 80;
+        width: 100%;
+        min-height: 70px;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 0 0 18px 18px;
+    }
+
+    .warehouse-document-page .admin-topbar-user {
+        min-width: 0;
+        gap: 9px;
+    }
+
+    .warehouse-document-page .admin-topbar-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        font-size: 11px;
+    }
+
+    .warehouse-document-page .admin-topbar-user h2 {
+        overflow: hidden;
+        margin: 0;
+        font-size: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .warehouse-document-page .admin-topbar-user p {
+        display: none;
+    }
+
+    .warehouse-document-page .admin-topbar-actions {
+        flex: 0 0 auto;
+        gap: 6px;
+    }
+
+    .warehouse-document-page .warehouse-topbar-action {
+        display: inline-flex !important;
+        width: 38px;
+        min-width: 38px;
+        height: 38px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 11px;
+    }
+
+    .warehouse-document-page .warehouse-topbar-action > span:last-child {
+        display: none;
+    }
+
+    .warehouse-document-page .admin-account-button {
+        min-width: 38px;
+        height: 38px;
+        gap: 0;
+        padding: 0;
+        border-radius: 11px;
+    }
+
+    .warehouse-document-page .admin-account-button > span:not(.admin-account-initials) {
+        display: none;
+    }
+
+    .warehouse-document-page .admin-account-initials {
+        width: 30px;
+        height: 30px;
+    }
+
+    .warehouse-document-page .warehouse-document-content {
+        width: 100%;
+        padding: 16px 12px 32px;
+    }
+
+    .warehouse-document-page .warehouse-document-hero,
+    .warehouse-document-page .purchase-invoice-heading {
+        width: 100%;
+    }
+
+    .warehouse-document-page .purchase-invoice-card-header > div {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .warehouse-document-page .purchase-invoice-card-header h5 {
+        min-width: 0;
+        flex-wrap: wrap;
+        font-size: 17px;
+    }
+
+    .warehouse-document-page .purchase-invoice-card-header h5 i {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
     }
 }

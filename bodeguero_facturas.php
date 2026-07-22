@@ -360,14 +360,61 @@ $facturasRecientes = $tablesReady
     )
     : [];
 ?>
-<?php render_head('Facturas de Compra'); ?>
-<body class="farmer-dashboard-page warehouse-dashboard-page purchase-invoice-page">
-<?php render_app_nav('fas fa-file-invoice-dollar', 'Facturas - ' . current_user_name(), [
-    ['href' => 'bodeguero.php', 'label' => 'Volver a bodega', 'icon' => 'fas fa-arrow-left', 'class' => 'btn btn-outline-light btn-sm'],
-    ['href' => 'logout.php', 'label' => 'Salir', 'icon' => 'fas fa-sign-out-alt', 'class' => 'btn btn-outline-light btn-sm'],
+<?php render_head('Facturas de Compra', [
+    'https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Roboto+Condensed:wght@400;500;600;700;800;900&display=swap',
+    'assets/vendor/bootstrap/bootstrap.min.css',
+    'assets/vendor/fontawesome/css/all.min.css',
+    'css/admin.css?v=' . filemtime(__DIR__ . '/css/admin.css'),
 ]); ?>
+<body class="farmer-dashboard-page admin-dashboard-page farmer-admin-page warehouse-dashboard-page warehouse-document-page purchase-invoice-page">
+<div class="admin-tablet-shell">
+    <aside class="sidebar" id="mainSidebar" aria-label="Navegación principal">
+        <div class="logo-container">
+            <div class="admin-sidebar-logo"><span class="material-symbols-outlined" aria-hidden="true">agriculture</span></div>
+            <span class="nav-label admin-sidebar-brand">SembriExport</span>
+        </div>
+        <nav class="app-sidebar-nav admin-reference-nav">
+            <a class="nav-item app-sidebar-link" href="bodeguero.php" title="Bodega">
+                <span class="material-symbols-outlined" aria-hidden="true">warehouse</span><span class="nav-label">Bodega</span>
+            </a>
+            <a class="nav-item app-sidebar-link active" href="bodeguero_facturas.php" title="Facturas">
+                <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span><span class="nav-label">Facturas</span>
+            </a>
+            <a class="nav-item app-sidebar-link" href="imprimir_solicitudes.php" title="Solicitudes">
+                <span class="material-symbols-outlined" aria-hidden="true">assignment</span><span class="nav-label">Solicitudes</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-actions">
+            <a class="nav-item" href="logout.php" title="Cerrar sesión">
+                <span class="material-symbols-outlined" aria-hidden="true">logout</span><span class="nav-label">Log out</span>
+            </a>
+        </div>
+    </aside>
 
-<div class="container-fluid farmer-dashboard warehouse-dashboard purchase-invoice-dashboard mt-4">
+    <main class="admin-inner-container">
+        <header class="admin-reference-topbar">
+            <div class="admin-topbar-user">
+                <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
+                <div><h2>Facturas de compra</h2><p>Registra recepciones y actualiza el inventario desde un solo flujo.</p></div>
+            </div>
+            <div class="admin-topbar-actions">
+                <a href="bodeguero.php" class="warehouse-topbar-action">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span><span>Volver a bodega</span>
+                </a>
+                <div class="admin-account-menu" data-admin-account-menu>
+                    <button class="admin-account-button" type="button" aria-haspopup="menu" aria-expanded="false" data-admin-account-trigger>
+                        <span class="admin-account-initials" aria-hidden="true"><?php echo e(app_user_initials()); ?></span>
+                        <span>Cuenta</span><span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                    </button>
+                    <div class="admin-account-dropdown" role="menu" aria-label="Opciones de cuenta">
+                        <div class="admin-account-dropdown__profile"><strong>Bodeguero</strong><small><?php echo e(current_user_name()); ?></small></div>
+                        <a href="logout.php" role="menuitem"><span class="material-symbols-outlined">logout</span><span>Cerrar sesión</span></a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="warehouse-document-content purchase-invoice-dashboard">
     <?php render_flash_messages(); ?>
 
     <section class="farmer-page-heading warehouse-page-heading purchase-invoice-heading">
@@ -654,6 +701,8 @@ $facturasRecientes = $tablesReady
             </div>
         </div>
     <?php endif; ?>
+</div>
+    </main>
 </div>
 
 <?php render_ada_chat(); ?>
