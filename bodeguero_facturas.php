@@ -73,9 +73,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $idInsumoFormulario = (int) ($_POST['id_insumo'] ?? 0);
     $nuevoInsumoNombre = trim((string) ($_POST['nuevo_insumo_nombre'] ?? ''));
     $nuevoInsumoTipo = trim((string) ($_POST['nuevo_insumo_tipo'] ?? ''));
-    $nuevoInsumoIngrediente = trim((string) ($_POST['nuevo_insumo_ingrediente_activo'] ?? ''));
-    $nuevoInsumoPresentacion = trim((string) ($_POST['nuevo_insumo_presentacion'] ?? ''));
-    $nuevoInsumoStockMinimo = round((float) ($_POST['nuevo_insumo_stock_minimo'] ?? 0), 2);
     $nuevoInsumoDescripcion = trim((string) ($_POST['nuevo_insumo_descripcion'] ?? ''));
     $nuevoInsumoUnidad = trim((string) ($_POST['nuevo_insumo_unidad'] ?? ''));
     $nuevoInsumoObservaciones = trim((string) ($_POST['nuevo_insumo_observaciones'] ?? ''));
@@ -146,15 +143,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 throw new RuntimeException('Seleccione una clasificación válida para el nuevo producto.');
             }
 
-            if ($nuevoInsumoStockMinimo < 0) {
-                throw new RuntimeException('El stock mínimo no puede ser negativo.');
-            }
-
             if (mb_strlen($nuevoInsumoNombre) > 200
                 || mb_strlen($nuevoInsumoTipo) > 100
-                || mb_strlen($nuevoInsumoUnidad) > 50
-                || mb_strlen($nuevoInsumoIngrediente) > 200
-                || mb_strlen($nuevoInsumoPresentacion) > 100) {
+                || mb_strlen($nuevoInsumoUnidad) > 50) {
                 throw new RuntimeException('Los datos del nuevo producto superan la longitud permitida.');
             }
 
@@ -169,27 +160,19 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 throw new RuntimeException('Ya existe un producto con ese nombre. Selecciónelo en la lista.');
             }
 
-            $tiposFitosanitarios = ['Fungicidas', 'Insecticidas', 'Herbicidas', 'Coadyuvantes', 'Trampas'];
-            $usoFitosanitario = in_array($nuevoInsumoTipo, $tiposFitosanitarios, true) ? 1 : 0;
-
             db_execute(
                 $conn,
                 "INSERT INTO insumos_agricolas (
-                    id_usuario, nombre, tipo, tipo_producto, ingrediente_activo, presentacion,
-                    descripcion, unidad_medida, cantidad, stock_minimo, uso_fitosanitario, observaciones
-                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)",
-                'ssssssssdis',
+                    id_usuario, nombre, tipo, descripcion,
+                    unidad_medida, cantidad, observaciones
+                 ) VALUES (?, ?, ?, ?, ?, 0, ?)",
+                'ssssss',
                 [
                     $_SESSION['id_usuario'],
                     $nuevoInsumoNombre,
                     $nuevoInsumoTipo,
-                    $nuevoInsumoTipo,
-                    $nuevoInsumoIngrediente === '' ? null : $nuevoInsumoIngrediente,
-                    $nuevoInsumoPresentacion === '' ? null : $nuevoInsumoPresentacion,
                     $nuevoInsumoDescripcion,
                     $nuevoInsumoUnidad,
-                    $nuevoInsumoStockMinimo,
-                    $usoFitosanitario,
                     $nuevoInsumoObservaciones,
                 ]
             );
@@ -202,7 +185,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
         $insumo = db_fetch_one(
             $conn,
-            'SELECT id_insumos, nombre, tipo_producto, ingrediente_activo, unidad_medida, cantidad
+            'SELECT id_insumos, nombre, tipo, unidad_medida, cantidad
              FROM insumos_agricolas
              WHERE id_insumos = ?
              FOR UPDATE',
@@ -358,7 +341,7 @@ foreach ($pedidosPendientes as $pedidoPendiente) {
 $insumosDisponibles = $tablesReady
     ? db_fetch_all(
         $conn,
-        'SELECT id_insumos, nombre, tipo_producto, ingrediente_activo, unidad_medida, cantidad
+        'SELECT id_insumos, nombre, tipo, unidad_medida, cantidad
          FROM insumos_agricolas
          ORDER BY nombre'
     )
@@ -520,8 +503,8 @@ $facturasRecientes = $tablesReady
                                         data-product="<?php echo e($insumo['nombre']); ?>"
                                         data-unit="<?php echo e($insumo['unidad_medida']); ?>">
                                         <?php echo e($insumo['nombre']); ?>
-                                        <?php if (!empty($insumo['ingrediente_activo']) || !empty($insumo['tipo_producto'])): ?>
-                                            - <?php echo e($insumo['ingrediente_activo'] ?: $insumo['tipo_producto']); ?>
+                                        <?php if (!empty($insumo['tipo'])): ?>
+                                            - <?php echo e($insumo['tipo']); ?>
                                         <?php endif; ?>
                                         (stock: <?php echo e($insumo['cantidad']); ?> <?php echo e($insumo['unidad_medida']); ?>)
                                     </option>
@@ -564,18 +547,6 @@ $facturasRecientes = $tablesReady
                             <div class="purchase-field">
                                 <label class="form-label">Unidad *</label>
                                 <input type="text" name="nuevo_insumo_unidad" id="newInventoryItemUnit" class="form-control" maxlength="50" placeholder="kg, L, unid">
-                            </div>
-                            <div class="purchase-field">
-                                <label class="form-label">Ingrediente activo</label>
-                                <input type="text" name="nuevo_insumo_ingrediente_activo" class="form-control" maxlength="200" placeholder="Ej. Azoxistrobin">
-                            </div>
-                            <div class="purchase-field">
-                                <label class="form-label">Presentación</label>
-                                <input type="text" name="nuevo_insumo_presentacion" class="form-control" maxlength="100" placeholder="Ej. 250 SC">
-                            </div>
-                            <div class="purchase-field">
-                                <label class="form-label">Stock mínimo</label>
-                                <input type="number" name="nuevo_insumo_stock_minimo" class="form-control" min="0" step="0.01" value="0">
                             </div>
                             <div class="purchase-field">
                                 <label class="form-label">Observación</label>

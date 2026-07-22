@@ -27,15 +27,6 @@ $total_solicitudes_aprobadas = (int) db_value(
     [],
     0
 );
-$notificaciones_cosecha = db_fetch_all(
-    $conn,
-    "SELECT mensaje, fecha
-     FROM notificaciones
-     WHERE leida = 0 AND rol_destino = 'Bodeguero'
-     ORDER BY fecha DESC
-     LIMIT 5"
-);
-
 // Datos del dashboard
 $insumos = db_fetch_all($conn, "
     SELECT ia.*
@@ -97,18 +88,6 @@ $solicitudes_procesadas = db_fetch_all($conn, "
                     <span class="material-symbols-outlined" aria-hidden="true">warehouse</span>
                     <span class="nav-label">Bodega</span>
                 </a>
-                <a class="nav-item app-sidebar-link" href="fitosanitario.php" title="Fitosanitario">
-                    <span class="material-symbols-outlined" aria-hidden="true">health_and_safety</span>
-                    <span class="nav-label">Fitosanitario</span>
-                </a>
-                <a class="nav-item app-sidebar-link" href="cosechas.php" title="Cosecha">
-                    <span class="material-symbols-outlined" aria-hidden="true">agriculture</span>
-                    <span class="nav-label">Cosecha</span>
-                </a>
-                <a class="nav-item app-sidebar-link" href="poscosecha.php" title="Poscosecha">
-                    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
-                    <span class="nav-label">Poscosecha</span>
-                </a>
                 <a class="nav-item app-sidebar-link" href="bodeguero_facturas.php" title="Facturas">
                     <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
                     <span class="nav-label">Facturas</span>
@@ -164,19 +143,6 @@ $solicitudes_procesadas = db_fetch_all($conn, "
             <div class="container farmer-dashboard warehouse-dashboard admin-dashboard mt-4">
 
 <?php render_flash_messages(); ?>
-
-<?php if ($notificaciones_cosecha): ?>
-<section class="alert alert-info d-flex align-items-start gap-3">
-    <i class="fas fa-wheat-awn mt-1"></i>
-    <div>
-        <strong>Cosechas validadas para recepción</strong>
-        <?php foreach ($notificaciones_cosecha as $notificacion): ?>
-            <p class="mb-1"><?php echo e($notificacion['mensaje']); ?> <small><?php echo e(date('d/m/Y H:i', strtotime($notificacion['fecha']))); ?></small></p>
-        <?php endforeach; ?>
-        <a href="cosechas.php" class="alert-link">Ver cosechas validadas</a>
-    </div>
-</section>
-<?php endif; ?>
 
 <section class="farmer-page-heading warehouse-page-heading">
     <div class="warehouse-heading-copy">

@@ -53,9 +53,6 @@ function app_nav_items(): array
             ['section' => 'Operación', 'label' => 'Movimientos', 'icon' => 'fas fa-arrow-right-arrow-left', 'tab' => '#movimientos'],
             ['section' => 'Operación', 'label' => 'Facturas', 'icon' => 'fas fa-receipt', 'tab' => '#facturas'],
             ['section' => 'Producción', 'label' => 'Cultivos', 'icon' => 'fas fa-seedling', 'tab' => '#cultivos'],
-            ['section' => 'Producción', 'label' => 'Fitosanitario', 'icon' => 'fas fa-shield-virus', 'tab' => '#fitosanitario'],
-            ['section' => 'Producción', 'label' => 'Cosecha', 'icon' => 'fas fa-wheat-awn', 'tab' => '#cosechas'],
-            ['section' => 'Producción', 'label' => 'Poscosecha', 'icon' => 'fas fa-boxes-packing', 'tab' => '#poscosecha'],
             ['section' => 'Producción', 'label' => 'Proveedores', 'icon' => 'fas fa-truck-fast', 'tab' => '#pedidos-proveedores'],
             ['section' => 'Análisis', 'label' => 'Reportes', 'icon' => 'fas fa-chart-simple', 'tab' => '#reportes'],
         ];
@@ -65,9 +62,6 @@ function app_nav_items(): array
         return [
             ['section' => 'Inicio', 'label' => 'Dashboard', 'icon' => 'fas fa-gauge-high', 'href' => 'agricultor.php'],
             ['section' => 'Cultivo', 'label' => 'Calculadora', 'icon' => 'fas fa-calculator', 'href' => 'calcular_insumos.php'],
-            ['section' => 'Seguimiento', 'label' => 'Fitosanitario', 'icon' => 'fas fa-shield-virus', 'href' => 'fitosanitario.php'],
-            ['section' => 'Seguimiento', 'label' => 'Cosecha', 'icon' => 'fas fa-wheat-awn', 'href' => 'cosechas.php'],
-            ['section' => 'Seguimiento', 'label' => 'Poscosecha', 'icon' => 'fas fa-boxes-packing', 'href' => 'poscosecha.php'],
             ['section' => 'Seguimiento', 'label' => 'Historial', 'icon' => 'fas fa-route', 'href' => 'historial_solicitudes.php'],
         ];
     }
@@ -75,9 +69,6 @@ function app_nav_items(): array
     if ($role === 'Bodeguero') {
         return [
             ['section' => 'Inventario', 'label' => 'Bodega', 'icon' => 'fas fa-warehouse', 'href' => 'bodeguero.php'],
-            ['section' => 'Inventario', 'label' => 'Fitosanitario', 'icon' => 'fas fa-shield-virus', 'href' => 'fitosanitario.php'],
-            ['section' => 'Inventario', 'label' => 'Cosecha', 'icon' => 'fas fa-wheat-awn', 'href' => 'cosechas.php'],
-            ['section' => 'Inventario', 'label' => 'Poscosecha', 'icon' => 'fas fa-boxes-packing', 'href' => 'poscosecha.php'],
             ['section' => 'Documentos', 'label' => 'Facturas', 'icon' => 'fas fa-receipt', 'href' => 'bodeguero_facturas.php'],
             ['section' => 'Documentos', 'label' => 'Solicitudes', 'icon' => 'fas fa-clipboard-check', 'href' => 'imprimir_solicitudes.php'],
         ];

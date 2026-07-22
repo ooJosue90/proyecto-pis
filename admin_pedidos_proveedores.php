@@ -111,7 +111,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $nuevo_insumo_nombre = trim((string) ($_POST['nuevo_insumo_nombre'] ?? ''));
             $nuevo_insumo_tipo = trim((string) ($_POST['nuevo_insumo_tipo'] ?? ''));
             $nuevo_insumo_unidad = trim((string) ($_POST['nuevo_insumo_unidad'] ?? ''));
-            $nuevo_insumo_presentacion = trim((string) ($_POST['nuevo_insumo_presentacion'] ?? ''));
             $nuevo_insumo_observaciones = trim((string) ($_POST['nuevo_insumo_observaciones'] ?? ''));
             
             if ($cantidad <= 0 || $id_proveedor <= 0 || empty($id_usuario) || (!$crear_producto_nuevo && $id_insumo <= 0)) {
@@ -132,8 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
                 if (mb_strlen($nuevo_insumo_nombre) > 200
                     || mb_strlen($nuevo_insumo_tipo) > 100
-                    || mb_strlen($nuevo_insumo_unidad) > 50
-                    || mb_strlen($nuevo_insumo_presentacion) > 100) {
+                    || mb_strlen($nuevo_insumo_unidad) > 50) {
                     echo json_encode(['success' => false, 'message' => 'Los datos del producto nuevo superan la longitud permitida']);
                     exit;
                 }
@@ -150,25 +148,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     exit;
                 }
 
-                $tiposFitosanitarios = ['Fungicidas', 'Insecticidas', 'Herbicidas', 'Coadyuvantes', 'Trampas'];
-                $usoFitosanitario = in_array($nuevo_insumo_tipo, $tiposFitosanitarios, true) ? 1 : 0;
-
                 db_execute(
                     $conn,
                     "INSERT INTO insumos_agricolas (
-                        id_usuario, nombre, tipo, tipo_producto, ingrediente_activo, presentacion,
-                        descripcion, unidad_medida, cantidad, stock_minimo, uso_fitosanitario, observaciones
-                     ) VALUES (?, ?, ?, ?, NULL, ?, ?, ?, 0, 0, ?, ?)",
-                    'sssssssis',
+                        id_usuario, nombre, tipo, descripcion,
+                        unidad_medida, cantidad, observaciones
+                     ) VALUES (?, ?, ?, ?, ?, 0, ?)",
+                    'ssssss',
                     [
                         $_SESSION['id_usuario'],
                         $nuevo_insumo_nombre,
                         $nuevo_insumo_tipo,
-                        $nuevo_insumo_tipo,
-                        $nuevo_insumo_presentacion === '' ? null : $nuevo_insumo_presentacion,
                         'Producto creado desde pedido a proveedor.',
                         $nuevo_insumo_unidad,
-                        $usoFitosanitario,
                         $nuevo_insumo_observaciones,
                     ]
                 );
@@ -342,9 +334,9 @@ $pedidos = $conn->query("
 $usuarios = $conn->query("SELECT id_usuario, nombre FROM usuarios ORDER BY nombre");
 $insumos = db_fetch_all(
     $conn,
-    "SELECT id_insumos, nombre, tipo, tipo_producto, ingrediente_activo, unidad_medida, cantidad
+    "SELECT id_insumos, nombre, tipo, unidad_medida, cantidad
     FROM insumos_agricolas
-    ORDER BY COALESCE(NULLIF(tipo_producto, ''), tipo), nombre"
+    ORDER BY tipo, nombre"
 );
 
 // Estadísticas
@@ -744,15 +736,12 @@ $stats = $conn->query("
                         <select class="form-control" name="id_insumo" id="edit_pedido_insumo" data-purchase-select data-select-icon="fa-seedling" data-option-icon="fa-box" data-select-label="Seleccionar producto" data-product-filter-select required>
                             <option value="">Seleccionar producto</option>
                             <?php foreach ($insumos as $insumo): ?>
-                                <?php $categoriaInsumo = $insumo['tipo_producto'] ?: ($insumo['tipo'] ?: 'Sin categoría'); ?>
+                                <?php $categoriaInsumo = $insumo['tipo'] ?: 'Sin categoría'; ?>
                                 <option
                                     value="<?php echo (int) $insumo['id_insumos']; ?>"
-                                    data-search="<?php echo htmlspecialchars($categoriaInsumo . ' ' . $insumo['nombre'] . ' ' . ($insumo['ingrediente_activo'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                                    data-search="<?php echo htmlspecialchars($categoriaInsumo . ' ' . $insumo['nombre'], ENT_QUOTES, 'UTF-8'); ?>">
                                     <?php echo htmlspecialchars($categoriaInsumo); ?> ·
                                     <?php echo htmlspecialchars($insumo['nombre']); ?>
-                                    <?php if (!empty($insumo['ingrediente_activo'])): ?>
-                                        - <?php echo htmlspecialchars($insumo['ingrediente_activo']); ?>
-                                    <?php endif; ?>
                                     (<?php echo htmlspecialchars($insumo['unidad_medida'] ?: 'sin unidad'); ?>)
                                 </option>
                             <?php endforeach; ?>
@@ -844,15 +833,12 @@ $stats = $conn->query("
                                 <select class="form-select" id="crear_pedido_producto" name="id_insumo" data-purchase-select data-select-icon="fa-seedling" data-option-icon="fa-box" data-select-label="Seleccionar producto" data-product-filter-select required>
                             <option value="">Seleccionar producto</option>
                             <?php foreach ($insumos as $insumo): ?>
-                                <?php $categoriaInsumo = $insumo['tipo_producto'] ?: ($insumo['tipo'] ?: 'Sin categoría'); ?>
+                                <?php $categoriaInsumo = $insumo['tipo'] ?: 'Sin categoría'; ?>
                                 <option
                                     value="<?php echo (int) $insumo['id_insumos']; ?>"
-                                    data-search="<?php echo htmlspecialchars($categoriaInsumo . ' ' . $insumo['nombre'] . ' ' . ($insumo['ingrediente_activo'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                                    data-search="<?php echo htmlspecialchars($categoriaInsumo . ' ' . $insumo['nombre'], ENT_QUOTES, 'UTF-8'); ?>">
                                     <?php echo htmlspecialchars($categoriaInsumo); ?> ·
                                     <?php echo htmlspecialchars($insumo['nombre']); ?>
-                                    <?php if (!empty($insumo['ingrediente_activo'])): ?>
-                                        - <?php echo htmlspecialchars($insumo['ingrediente_activo']); ?>
-                                    <?php endif; ?>
                                     (<?php echo htmlspecialchars($insumo['unidad_medida'] ?: 'sin unidad'); ?>,
                                     stock: <?php echo htmlspecialchars($insumo['cantidad']); ?>)
                                 </option>
@@ -894,13 +880,6 @@ $stats = $conn->query("
                                     <div class="admin-purchase-field__control">
                                         <i class="fas fa-ruler-combined"></i>
                                         <input type="text" class="form-control" id="nuevo_insumo_unidad" name="nuevo_insumo_unidad" maxlength="50" placeholder="kg, litros, unidades..." data-new-product-required disabled>
-                                    </div>
-                                </div>
-                                <div class="admin-purchase-field">
-                                    <label for="nuevo_insumo_presentacion">Presentación <small>Opcional</small></label>
-                                    <div class="admin-purchase-field__control">
-                                        <i class="fas fa-box"></i>
-                                        <input type="text" class="form-control" id="nuevo_insumo_presentacion" name="nuevo_insumo_presentacion" maxlength="100" placeholder="Saco, botella, caja..." disabled>
                                     </div>
                                 </div>
                                 <div class="admin-purchase-field admin-purchase-field--wide">

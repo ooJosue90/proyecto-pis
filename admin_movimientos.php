@@ -16,22 +16,23 @@ $movimientos_insumos = $conn->query("
     ORDER BY mi.fecha_movimiento DESC
 ");
 
-// Obtener cosechas del módulo vigente
+// Obtener productos finales (cosechas) de la versión base
 $cosechas = $conn->query("
-    SELECT co.*,
-           co.cantidad_total_kg as cantidad_cosechada,
-           co.fecha_cosecha as fecha_cosecha,
-           co.observaciones as observacion,
+    SELECT pf.*,
+           pf.cantidad as cantidad_cosechada,
+           pf.unidad_medida as unidad_cosecha,
+           pf.fecha as fecha_cosecha,
+           pf.observaciones as observacion,
            u.nombre as usuario_nombre,
            l.ubicacion as lote_ubicacion,
            l.estado_cultivo,
            l.fecha_fin_cosecha_real,
            c.tipo as cultivo_tipo
-    FROM cosechas co
-    JOIN usuarios u ON co.id_usuario = u.id_usuario
-    JOIN lotes l ON co.id_lote = l.id_lote
+    FROM productos_finales pf
+    JOIN usuarios u ON pf.id_usuario = u.id_usuario
+    JOIN lotes l ON pf.id_lote = l.id_lote
     LEFT JOIN cultivos c ON l.id_cultivo = c.id_cultivo
-    ORDER BY co.fecha_cosecha DESC, co.id_cosecha DESC
+    ORDER BY pf.fecha DESC, pf.id_producto_final DESC
 ");
 
 // Estadísticas de movimientos
@@ -43,7 +44,7 @@ $stats_movimientos = $conn->query("
     FROM movimientos_insumos
 ")->fetch_assoc();
 
-$total_cosechas = $conn->query("SELECT COUNT(*) as count FROM cosechas")->fetch_assoc()['count'];
+$total_cosechas = $conn->query("SELECT COUNT(*) as count FROM productos_finales")->fetch_assoc()['count'];
 ?>
 
 <section class="admin-movements">
@@ -180,9 +181,7 @@ $total_cosechas = $conn->query("SELECT COUNT(*) as count FROM cosechas")->fetch_
                                     <th>Fecha Cosecha</th>
                                     <th>Cultivo</th>
                                     <th>Cantidad</th>
-                                    <th>Primera</th>
-                                    <th>Segunda</th>
-                                    <th>Descarte</th>
+                                    <th>Unidad</th>
                                     <th>Agricultor</th>
                                     <th>Lote</th>
                                     <th>Estado</th>
@@ -192,25 +191,22 @@ $total_cosechas = $conn->query("SELECT COUNT(*) as count FROM cosechas")->fetch_
                             <tbody>
                                 <?php while ($prod = $cosechas->fetch_assoc()): ?>
                                 <tr>
-                                    <td><span class="admin-movements__id">#<?php echo $prod['id_cosecha']; ?></span></td>
+                                    <td><span class="admin-movements__id">#<?php echo $prod['id_producto_final']; ?></span></td>
                                     <td><?php echo date('d/m/Y', strtotime($prod['fecha_cosecha'])); ?></td>
-                                    <td><strong><?php echo htmlspecialchars($prod['cultivo_tipo'] ?: 'Mango Tommy Atkins'); ?></strong></td>
-                                    <td><span class="admin-movements__quantity"><?php echo $prod['cantidad_cosechada']; ?> kg</span></td>
-                                    <td><?php echo htmlspecialchars($prod['calidad_primera_kg']); ?> kg</td>
-                                    <td><?php echo htmlspecialchars($prod['calidad_segunda_kg']); ?> kg</td>
-                                    <td><?php echo htmlspecialchars($prod['descarte_kg']); ?> kg</td>
+                                    <td><strong><?php echo htmlspecialchars($prod['nombre_producto'] ?: $prod['cultivo_tipo']); ?></strong></td>
+                                    <td><span class="admin-movements__quantity"><?php echo $prod['cantidad_cosechada']; ?></span></td>
+                                    <td><?php echo htmlspecialchars($prod['unidad_cosecha']); ?></td>
                                     <td><?php echo htmlspecialchars($prod['usuario_nombre']); ?></td>
                                     <td><span class="admin-movements__tag"><?php echo htmlspecialchars($prod['lote_ubicacion']); ?></span></td>
                                     <td>
                                         <?php
-                                            $harvestStatusClass = $prod['estado'] === 'Validada'
+                                            $isFinalized = $prod['estado_cultivo'] === 'finalizado';
+                                            $harvestStatusClass = $isFinalized
                                                 ? 'admin-movements__status--in'
-                                                : ($prod['estado'] === 'Recibida'
-                                                    ? 'admin-movements__status--received'
-                                                    : ($prod['estado'] === 'Rechazada' ? 'admin-movements__status--rejected' : 'admin-movements__status--out'));
+                                                : 'admin-movements__status--out';
                                         ?>
                                         <span class="admin-movements__status <?php echo $harvestStatusClass; ?>">
-                                            <?php echo htmlspecialchars($prod['estado']); ?>
+                                            <?php echo $isFinalized ? 'Finalizado' : 'En cosecha'; ?>
                                         </span>
                                     </td>
                                     <td><?php echo htmlspecialchars($prod['observacion'] ?: 'N/A'); ?></td>
@@ -223,7 +219,7 @@ $total_cosechas = $conn->query("SELECT COUNT(*) as count FROM cosechas")->fetch_
                     <div class="admin-movements__empty">
                         <span><i class="fas fa-wheat-awn"></i></span>
                         <h5>No hay cosechas registradas</h5>
-                        <p>Las cosechas aparecerán aquí cuando los agricultores las registren en el nuevo módulo.</p>
+                        <p>Las cosechas aparecerán aquí cuando los agricultores finalicen sus lotes.</p>
                     </div>
                     <?php endif; ?>
                 </div>

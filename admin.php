@@ -873,16 +873,6 @@ $inventory_health = $total_inventory_items > 0
                 </div>
             </div>
 
-            <!-- Fitosanitario Tab -->
-            <div class="tab-pane fade" id="fitosanitario" role="tabpanel">
-                <div id="fitosanitario-content">
-                    <div class="text-center mt-5">
-                        <i class="fas fa-spinner fa-spin fa-2x"></i>
-                        <p class="mt-2">Cargando control fitosanitario...</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Pedidos Tab -->
             <div class="tab-pane fade" id="pedidos-proveedores" role="tabpanel">
                 <div id="pedidos-proveedores-content">

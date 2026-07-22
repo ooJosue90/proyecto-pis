@@ -22,7 +22,6 @@
     const Admin = {
         contentCache: {},
         formModulePromise: null,
-        fitosanitarioModulePromise: null,
 
         ensureFormModule: function () {
             if (window.AdminFormMethods) {
@@ -44,28 +43,6 @@
             });
 
             return this.formModulePromise;
-        },
-
-        ensureFitosanitarioModule: function () {
-            if (window.Fitosanitario) {
-                window.Fitosanitario.init?.();
-                return Promise.resolve();
-            }
-
-            if (this.fitosanitarioModulePromise) return this.fitosanitarioModulePromise;
-
-            this.fitosanitarioModulePromise = new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = `js/fitosanitario.js?v=${Date.now()}`;
-                script.onload = () => {
-                    window.Fitosanitario?.init?.();
-                    resolve();
-                };
-                script.onerror = () => reject(new Error('No se pudo cargar el módulo fitosanitario.'));
-                document.head.appendChild(script);
-            });
-
-            return this.fitosanitarioModulePromise;
         },
 
         cleanupModalState: function () {
@@ -202,18 +179,6 @@
         loadFacturas: function () { return this.loadContent('admin_facturas.php', 'facturas-content', { useCache: false }); },
         loadReportes: function () { return this.loadContent('admin_reportes.php', 'reportes-content', { useCache: false }); },
         loadCultivos: function () { return this.loadContent('admin_cultivos.php', 'cultivos-content', { useCache: false }); },
-        loadFitosanitario: function () {
-            return this.loadContent('admin_fitosanitario.php', 'fitosanitario-content', { useCache: false })
-                .then((html) => this.ensureFitosanitarioModule().then(() => html));
-        },
-        loadCosechas: function () { return this.loadContent('admin_cosechas.php', 'cosechas-content', { useCache: false }); },
-        loadPoscosecha: function () {
-            return this.loadContent('admin_poscosecha.php', 'poscosecha-content', { useCache: false })
-                .then((html) => {
-                    if (typeof window.initPoscosecha === 'function') window.initPoscosecha();
-                    return html;
-                });
-        },
         loadPedidosProveedores: function () { return this.loadContent('admin_pedidos_proveedores.php', 'pedidos-proveedores-content', { useCache: false }); },
 
         setupRequestConfirmation: function (root) {
@@ -821,9 +786,6 @@
                         case '#facturas': Admin.loadFacturas(); break;
                         case '#reportes': Admin.loadReportes(); break;
                         case '#cultivos': Admin.loadCultivos(); break;
-                        case '#fitosanitario': Admin.loadFitosanitario(); break;
-                        case '#cosechas': Admin.loadCosechas(); break;
-                        case '#poscosecha': Admin.loadPoscosecha(); break;
                         case '#pedidos-proveedores': Admin.loadPedidosProveedores(); break;
                         default: break;
                     }
@@ -882,9 +844,6 @@
     window.loadFacturas = Admin.loadFacturas.bind(Admin);
     window.loadReportes = Admin.loadReportes.bind(Admin);
     window.loadCultivos = Admin.loadCultivos.bind(Admin);
-    window.loadFitosanitario = Admin.loadFitosanitario.bind(Admin);
-    window.loadCosechas = Admin.loadCosechas.bind(Admin);
-    window.loadPoscosecha = Admin.loadPoscosecha.bind(Admin);
     window.loadPedidosProveedores = Admin.loadPedidosProveedores.bind(Admin);
 
 

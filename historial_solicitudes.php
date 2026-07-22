@@ -91,18 +91,6 @@ function request_history_quantity($quantity): string
                     <span class="material-symbols-outlined" aria-hidden="true">calculate</span>
                     <span class="nav-label">Calculadora</span>
                 </a>
-                <a class="nav-item app-sidebar-link" href="fitosanitario.php" title="Fitosanitario">
-                    <span class="material-symbols-outlined" aria-hidden="true">health_and_safety</span>
-                    <span class="nav-label">Fitosanitario</span>
-                </a>
-                <a class="nav-item app-sidebar-link" href="cosechas.php" title="Cosecha">
-                    <span class="material-symbols-outlined" aria-hidden="true">agriculture</span>
-                    <span class="nav-label">Cosecha</span>
-                </a>
-                <a class="nav-item app-sidebar-link" href="poscosecha.php" title="Poscosecha">
-                    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
-                    <span class="nav-label">Poscosecha</span>
-                </a>
                 <a class="nav-item app-sidebar-link active" href="historial_solicitudes.php" title="Historial">
                     <span class="material-symbols-outlined" aria-hidden="true">route</span>
                     <span class="nav-label">Historial</span>

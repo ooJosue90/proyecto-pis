@@ -560,28 +560,26 @@ function ada_contexto_produccion(mysqli $conn, string $rol): string
     $params = [];
 
     if (in_array($rol, ['Agricultor', 'Técnico de Campo'], true)) {
-        $where = 'WHERE co.id_usuario = ?';
+        $where = 'WHERE pf.id_usuario = ?';
         $types = 's';
         $params = [$userId];
     }
 
     $rows = ada_fetch_all(
         $conn,
-        "SELECT c.tipo AS nombre_producto, co.cantidad_total_kg AS cantidad, 'kg' AS unidad_medida,
-                co.fecha_cosecha AS fecha, co.estado, co.observaciones, u.nombre AS agricultor, l.ubicacion
-         FROM cosechas co
-         JOIN usuarios u ON co.id_usuario = u.id_usuario
-         JOIN lotes l ON co.id_lote = l.id_lote
-         LEFT JOIN cultivos c ON l.id_cultivo = c.id_cultivo
+        "SELECT pf.nombre_producto, pf.cantidad, pf.unidad_medida, pf.fecha, pf.observaciones, u.nombre AS agricultor, l.ubicacion
+         FROM productos_finales pf
+         JOIN usuarios u ON pf.id_usuario = u.id_usuario
+         JOIN lotes l ON pf.id_lote = l.id_lote
          {$where}
-         ORDER BY co.fecha_cosecha DESC, co.id_cosecha DESC
+         ORDER BY pf.fecha DESC
          LIMIT 20",
         $types,
         $params
     );
 
     return "Produccion:\n" . ada_lineas($rows, fn ($row) =>
-        ada_fecha($row['fecha']) . " - " . ($row['nombre_producto'] ?: 'Cosecha') . " - " . ada_numero($row['cantidad']) . " {$row['unidad_medida']} - Estado: {$row['estado']} - Lote: {$row['ubicacion']} - Agricultor: {$row['agricultor']} - " . ($row['observaciones'] ?: 'Sin observaciones')
+        ada_fecha($row['fecha']) . " - {$row['nombre_producto']} - " . ada_numero($row['cantidad']) . " {$row['unidad_medida']} - Lote: {$row['ubicacion']} - Agricultor: {$row['agricultor']} - " . ($row['observaciones'] ?: 'Sin observaciones')
     );
 }
 
@@ -642,12 +640,13 @@ function ada_contexto_monitoreo(mysqli $conn, string $rol): string
                 (SELECT MAX(p.fecha) FROM plagas p WHERE p.id_lote = l.id_lote) AS ultimo_monitoreo_plagas,
                 (SELECT GROUP_CONCAT(DISTINCT p.nombre ORDER BY p.nombre SEPARATOR ', ')
                    FROM plagas p WHERE p.id_lote = l.id_lote) AS plagas_detectadas,
-                (SELECT COALESCE(SUM(co.cantidad_total_kg), 0)
-                   FROM cosechas co WHERE co.id_lote = l.id_lote) AS produccion_total,
-                (SELECT CASE WHEN COUNT(*) > 0 THEN 'kg' ELSE NULL END
-                   FROM cosechas co WHERE co.id_lote = l.id_lote) AS unidades_produccion,
-                (SELECT MAX(co.fecha_cosecha)
-                   FROM cosechas co WHERE co.id_lote = l.id_lote) AS ultima_produccion,
+                (SELECT COALESCE(SUM(pf.cantidad), 0)
+                   FROM productos_finales pf WHERE pf.id_lote = l.id_lote) AS produccion_total,
+                (SELECT GROUP_CONCAT(DISTINCT COALESCE(NULLIF(pf.unidad_medida, ''), 'sin unidad')
+                                     ORDER BY pf.unidad_medida SEPARATOR ', ')
+                   FROM productos_finales pf WHERE pf.id_lote = l.id_lote) AS unidades_produccion,
+                (SELECT MAX(pf.fecha)
+                   FROM productos_finales pf WHERE pf.id_lote = l.id_lote) AS ultima_produccion,
                 (SELECT COUNT(*)
                    FROM productos_solicitud ps
                   WHERE ps.id_lote = l.id_lote
@@ -746,12 +745,11 @@ function ada_contexto_actividades(mysqli $conn, string $rol): string
              FROM plagas p
              JOIN lotes l ON p.id_lote = l.id_lote
              UNION ALL
-             SELECT co.id_usuario, 'Produccion registrada',
-                    CONCAT(COALESCE(c.tipo, 'Cosecha'), ' - ', co.cantidad_total_kg, ' kg - estado ', co.estado, ' - lote ', l.ubicacion),
-                    CAST(co.fecha_cosecha AS DATETIME)
-             FROM cosechas co
-             JOIN lotes l ON co.id_lote = l.id_lote
-             LEFT JOIN cultivos c ON l.id_cultivo = c.id_cultivo
+             SELECT pf.id_usuario, 'Produccion registrada',
+                    CONCAT(pf.nombre_producto, ' - ', pf.cantidad, ' ', COALESCE(pf.unidad_medida, ''), ' - lote ', l.ubicacion),
+                    pf.fecha
+             FROM productos_finales pf
+             JOIN lotes l ON pf.id_lote = l.id_lote
              UNION ALL
              SELECT ps.id_agricultor, 'Solicitud de insumo',
                     CONCAT(ps.nombre, ' - estado ', ps.estado), ps.fecha
@@ -838,7 +836,7 @@ function ada_contexto_resumen(mysqli $conn, string $rol): string
     return "Resumen del agricultor:\n"
         . "Cultivos: " . ada_fetch_value($conn, 'SELECT COUNT(*) FROM cultivos WHERE id_usuario = ?', 's', [$userId]) . "\n"
         . "Solicitudes: " . ada_fetch_value($conn, 'SELECT COUNT(*) FROM productos_solicitud WHERE id_agricultor = ?', 's', [$userId]) . "\n"
-        . "Produccion total: " . ada_numero(ada_fetch_value($conn, 'SELECT COALESCE(SUM(cantidad_total_kg), 0) FROM cosechas WHERE id_usuario = ?', 's', [$userId])) . " kg";
+        . "Produccion total: " . ada_numero(ada_fetch_value($conn, 'SELECT COALESCE(SUM(cantidad), 0) FROM productos_finales WHERE id_usuario = ?', 's', [$userId]));
 }
 
 function ada_contexto_permitido(mysqli $conn, string $rol, string $pregunta, array $intencion): string

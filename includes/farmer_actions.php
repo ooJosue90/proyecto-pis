@@ -1,11 +1,9 @@
 <?php
 
-require_once __DIR__ . '/cosecha_helpers.php';
-
-// Compatibilidad con el flujo anterior: ya no escribe en productos_finales.
+// Finalizar cosecha y registrar la producción real con el esquema de main.
 if (($_POST['accion'] ?? '') === 'finalizar_cosecha') {
     $id_lote = (int) ($_POST['id_lote'] ?? 0);
-    $cantidad_cosechada = (float) str_replace(',', '.', (string) ($_POST['cantidad_cosechada'] ?? 0));
+    $cantidad_cosechada = (float) ($_POST['cantidad_cosechada'] ?? 0);
     $unidad_cosecha = trim($_POST['unidad_cosecha'] ?? '');
     $fecha_cosecha = post_date_or_null('fecha_cosecha');
     $observacion = trim($_POST['observacion'] ?? '');
@@ -20,15 +18,8 @@ if (($_POST['accion'] ?? '') === 'finalizar_cosecha') {
         redirect('agricultor.php');
     }
 
-    if ($unidad_cosecha === 'toneladas') {
-        $cantidad_cosechada *= 1000;
-    } elseif ($unidad_cosecha !== 'kg') {
-        flash('error', 'El nuevo módulo de cosecha registra cantidades únicamente en kg.');
-        redirect('agricultor.php');
-    }
-
-    if ($fecha_cosecha === null || !valid_date_or_null($fecha_cosecha)) {
-        flash('error', 'Complete la fecha real de cosecha.');
+    if ($unidad_cosecha === '' || $fecha_cosecha === null || !valid_date_or_null($fecha_cosecha)) {
+        flash('error', 'Complete la unidad y la fecha real de cosecha.');
         redirect('agricultor.php');
     }
 
@@ -50,54 +41,36 @@ if (($_POST['accion'] ?? '') === 'finalizar_cosecha') {
             throw new RuntimeException('El lote ya no está disponible para finalizar su cosecha.');
         }
 
-        $alreadyRegistered = (int) db_value(
-            $conn,
-            "SELECT COUNT(*)
-             FROM cosechas
-             WHERE id_lote = ?
-               AND estado IN ('Registrada', 'Validada', 'Recibida')",
-            "i",
-            [$id_lote],
-            0
-        );
-
-        if ($alreadyRegistered > 0) {
-            throw new RuntimeException('Este lote ya tiene una cosecha activa registrada.');
-        }
-
         db_execute(
             $conn,
-            "INSERT INTO cosechas (
-                id_lote, id_usuario, fecha_cosecha, cantidad_total_kg,
-                calidad_primera_kg, calidad_segunda_kg, descarte_kg, estado, observaciones
-            ) VALUES (?, ?, ?, ?, 0, 0, 0, 'Registrada', ?)",
-            "issds",
+            "INSERT INTO productos_finales (
+                id_usuario, id_lote, nombre_producto, cantidad,
+                unidad_medida, observaciones, fecha
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "sisdsss",
             [
-                $id_lote,
                 $id_usuario,
-                $fecha_cosecha,
+                $id_lote,
+                $lote['tipo'],
                 $cantidad_cosechada,
+                $unidad_cosecha,
                 $observacion === '' ? null : $observacion,
+                $fecha_cosecha . ' 00:00:00',
             ]
         );
 
         db_execute(
             $conn,
             "UPDATE lotes
-             SET estado_cultivo = 'finalizado'
+             SET estado_cultivo = 'finalizado',
+                 fecha_fin_cosecha_real = ?
              WHERE id_lote = ? AND estado_cultivo = 'en_cosecha'",
-            "i",
-            [$id_lote]
-        );
-
-        cosecha_notify_role(
-            $conn,
-            'Administrador',
-            'Nueva cosecha registrada por ' . current_user_name() . ' para validación.'
+            "si",
+            [$fecha_cosecha, $id_lote]
         );
 
         $conn->commit();
-        flash('mensaje', 'Cosecha registrada correctamente. Queda pendiente de validación.');
+        flash('mensaje', 'Cosecha finalizada y producción registrada correctamente.');
     } catch (Throwable $exception) {
         $conn->rollback();
         error_log('Error al finalizar cosecha: ' . $exception->getMessage());
@@ -106,7 +79,7 @@ if (($_POST['accion'] ?? '') === 'finalizar_cosecha') {
             : 'No se pudo finalizar la cosecha.');
     }
 
-    redirect('cosechas.php');
+    redirect('agricultor.php');
 }
 
 // Registrar cultivo

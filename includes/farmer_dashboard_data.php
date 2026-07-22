@@ -12,13 +12,13 @@ function load_farmer_dashboard_data(mysqli $conn, string $userId): array
     $lotes = db_fetch_all($conn, "
         SELECT l.*, c.tipo AS tipo_cultivo,
                GROUP_CONCAT(
-                   DISTINCT CONCAT(cf.nombre_problema, ' (', cf.estado, ')')
-                   ORDER BY cf.fecha_registro DESC
+                   DISTINCT p.nombre
+                   ORDER BY p.fecha DESC
                    SEPARATOR ', '
                ) AS problemas_fitosanitarios
         FROM lotes l
         LEFT JOIN cultivos c ON l.id_cultivo = c.id_cultivo
-        LEFT JOIN control_fitosanitario cf ON l.id_lote = cf.id_lote
+        LEFT JOIN plagas p ON l.id_lote = p.id_lote
         WHERE c.id_usuario = ?
         GROUP BY l.id_lote
         ORDER BY l.id_lote DESC
