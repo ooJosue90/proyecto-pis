@@ -200,12 +200,21 @@
         "© 2026 SEMBRIEXPORT. Plataforma de gestión agrícola.": "© 2026 SEMBRIEXPORT. Agricultural management platform.",
 
         "Recupera el acceso sin fricción.": "Recover access without friction.",
+        "Recuperación segura": "Secure recovery",
         "Solicita las instrucciones de recuperación y vuelve al flujo administrativo del sistema.": "Request recovery instructions and return to the system's administrative workflow.",
         "Seguridad y continuidad operativa para el equipo de SEMBRIEXPORT.": "Security and operational continuity for the SEMBRIEXPORT team.",
+        "Garantías de recuperación": "Recovery guarantees",
+        "Seguro": "Secure",
+        "Solicitud verificada": "Verified request",
+        "Rápido": "Fast",
+        "Notificación al administrador": "Administrator notification",
+        "Privado": "Private",
+        "Acceso protegido": "Protected access",
         "Recuperación": "Recovery",
         "Recuperar contraseña": "Reset password",
         "Escribe tu correo electrónico registrado para recibir las instrucciones.": "Enter your registered email address to receive instructions.",
         "Enviar instrucciones": "Send instructions",
+        "Contacta al administrador del sistema para validar tu acceso.": "Contact the system administrator to validate your access.",
         "Volver al inicio de sesión": "Back to sign in"
     };
 

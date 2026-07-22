@@ -66,11 +66,88 @@ function request_history_quantity($quantity): string
     return number_format($value, $value == floor($value) ? 0 : 2, ',', '.');
 }
 ?>
-<?php render_head('Historial de Solicitudes'); ?>
-<body class="farmer-dashboard-page farmer-request-history-page">
-<?php render_app_nav('fas fa-clock-rotate-left', current_user_name() . ' - Historial'); ?>
+<?php render_head('Historial de Solicitudes', [
+    'https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Roboto+Condensed:wght@400;500;600;700;800;900&display=swap',
+    'assets/vendor/bootstrap/bootstrap.min.css',
+    'assets/vendor/fontawesome/css/all.min.css',
+    'css/admin.css?v=' . filemtime(__DIR__ . '/css/admin.css'),
+]); ?>
+<body class="farmer-dashboard-page admin-dashboard-page farmer-admin-page farmer-request-history-page">
+    <div class="admin-tablet-shell">
+        <aside class="sidebar" id="mainSidebar" aria-label="Navegación principal">
+            <div class="logo-container">
+                <div class="admin-sidebar-logo">
+                    <span class="material-symbols-outlined" aria-hidden="true">agriculture</span>
+                </div>
+                <span class="nav-label admin-sidebar-brand">SembriExport</span>
+            </div>
 
-<main class="container farmer-dashboard mt-4">
+            <nav class="app-sidebar-nav admin-reference-nav">
+                <a class="nav-item app-sidebar-link" href="agricultor.php" title="Dashboard">
+                    <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="calcular_insumos.php" title="Calculadora">
+                    <span class="material-symbols-outlined" aria-hidden="true">calculate</span>
+                    <span class="nav-label">Calculadora</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="fitosanitario.php" title="Fitosanitario">
+                    <span class="material-symbols-outlined" aria-hidden="true">health_and_safety</span>
+                    <span class="nav-label">Fitosanitario</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="cosechas.php" title="Cosecha">
+                    <span class="material-symbols-outlined" aria-hidden="true">agriculture</span>
+                    <span class="nav-label">Cosecha</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="poscosecha.php" title="Poscosecha">
+                    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                    <span class="nav-label">Poscosecha</span>
+                </a>
+                <a class="nav-item app-sidebar-link active" href="historial_solicitudes.php" title="Historial">
+                    <span class="material-symbols-outlined" aria-hidden="true">route</span>
+                    <span class="nav-label">Historial</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-actions">
+                <a class="nav-item" href="logout.php" title="Cerrar sesión">
+                    <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                    <span class="nav-label">Log out</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="admin-inner-container">
+            <header class="admin-reference-topbar">
+                <div class="admin-topbar-user">
+                    <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
+                    <div>
+                        <h2>Saludos, <?php echo e(current_user_name()); ?></h2>
+                        <p>Consulta el avance de tus solicitudes agrícolas y el estado de entrega.</p>
+                    </div>
+                </div>
+                <div class="admin-topbar-actions">
+                    <div class="admin-account-menu" data-admin-account-menu>
+                        <button class="admin-account-button" type="button" aria-haspopup="menu" aria-expanded="false" data-admin-account-trigger>
+                            <span class="admin-account-initials" aria-hidden="true"><?php echo e(app_user_initials()); ?></span>
+                            <span>Cuenta</span>
+                            <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                        </button>
+                        <div class="admin-account-dropdown" role="menu" aria-label="Opciones de cuenta">
+                            <div class="admin-account-dropdown__profile" aria-hidden="true">
+                                <strong>Agricultor</strong>
+                                <small><?php echo e(current_user_name()); ?></small>
+                            </div>
+                            <a href="logout.php" role="menuitem">
+                                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                                <span>Cerrar sesión</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+<div class="container farmer-dashboard admin-dashboard request-history-dashboard mt-4">
     <?php render_flash_messages(); ?>
 
     <section class="farmer-page-heading farmer-dashboard-hero">
@@ -78,13 +155,6 @@ function request_history_quantity($quantity): string
             <span class="farmer-kicker">Seguimiento de abastecimiento</span>
             <h1>Historial de solicitudes</h1>
             <p>Consulte el avance de cada insumo solicitado, desde su revisión hasta la entrega en el lote.</p>
-        </div>
-        <div class="farmer-hero-status">
-            <span class="farmer-hero-status-icon"><i class="fas fa-clock-rotate-left"></i></span>
-            <div>
-                <small>Solicitudes registradas</small>
-                <strong><i class="fas fa-circle"></i> <?php echo e($historialStats['total']); ?> en el historial</strong>
-            </div>
         </div>
     </section>
 
@@ -128,7 +198,6 @@ function request_history_quantity($quantity): string
             <div>
                 <span class="request-history-card__eyebrow">Registro operativo</span>
                 <h2>Solicitudes realizadas</h2>
-                <p>Busque por insumo, lote u observación y filtre los resultados por estado.</p>
             </div>
             <span class="request-history-count" data-history-count>
                 <?php echo e($historialStats['total']); ?> registros
@@ -138,18 +207,25 @@ function request_history_quantity($quantity): string
         <div class="request-history-toolbar">
             <label class="request-history-search">
                 <i class="fas fa-magnifying-glass"></i>
-                <input type="search" placeholder="Buscar insumo, lote u observación" data-history-search>
+                <input type="search" placeholder="Buscar en la tabla" data-history-search>
             </label>
             <label class="request-history-filter">
                 <span>Estado</span>
-                <select class="form-select" data-history-status>
-                    <option value="">Todos los estados</option>
-                    <option value="pendiente">Pendiente</option>
-                    <option value="aprobado">Aprobado</option>
-                    <option value="entregado">Entregado</option>
-                    <option value="rechazado">Rechazado</option>
-                    <option value="cancelado">Cancelado</option>
-                </select>
+                <div class="ag-select request-history-status-select" data-history-status-select>
+                    <input type="hidden" value="" data-history-status>
+                    <button type="button" class="ag-select-button" data-history-status-button aria-haspopup="listbox" aria-expanded="false">
+                        <span data-history-status-label>Todos los estados</span>
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="ag-select-menu" data-history-status-menu role="listbox">
+                        <button type="button" class="ag-select-option is-selected" data-value="" role="option" aria-selected="true">Todos los estados</button>
+                        <button type="button" class="ag-select-option" data-value="pendiente" role="option" aria-selected="false">Pendiente</button>
+                        <button type="button" class="ag-select-option" data-value="aprobado" role="option" aria-selected="false">Aprobado</button>
+                        <button type="button" class="ag-select-option" data-value="entregado" role="option" aria-selected="false">Entregado</button>
+                        <button type="button" class="ag-select-option" data-value="rechazado" role="option" aria-selected="false">Rechazado</button>
+                        <button type="button" class="ag-select-option" data-value="cancelado" role="option" aria-selected="false">Cancelado</button>
+                    </div>
+                </div>
             </label>
         </div>
 
@@ -236,17 +312,45 @@ function request_history_quantity($quantity): string
             </div>
         </div>
     </section>
-</main>
+</div>
+        </main>
+    </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const accountMenu = document.querySelector('[data-admin-account-menu]');
+    const accountTrigger = accountMenu?.querySelector('[data-admin-account-trigger]');
     const search = document.querySelector('[data-history-search]');
     const status = document.querySelector('[data-history-status]');
+    const statusSelect = document.querySelector('[data-history-status-select]');
+    const statusButton = document.querySelector('[data-history-status-button]');
+    const statusLabel = document.querySelector('[data-history-status-label]');
+    const statusOptions = Array.from(document.querySelectorAll('[data-history-status-menu] .ag-select-option'));
     const rows = Array.from(document.querySelectorAll('[data-history-row]'));
     const count = document.querySelector('[data-history-count]');
     const empty = document.querySelector('[data-history-empty]');
 
-    if (!search || !status || !count || !empty) {
+    if (accountMenu && accountTrigger) {
+        const closeAccountMenu = function () {
+            accountMenu.classList.remove('is-open');
+            accountTrigger.setAttribute('aria-expanded', 'false');
+        };
+
+        accountTrigger.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const open = accountMenu.classList.toggle('is-open');
+            accountTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!accountMenu.contains(event.target)) {
+                closeAccountMenu();
+            }
+        });
+    }
+
+    if (!search || !status || !statusSelect || !statusButton || !statusLabel || !count || !empty) {
         return;
     }
 
@@ -280,6 +384,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
     search.addEventListener('input', filterHistory);
     status.addEventListener('change', filterHistory);
+
+    function closeStatusSelect() {
+        statusSelect.classList.remove('is-open');
+        statusButton.setAttribute('aria-expanded', 'false');
+    }
+
+    statusButton.addEventListener('click', function () {
+        const willOpen = !statusSelect.classList.contains('is-open');
+        statusSelect.classList.toggle('is-open', willOpen);
+        statusButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    });
+
+    statusOptions.forEach(function (option) {
+        option.addEventListener('click', function () {
+            status.value = option.dataset.value || '';
+            statusLabel.textContent = option.textContent.trim();
+            statusOptions.forEach(function (item) {
+                const selected = item === option;
+                item.classList.toggle('is-selected', selected);
+                item.setAttribute('aria-selected', selected ? 'true' : 'false');
+            });
+            closeStatusSelect();
+            status.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!statusSelect.contains(event.target)) {
+            closeStatusSelect();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeStatusSelect();
+            accountMenu?.classList.remove('is-open');
+            accountTrigger?.setAttribute('aria-expanded', 'false');
+        }
+    });
 });
 </script>
 <?php render_ada_chat(); ?>

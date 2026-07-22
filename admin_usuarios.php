@@ -150,44 +150,125 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY id_usuario");
+$usuarios_rows = [];
+$usuarios_por_rol = [
+    'Administrador' => 0,
+    'Agricultor' => 0,
+    'Bodeguero' => 0,
+];
+
+while ($usuario = $usuarios->fetch_assoc()) {
+    $usuarios_rows[] = $usuario;
+    if (isset($usuarios_por_rol[$usuario['rol']])) {
+        $usuarios_por_rol[$usuario['rol']]++;
+    }
+}
+
+$total_usuarios = count($usuarios_rows);
+$ultimo_registro = null;
+foreach ($usuarios_rows as $usuario) {
+    if (!empty($usuario['fecha_registro']) && (!$ultimo_registro || strtotime($usuario['fecha_registro']) > strtotime($ultimo_registro))) {
+        $ultimo_registro = $usuario['fecha_registro'];
+    }
+}
 ?>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4><i class="fas fa-users"></i> Gestión de Usuarios</h4>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario" data-app-no-ripple>
-                    <i class="fas fa-plus"></i> Nuevo Usuario
-                </button>
+<section class="admin-users">
+    <header class="admin-users__header">
+        <div class="admin-users__title">
+            <span class="admin-users__header-icon"><i class="fas fa-users-gear"></i></span>
+            <div>
+                <span class="admin-section-eyebrow">Accesos</span>
+                <h4>Gestión de usuarios</h4>
+                <p>Administra identidades, roles y permisos del sistema.</p>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
+        </div>
+        <button class="admin-users__new-button" type="button" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario" data-app-no-ripple>
+            <i class="fas fa-user-check"></i>
+            <span>Nuevo usuario</span>
+        </button>
+    </header>
+                <div class="row admin-users__metrics">
+                    <div class="col-md-3 col-sm-6">
+                        <article class="admin-users__metric">
+                            <span class="admin-users__metric-icon admin-users__metric-icon--total"><i class="fas fa-users-gear"></i></span>
+                            <div>
+                                <span>Total cuentas</span>
+                                <strong><?= $total_usuarios ?></strong>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <article class="admin-users__metric">
+                            <span class="admin-users__metric-icon admin-users__metric-icon--admin"><i class="fas fa-user-shield"></i></span>
+                            <div>
+                                <span>Administradores</span>
+                                <strong><?= $usuarios_por_rol['Administrador'] ?></strong>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <article class="admin-users__metric">
+                            <span class="admin-users__metric-icon admin-users__metric-icon--farmer"><i class="fas fa-seedling"></i></span>
+                            <div>
+                                <span>Agricultores</span>
+                                <strong><?= $usuarios_por_rol['Agricultor'] ?></strong>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <article class="admin-users__metric">
+                            <span class="admin-users__metric-icon admin-users__metric-icon--warehouse"><i class="fas fa-box-archive"></i></span>
+                            <div>
+                                <span>Bodegueros</span>
+                                <strong><?= $usuarios_por_rol['Bodeguero'] ?></strong>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <section class="admin-users__panel" aria-label="Lista de usuarios">
+                    <div class="admin-users__panel-heading">
+                        <span class="admin-users__panel-icon"><i class="fas fa-address-book"></i></span>
+                        <div>
+                            <h5>Directorio completo</h5>
+                            <p><?= $ultimo_registro ? 'Último registro: ' . date('d/m/Y', strtotime($ultimo_registro)) : 'Sin registros recientes' ?></p>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive admin-users__table-wrap">
+                        <table class="table admin-users__table" data-app-table-owner="admin-users-table">
+                            <thead>
                             <tr>
                                 <th>ID/Cédula</th>
                                 <th>Nombre</th>
                                 <th>Email</th>
-                                <th>Contraseña</th>
                                 <th>Rol</th>
                                 <th>Fecha Registro</th>
                                 <th>Acciones</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($usuario = $usuarios->fetch_assoc()): ?>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($usuarios_rows as $usuario): ?>
+                                <?php
+                                    $rol = $usuario['rol'] ?? '';
+                                    $rol_class = $rol === 'Administrador'
+                                        ? 'admin-users__role--admin'
+                                        : ($rol === 'Agricultor' ? 'admin-users__role--farmer' : 'admin-users__role--warehouse');
+                                ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($usuario['id_usuario']) ?></td>
-                                    <td><?= htmlspecialchars($usuario['nombre']) ?></td>
-                                    <td><?= htmlspecialchars($usuario['email']) ?></td>
                                     <td>
-                                        <span class="badge bg-secondary">********</span>
+                                        <span class="admin-users__id"><?= htmlspecialchars($usuario['id_usuario']) ?></span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-<?= $usuario['rol'] == 'Administrador' ? 'primary' : ($usuario['rol'] == 'Agricultor' ? 'success' : 'warning') ?>">
-                                            <?= $usuario['rol'] ?>
-                                        </span>
+                                        <div class="admin-users__person">
+                                            <span><?= htmlspecialchars($usuario['nombre']) ?></span>
+                                            <small>Cuenta activa</small>
+                                        </div>
+                                    </td>
+                                    <td><?= htmlspecialchars($usuario['email']) ?></td>
+                                    <td>
+                                        <span class="admin-users__role <?= $rol_class ?>"><?= htmlspecialchars($rol) ?></span>
                                     </td>
                                     <td>
                                         <?php
@@ -199,12 +280,13 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY id_usuario");
                                         ?>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="editarUsuario('<?= htmlspecialchars($usuario['id_usuario']) ?>','<?= htmlspecialchars($usuario['nombre']) ?>','<?= htmlspecialchars($usuario['email']) ?>','<?= $usuario['rol'] ?>')">
+                                        <div class="admin-users__actions">
+                                            <button class="admin-users__action admin-users__action--edit" type="button" onclick="editarUsuario(<?= htmlspecialchars(json_encode($usuario['id_usuario']), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode($usuario['nombre']), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode($usuario['email']), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode($usuario['rol']), ENT_QUOTES, 'UTF-8') ?>)" aria-label="Editar usuario <?= htmlspecialchars($usuario['nombre'], ENT_QUOTES, 'UTF-8') ?>">
                                             <i class="fas fa-user-pen"></i>
                                         </button>
                                         <?php if ($usuario['id_usuario'] != '1'): ?>
                                             <button
-                                                class="btn btn-sm btn-outline-danger"
+                                                class="admin-users__action admin-users__action--delete"
                                                 type="button"
                                                 data-user-id="<?= htmlspecialchars($usuario['id_usuario'], ENT_QUOTES, 'UTF-8') ?>"
                                                 data-user-name="<?= htmlspecialchars($usuario['nombre'], ENT_QUOTES, 'UTF-8') ?>"
@@ -215,13 +297,12 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY id_usuario");
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+</section>

@@ -12,34 +12,16 @@ function render_head(string $title, array $extraStyles = [], array $extraScripts
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title); ?> | <?= e($appName); ?></title>
-    <script>
-        (function () {
-            try {
-                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('appTheme');
-                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                var preference = ['light', 'dark', 'night', 'auto'].indexOf(savedTheme) >= 0 ? savedTheme : 'auto';
-                document.documentElement.dataset.themePreference = preference;
-                document.documentElement.dataset.theme = preference === 'auto'
-                    ? (prefersDark ? 'dark' : 'light')
-                    : preference;
-            } catch (error) {
-                document.documentElement.dataset.theme = 'light';
-                document.documentElement.dataset.themePreference = 'auto';
-            }
-        })();
-    </script>
     <link rel="icon" type="image/x-icon" href="assets/mango.ico">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet">
-    <link href="css/dashboard.css?v=<?= filemtime(__DIR__ . '/../css/dashboard.css'); ?>" rel="stylesheet">
-    <link href="asistente/asistente_virtual.css?v=<?= filemtime(__DIR__ . '/../asistente/asistente_virtual.css'); ?>" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="css/material-icons.css?v=<?= filemtime(__DIR__ . '/../css/material-icons.css'); ?>" rel="stylesheet">
     <?php foreach ($extraStyles as $href): ?>
         <link href="<?= e($href); ?>" rel="stylesheet">
     <?php endforeach; ?>
-    <link href="css/theme.css?v=<?= filemtime(__DIR__ . '/../css/theme.css'); ?>" rel="stylesheet">
     <?php foreach ($extraScripts as $src): ?>
-        <script src="<?= e($src); ?>"></script>
+        <script src="<?= e($src); ?>" defer></script>
     <?php endforeach; ?>
+    <script src="js/app-table.js?v=<?= filemtime(__DIR__ . '/../js/app-table.js'); ?>" defer></script>
     <script src="js/app-ui.js?v=<?= filemtime(__DIR__ . '/../js/app-ui.js'); ?>" defer></script>
 </head>
 <?php
@@ -65,34 +47,73 @@ function app_nav_items(): array
 
     if ($role === 'Administrador') {
         return [
-            ['label' => 'Dashboard', 'icon' => 'fas fa-chart-pie', 'tab' => '#dashboard', 'active' => true],
-            ['label' => 'Usuarios', 'icon' => 'fas fa-users', 'tab' => '#usuarios'],
-            ['label' => 'Solicitudes', 'icon' => 'fas fa-clipboard-list', 'tab' => '#solicitudes'],
-            ['label' => 'Movimientos', 'icon' => 'fas fa-right-left', 'tab' => '#movimientos'],
-            ['label' => 'Facturas', 'icon' => 'fas fa-file-invoice-dollar', 'tab' => '#facturas'],
-            ['label' => 'Cultivos', 'icon' => 'fas fa-seedling', 'tab' => '#cultivos'],
-            ['label' => 'Reportes', 'icon' => 'fas fa-chart-column', 'tab' => '#reportes'],
-            ['label' => 'Proveedores', 'icon' => 'fas fa-truck', 'tab' => '#pedidos-proveedores'],
+            ['section' => 'Inicio', 'label' => 'Dashboard', 'icon' => 'fas fa-gauge-high', 'tab' => '#dashboard', 'active' => true],
+            ['section' => 'Gestión', 'label' => 'Usuarios', 'icon' => 'fas fa-users-gear', 'tab' => '#usuarios'],
+            ['section' => 'Gestión', 'label' => 'Solicitudes', 'icon' => 'fas fa-clipboard-check', 'tab' => '#solicitudes'],
+            ['section' => 'Operación', 'label' => 'Movimientos', 'icon' => 'fas fa-arrow-right-arrow-left', 'tab' => '#movimientos'],
+            ['section' => 'Operación', 'label' => 'Facturas', 'icon' => 'fas fa-receipt', 'tab' => '#facturas'],
+            ['section' => 'Producción', 'label' => 'Cultivos', 'icon' => 'fas fa-seedling', 'tab' => '#cultivos'],
+            ['section' => 'Producción', 'label' => 'Fitosanitario', 'icon' => 'fas fa-shield-virus', 'tab' => '#fitosanitario'],
+            ['section' => 'Producción', 'label' => 'Cosecha', 'icon' => 'fas fa-wheat-awn', 'tab' => '#cosechas'],
+            ['section' => 'Producción', 'label' => 'Poscosecha', 'icon' => 'fas fa-boxes-packing', 'tab' => '#poscosecha'],
+            ['section' => 'Producción', 'label' => 'Proveedores', 'icon' => 'fas fa-truck-fast', 'tab' => '#pedidos-proveedores'],
+            ['section' => 'Análisis', 'label' => 'Reportes', 'icon' => 'fas fa-chart-simple', 'tab' => '#reportes'],
         ];
     }
 
     if ($role === 'Agricultor') {
         return [
-            ['label' => 'Dashboard', 'icon' => 'fas fa-chart-pie', 'href' => 'agricultor.php'],
-            ['label' => 'Calculadora', 'icon' => 'fas fa-calculator', 'href' => 'calcular_insumos.php'],
-            ['label' => 'Historial', 'icon' => 'fas fa-clock-rotate-left', 'href' => 'historial_solicitudes.php'],
+            ['section' => 'Inicio', 'label' => 'Dashboard', 'icon' => 'fas fa-gauge-high', 'href' => 'agricultor.php'],
+            ['section' => 'Cultivo', 'label' => 'Calculadora', 'icon' => 'fas fa-calculator', 'href' => 'calcular_insumos.php'],
+            ['section' => 'Seguimiento', 'label' => 'Fitosanitario', 'icon' => 'fas fa-shield-virus', 'href' => 'fitosanitario.php'],
+            ['section' => 'Seguimiento', 'label' => 'Cosecha', 'icon' => 'fas fa-wheat-awn', 'href' => 'cosechas.php'],
+            ['section' => 'Seguimiento', 'label' => 'Poscosecha', 'icon' => 'fas fa-boxes-packing', 'href' => 'poscosecha.php'],
+            ['section' => 'Seguimiento', 'label' => 'Historial', 'icon' => 'fas fa-route', 'href' => 'historial_solicitudes.php'],
         ];
     }
 
     if ($role === 'Bodeguero') {
         return [
-            ['label' => 'Bodega', 'icon' => 'fas fa-warehouse', 'href' => 'bodeguero.php'],
-            ['label' => 'Facturas', 'icon' => 'fas fa-file-invoice-dollar', 'href' => 'bodeguero_facturas.php'],
-            ['label' => 'Solicitudes', 'icon' => 'fas fa-clipboard-check', 'href' => 'imprimir_solicitudes.php'],
+            ['section' => 'Inventario', 'label' => 'Bodega', 'icon' => 'fas fa-warehouse', 'href' => 'bodeguero.php'],
+            ['section' => 'Inventario', 'label' => 'Fitosanitario', 'icon' => 'fas fa-shield-virus', 'href' => 'fitosanitario.php'],
+            ['section' => 'Inventario', 'label' => 'Cosecha', 'icon' => 'fas fa-wheat-awn', 'href' => 'cosechas.php'],
+            ['section' => 'Inventario', 'label' => 'Poscosecha', 'icon' => 'fas fa-boxes-packing', 'href' => 'poscosecha.php'],
+            ['section' => 'Documentos', 'label' => 'Facturas', 'icon' => 'fas fa-receipt', 'href' => 'bodeguero_facturas.php'],
+            ['section' => 'Documentos', 'label' => 'Solicitudes', 'icon' => 'fas fa-clipboard-check', 'href' => 'imprimir_solicitudes.php'],
         ];
     }
 
     return [];
+}
+
+function app_nav_section_icon(string $section): string
+{
+    return [
+        'Inicio' => 'fas fa-gauge-high',
+        'Gestión' => 'fas fa-layer-group',
+        'Operación' => 'fas fa-list-check',
+        'Producción' => 'fas fa-seedling',
+        'Análisis' => 'fas fa-chart-simple',
+        'Cultivo' => 'fas fa-leaf',
+        'Seguimiento' => 'fas fa-route',
+        'Inventario' => 'fas fa-warehouse',
+        'Documentos' => 'fas fa-folder-open',
+    ][$section] ?? 'fas fa-folder';
+}
+
+function app_nav_section_label(string $section): string
+{
+    return [
+        'Inicio' => 'Dashboard',
+        'Gestión' => 'Gestión',
+        'Operación' => 'Operación',
+        'Producción' => 'Producción',
+        'Análisis' => 'Análisis',
+        'Cultivo' => 'Cultivo',
+        'Seguimiento' => 'Seguimiento',
+        'Inventario' => 'Inventario',
+        'Documentos' => 'Documentos',
+    ][$section] ?? $section;
 }
 
 function render_app_nav(string $icon, string $label, array $actions = []): void
@@ -100,31 +121,106 @@ function render_app_nav(string $icon, string $label, array $actions = []): void
     $role = $_SESSION['rol'] ?? 'Invitado';
     $items = app_nav_items();
     $initials = app_user_initials();
+    $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? '');
+    $groups = [];
+
+    foreach ($items as $item) {
+        $section = $item['section'] ?? 'Principal';
+        if (!isset($groups[$section])) {
+            $groups[$section] = [
+                'icon' => app_nav_section_icon($section),
+                'items' => [],
+                'open' => false,
+            ];
+        }
+
+        if (!empty($item['active']) || (!empty($item['href']) && basename($item['href']) === $currentPage)) {
+            $groups[$section]['open'] = true;
+        }
+
+        $groups[$section]['items'][] = $item;
+    }
     ?>
 <aside class="app-sidebar" aria-label="Navegación principal">
     <div class="app-sidebar-header">
         <span class="app-brand-mark" aria-hidden="true"></span>
         <div class="app-brand-copy">
-            <p class="app-brand-title"><?= e(app_config('app.name', 'SembriExport')); ?></p>
+            <p class="app-brand-title">
+                <span><?= e(app_config('app.name', 'SembriExport')); ?></span>
+                <span class="app-brand-badge">BETA</span>
+            </p>
             <p class="app-brand-subtitle"><?= e($role); ?></p>
         </div>
+        <button class="app-sidebar-collapse" type="button" data-admin-sidebar-toggle aria-label="Plegar menú" aria-expanded="true">
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </button>
     </div>
 
     <nav class="app-sidebar-nav">
-        <div class="app-nav-section">Principal</div>
-        <?php foreach ($items as $item): ?>
-            <?php if (!empty($item['tab'])): ?>
-                <button class="app-sidebar-link <?= !empty($item['active']) ? 'active' : ''; ?>" type="button" data-app-tab="<?= e($item['tab']); ?>">
-                    <i class="<?= e($item['icon']); ?>"></i>
-                    <span><?= e($item['label']); ?></span>
-                </button>
-            <?php else: ?>
-                <a class="app-sidebar-link" href="<?= e($item['href']); ?>">
-                    <i class="<?= e($item['icon']); ?>"></i>
-                    <span><?= e($item['label']); ?></span>
-                </a>
+        <?php foreach ($groups as $section => $group): ?>
+            <?php $groupId = 'app-nav-' . strtolower(preg_replace('/[^a-z0-9]+/i', '-', $section)); ?>
+            <?php if ($section === 'Inicio' && count($group['items']) === 1): ?>
+                <?php $item = $group['items'][0]; ?>
+                <div class="app-sidebar-single" data-app-sidebar-single>
+                    <?php if (!empty($item['tab'])): ?>
+                        <button class="app-sidebar-link <?= !empty($item['active']) ? 'active' : ''; ?>" type="button" data-app-tab="<?= e($item['tab']); ?>" title="<?= e($item['label']); ?>">
+                            <i class="<?= e($item['icon']); ?>"></i>
+                            <span><?= e($item['label']); ?></span>
+                        </button>
+                    <?php else: ?>
+                        <a class="app-sidebar-link" href="<?= e($item['href']); ?>" title="<?= e($item['label']); ?>">
+                            <i class="<?= e($item['icon']); ?>"></i>
+                            <span><?= e($item['label']); ?></span>
+                        </a>
+                    <?php endif; ?>
+                </div>
+                <?php continue; ?>
             <?php endif; ?>
+            <div class="app-sidebar-group <?= $group['open'] ? 'is-open' : ''; ?>" data-app-sidebar-group>
+                <button class="app-sidebar-section-toggle"
+                        type="button"
+                        data-app-sidebar-section
+                        aria-expanded="<?= $group['open'] ? 'true' : 'false'; ?>"
+                        aria-controls="<?= e($groupId); ?>">
+                    <i class="<?= e($group['icon']); ?>" aria-hidden="true"></i>
+                    <span><?= e(app_nav_section_label($section)); ?></span>
+                    <i class="fas fa-chevron-down app-sidebar-section-chevron" aria-hidden="true"></i>
+                </button>
+
+                <div class="app-sidebar-section-panel" id="<?= e($groupId); ?>">
+                    <?php foreach ($group['items'] as $item): ?>
+                        <?php if (!empty($item['tab'])): ?>
+                            <button class="app-sidebar-link <?= !empty($item['active']) ? 'active' : ''; ?>" type="button" data-app-tab="<?= e($item['tab']); ?>" title="<?= e($item['label']); ?>">
+                                <i class="<?= e($item['icon']); ?>"></i>
+                                <span><?= e($item['label']); ?></span>
+                            </button>
+                        <?php else: ?>
+                            <a class="app-sidebar-link" href="<?= e($item['href']); ?>" title="<?= e($item['label']); ?>">
+                                <i class="<?= e($item['icon']); ?>"></i>
+                                <span><?= e($item['label']); ?></span>
+                            </a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         <?php endforeach; ?>
+
+        <div class="app-nav-section">Sistema</div>
+        <div class="app-sidebar-tools">
+        <div class="app-sidebar-session">
+            <div class="app-sidebar-account">
+                <span class="app-avatar"><?= e($initials); ?></span>
+                <span class="app-sidebar-account-copy">
+                    <strong><?= e(current_user_name()); ?></strong>
+                    <small><?= e($role); ?></small>
+                </span>
+            </div>
+            <a class="app-sidebar-logout" href="logout.php" aria-label="Cerrar sesión" title="Cerrar sesión">
+                <i class="fas fa-arrow-right-from-bracket"></i>
+                <span>Cerrar sesión</span>
+            </a>
+        </div>
+    </div>
     </nav>
 </aside>
 
@@ -147,49 +243,6 @@ function render_app_nav(string $icon, string $label, array $actions = []): void
             <i class="fas fa-chevron-right"></i>
             <span><?= e($role); ?></span>
         </div>
-        <div class="app-appearance" data-app-appearance>
-            <button type="button"
-                    class="app-appearance-toggle"
-                    data-app-theme-toggle
-                    aria-label="Cambiar apariencia"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <i class="fas fa-circle-half-stroke" data-app-theme-icon aria-hidden="true"></i>
-                <span class="app-appearance-label">Apariencia</span>
-                <span class="app-appearance-current" data-app-theme-label>Automático</span>
-                <i class="fas fa-chevron-down app-appearance-chevron" aria-hidden="true"></i>
-            </button>
-            <div class="app-appearance-menu" data-app-theme-menu role="menu" aria-label="Seleccionar apariencia">
-                <span class="app-appearance-menu-title">Apariencia</span>
-                <button type="button" class="app-theme-option" data-theme-value="light" role="menuitemradio" aria-checked="false">
-                    <span class="app-theme-option-icon app-theme-option-icon--light"><i class="fas fa-sun"></i></span>
-                    <span><strong>Claro</strong><small>Diseño actual y luminoso</small></span>
-                    <i class="fas fa-check app-theme-check"></i>
-                </button>
-                <button type="button" class="app-theme-option" data-theme-value="dark" role="menuitemradio" aria-checked="false">
-                    <span class="app-theme-option-icon app-theme-option-icon--dark"><i class="fas fa-moon"></i></span>
-                    <span><strong>Oscuro</strong><small>Grises oscuros y contraste suave</small></span>
-                    <i class="fas fa-check app-theme-check"></i>
-                </button>
-                <button type="button" class="app-theme-option" data-theme-value="night" role="menuitemradio" aria-checked="false">
-                    <span class="app-theme-option-icon app-theme-option-icon--night"><i class="fas fa-star"></i></span>
-                    <span><strong>Noche</strong><small>Negro profundo y verde agrícola</small></span>
-                    <i class="fas fa-check app-theme-check"></i>
-                </button>
-                <button type="button" class="app-theme-option" data-theme-value="auto" role="menuitemradio" aria-checked="false">
-                    <span class="app-theme-option-icon app-theme-option-icon--auto"><i class="fas fa-circle-half-stroke"></i></span>
-                    <span><strong>Automático</strong><small>Usar la apariencia del sistema</small></span>
-                    <i class="fas fa-check app-theme-check"></i>
-                </button>
-            </div>
-        </div>
-        <div class="app-user-chip">
-            <span class="app-avatar"><?= e($initials); ?></span>
-            <span><?= e(current_user_name()); ?></span>
-        </div>
-        <a class="app-icon-button" href="logout.php" aria-label="Cerrar sesión">
-            <i class="fas fa-arrow-right-from-bracket"></i>
-        </a>
     </div>
 </header>
 <?php
@@ -257,29 +310,29 @@ function render_ada_chat(): void
     if ($role === 'Administrador') {
         $quickActions = [
             ['icon' => 'fas fa-chart-line', 'label' => 'Monitoreo general', 'prompt' => 'Muéstrame todos los datos de monitoreo de los lotes'],
-            ['icon' => 'fas fa-users', 'label' => 'Usuarios', 'prompt' => 'Lista los usuarios registrados en el sistema'],
-            ['icon' => 'fas fa-clock-rotate-left', 'label' => 'Actividad reciente', 'prompt' => 'Muéstrame la actividad agrícola reciente y las tareas pendientes'],
-            ['icon' => 'fas fa-chart-pie', 'label' => 'Resumen general', 'prompt' => 'Muéstrame el resumen general del sistema'],
+            ['icon' => 'fas fa-users-gear', 'label' => 'Usuarios', 'prompt' => 'Lista los usuarios registrados en el sistema'],
+            ['icon' => 'fas fa-satellite-dish', 'label' => 'Actividad reciente', 'prompt' => 'Muéstrame la actividad agrícola reciente y las tareas pendientes'],
+            ['icon' => 'fas fa-chart-simple', 'label' => 'Resumen general', 'prompt' => 'Muéstrame el resumen general del sistema'],
         ];
     } elseif ($role === 'Bodeguero') {
         $quickActions = [
-            ['icon' => 'fas fa-boxes-stacked', 'label' => 'Ver inventario', 'prompt' => 'Muéstrame el inventario de insumos'],
+            ['icon' => 'fas fa-box-archive', 'label' => 'Ver inventario', 'prompt' => 'Muéstrame el inventario de insumos'],
             ['icon' => 'fas fa-triangle-exclamation', 'label' => 'Insumos bajos', 'prompt' => 'Muéstrame los insumos con stock bajo en inventario'],
-            ['icon' => 'fas fa-file-invoice-dollar', 'label' => 'Facturas', 'prompt' => 'Muéstrame las facturas registradas'],
+            ['icon' => 'fas fa-receipt', 'label' => 'Facturas', 'prompt' => 'Muéstrame las facturas registradas'],
             ['icon' => 'fas fa-clipboard-check', 'label' => 'Solicitudes pendientes', 'prompt' => 'Muéstrame las solicitudes pendientes por atender'],
         ];
     }
     ?>
     <div class="ada-chat" data-ada-chat data-endpoint="asistente/asistente_virtual.php">
         <button class="ada-chat__toggle" type="button" data-ada-toggle aria-label="Abrir ADA" aria-expanded="false">
-            <img src="assets/img/ada-avatar.jpg" alt="ADA">
+                <img src="assets/img/ada-avatar.webp" alt="ADA" loading="lazy" decoding="async">
         </button>
 
         <section class="ada-chat__window" aria-label="Chat de ADA" aria-hidden="true">
             <header class="ada-chat__header">
                 <div class="ada-chat__brand">
                     <span class="ada-chat__avatar">
-                        <img src="assets/img/ada-avatar.jpg" alt="ADA">
+                <img src="assets/img/ada-avatar.webp" alt="ADA" loading="lazy" decoding="async">
                     </span>
                     <div>
                         <div class="ada-chat__title-row">
@@ -331,8 +384,8 @@ function render_ada_chat(): void
 
 function render_scripts(array $scripts = []): void
 {
+    echo '<script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>' . PHP_EOL;
     foreach ($scripts as $src) {
         echo '<script src="' . e($src) . '"></script>' . PHP_EOL;
     }
-    echo '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>' . PHP_EOL;
 }

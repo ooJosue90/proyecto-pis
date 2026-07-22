@@ -70,116 +70,137 @@ $stats_solicitudes = $conn->query("
 ")->fetch_assoc();
 ?>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4><i class="fas fa-clipboard-list"></i> Gestión de Solicitudes de Productos</h4>
+<section class="admin-requests">
+    <header class="admin-requests__header">
+        <div class="admin-requests__title">
+            <span class="admin-requests__header-icon"><i class="fas fa-clipboard-check"></i></span>
+            <div>
+                <span class="admin-section-eyebrow">Abastecimiento</span>
+                <h4>Gestión de solicitudes</h4>
+                <p>Revisa, aprueba o rechaza los pedidos de productos enviados por agricultores.</p>
             </div>
-            <div class="card-body">
-                <!-- Estadísticas -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card bg-info text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-list fa-2x mb-2"></i>
-                                <h3><?php echo $stats_solicitudes['total'] ?: 0; ?></h3>
-                                <p class="mb-0">Total Solicitudes</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-warning text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-clock fa-2x mb-2"></i>
-                                <h3><?php echo $stats_solicitudes['pendientes'] ?: 0; ?></h3>
-                                <p class="mb-0">Pendientes</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-success text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-check fa-2x mb-2"></i>
-                                <h3><?php echo $stats_solicitudes['entregadas'] ?: 0; ?></h3>
-                                <p class="mb-0">Entregadas</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-danger text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-xmark fa-2x mb-2"></i>
-                                <h3><?php echo $stats_solicitudes['rechazadas'] ?: 0; ?></h3>
-                                <p class="mb-0">Rechazadas</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </div>
+    </header>
 
-                <!-- Tabla de solicitudes -->
-                <?php if ($solicitudes && $solicitudes->num_rows > 0): ?>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
+    <div class="row admin-requests__metrics">
+        <div class="col-md-3 col-sm-6">
+            <article class="admin-requests__metric">
+                <span class="admin-requests__metric-icon admin-requests__metric-icon--total"><i class="fas fa-list-check"></i></span>
+                <div>
+                    <span>Total solicitudes</span>
+                    <strong><?php echo $stats_solicitudes['total'] ?: 0; ?></strong>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <article class="admin-requests__metric">
+                <span class="admin-requests__metric-icon admin-requests__metric-icon--pending"><i class="fas fa-clock"></i></span>
+                <div>
+                    <span>Pendientes</span>
+                    <strong><?php echo $stats_solicitudes['pendientes'] ?: 0; ?></strong>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <article class="admin-requests__metric">
+                <span class="admin-requests__metric-icon admin-requests__metric-icon--done"><i class="fas fa-circle-check"></i></span>
+                <div>
+                    <span>Entregadas</span>
+                    <strong><?php echo $stats_solicitudes['entregadas'] ?: 0; ?></strong>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <article class="admin-requests__metric">
+                <span class="admin-requests__metric-icon admin-requests__metric-icon--rejected"><i class="fas fa-ban"></i></span>
+                <div>
+                    <span>Rechazadas</span>
+                    <strong><?php echo $stats_solicitudes['rechazadas'] ?: 0; ?></strong>
+                </div>
+            </article>
+        </div>
+    </div>
+
+    <section class="admin-requests__panel" aria-label="Lista de solicitudes">
+        <div class="admin-requests__panel-heading">
+            <span class="admin-requests__panel-icon"><i class="fas fa-clipboard-list"></i></span>
+            <div>
+                <h5>Solicitudes registradas</h5>
+                <p><?php echo ($stats_solicitudes['pendientes'] ?: 0) > 0 ? 'Hay solicitudes pendientes por revisar.' : 'No hay solicitudes pendientes.'; ?></p>
+            </div>
+        </div>
+
+        <?php if ($solicitudes && $solicitudes->num_rows > 0): ?>
+                <div class="table-responsive admin-requests__table-wrap">
+                    <table class="table admin-requests__table" data-app-table-owner="admin-requests-table">
+                        <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Fecha</th>
                                 <th>Agricultor</th>
-                                <th>Producto Solicitado</th>
+                                <th>Producto</th>
                                 <th>Cantidad</th>
                                 <th>Estado</th>
-                                <th>Observaciones</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php while ($solicitud = $solicitudes->fetch_assoc()): ?>
                             <tr>
-                                <td><?php echo $solicitud['id_producto_solicitud']; ?></td>
+                                <td><span class="admin-requests__id">#<?php echo $solicitud['id_producto_solicitud']; ?></span></td>
                                 <td><?php echo date('d/m/Y H:i', strtotime($solicitud['fecha'])); ?></td>
                                 <td>
-                                    <strong><?php echo htmlspecialchars($solicitud['agricultor_nombre']); ?></strong>
-                                    <br><small class="text-muted"><?php echo htmlspecialchars($solicitud['agricultor_email']); ?></small>
+                                    <div class="admin-requests__person">
+                                        <strong><?php echo htmlspecialchars($solicitud['agricultor_nombre']); ?></strong>
+                                        <small><?php echo htmlspecialchars($solicitud['agricultor_email']); ?></small>
+                                    </div>
                                 </td>
                                 <td><?php echo htmlspecialchars($solicitud['nombre']); ?></td>
-                                <td><?php echo $solicitud['cantidad_solicitada']; ?></td>
+                                <td><span class="admin-requests__quantity"><?php echo $solicitud['cantidad_solicitada']; ?></span></td>
                                 <td>
-                                    <span class="badge bg-<?php 
-                                        echo $solicitud['estado'] == 'Pendiente' ? 'warning' :
-                                            ($solicitud['estado'] == 'Aprobado' ? 'primary' :
-                                            ($solicitud['estado'] == 'Entregado' ? 'success' :
-                                            ($solicitud['estado'] == 'Cancelado' ? 'secondary' : 'danger')));
-                                    ?>">
+                                    <?php
+                                        $estado = $solicitud['estado'];
+                                        $estado_class = $estado === 'Pendiente'
+                                            ? 'admin-requests__status--pending'
+                                            : ($estado === 'Aprobado'
+                                                ? 'admin-requests__status--approved'
+                                                : ($estado === 'Entregado'
+                                                    ? 'admin-requests__status--done'
+                                                    : ($estado === 'Cancelado' ? 'admin-requests__status--neutral' : 'admin-requests__status--rejected')));
+                                    ?>
+                                    <span class="admin-requests__status <?php echo $estado_class; ?>">
                                         <?php echo $solicitud['estado']; ?>
                                     </span>
                                 </td>
-                                <td><?php echo htmlspecialchars($solicitud['observaciones'] ?: 'Ninguna'); ?></td>
                                 <td>
+                                    <div class="admin-requests__actions">
                                     <?php if ($solicitud['estado'] == 'Pendiente'): ?>
                                     <button
                                         type="button"
-                                        class="btn btn-sm btn-success"
+                                        class="admin-requests__action admin-requests__action--approve"
                                         data-admin-request-action="aprobar"
                                         data-request-id="<?php echo $solicitud['id_producto_solicitud']; ?>"
                                         data-farmer="<?php echo htmlspecialchars($solicitud['agricultor_nombre'], ENT_QUOTES, 'UTF-8'); ?>"
                                         data-product="<?php echo htmlspecialchars($solicitud['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
-                                        data-quantity="<?php echo htmlspecialchars($solicitud['cantidad_solicitada'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        <i class="fas fa-check"></i> Aprobar
+                                        data-quantity="<?php echo htmlspecialchars($solicitud['cantidad_solicitada'], ENT_QUOTES, 'UTF-8'); ?>"
+                                        aria-label="Aprobar solicitud <?php echo $solicitud['id_producto_solicitud']; ?>">
+                                        <i class="fas fa-check"></i>
                                     </button>
                                     <button
                                         type="button"
-                                        class="btn btn-sm btn-danger"
+                                        class="admin-requests__action admin-requests__action--reject"
                                         data-admin-request-action="rechazar"
                                         data-request-id="<?php echo $solicitud['id_producto_solicitud']; ?>"
                                         data-farmer="<?php echo htmlspecialchars($solicitud['agricultor_nombre'], ENT_QUOTES, 'UTF-8'); ?>"
                                         data-product="<?php echo htmlspecialchars($solicitud['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
-                                        data-quantity="<?php echo htmlspecialchars($solicitud['cantidad_solicitada'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        <i class="fas fa-xmark"></i> Rechazar
+                                        data-quantity="<?php echo htmlspecialchars($solicitud['cantidad_solicitada'], ENT_QUOTES, 'UTF-8'); ?>"
+                                        aria-label="Rechazar solicitud <?php echo $solicitud['id_producto_solicitud']; ?>">
+                                        <i class="fas fa-xmark"></i>
                                     </button>
                                     <?php else: ?>
-                                    <span class="badge bg-secondary">Procesada</span>
+                                    <span class="admin-requests__processed">Procesada</span>
                                     <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
@@ -187,18 +208,16 @@ $stats_solicitudes = $conn->query("
                     </table>
                 </div>
                 <?php else: ?>
-                <div class="alert alert-info text-center">
-                    <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                <div class="admin-requests__empty">
+                    <span><i class="fas fa-clipboard-list"></i></span>
                     <h5>No hay solicitudes registradas</h5>
                     <p>Las solicitudes de los agricultores aparecerán aquí.</p>
                 </div>
                 <?php endif; ?>
-            </div>
-        </div>
-    </div>
-</div>
+    </section>
+</section>
 
-<div class="modal fade warehouse-confirm-modal admin-premium-modal" id="adminRequestConfirmModal" tabindex="-1" aria-labelledby="adminRequestConfirmTitle" aria-hidden="true">
+<div class="modal fade warehouse-confirm-modal admin-premium-modal admin-request-modal" id="adminRequestConfirmModal" tabindex="-1" aria-labelledby="adminRequestConfirmTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form id="adminRequestConfirmForm">
@@ -206,10 +225,10 @@ $stats_solicitudes = $conn->query("
                 <input type="hidden" id="adminRequestConfirmAction">
 
                 <div class="modal-header">
-                    <span class="warehouse-modal-icon" data-admin-request-modal-icon>
+                    <span class="warehouse-modal-icon admin-request-modal__icon" data-admin-request-modal-icon>
                         <i class="fas fa-check"></i>
                     </span>
-                    <div>
+                    <div class="admin-premium-modal__heading">
                         <span class="farmer-kicker">Confirmación administrativa</span>
                         <h2 class="modal-title" id="adminRequestConfirmTitle">Aprobar solicitud</h2>
                     </div>
@@ -217,8 +236,8 @@ $stats_solicitudes = $conn->query("
                 </div>
 
                 <div class="modal-body">
-                    <p data-admin-request-modal-message>Revise la información antes de continuar.</p>
-                    <div class="warehouse-modal-summary">
+                    <p class="admin-request-modal__message" data-admin-request-modal-message>Revise la información antes de continuar.</p>
+                    <div class="warehouse-modal-summary admin-request-modal__summary">
                         <div>
                             <span>Agricultor</span>
                             <strong data-admin-request-modal-farmer></strong>
@@ -235,8 +254,8 @@ $stats_solicitudes = $conn->query("
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn warehouse-modal-back" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn warehouse-modal-confirm" data-admin-request-modal-confirm data-skip-loading="1">
+                    <button type="button" class="btn warehouse-modal-back admin-request-modal__back" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn warehouse-modal-confirm admin-request-modal__confirm" data-admin-request-modal-confirm data-skip-loading="1">
                         <i class="fas fa-check"></i>
                         <span>Confirmar aprobación</span>
                     </button>

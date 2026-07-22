@@ -33,23 +33,20 @@ $cultivos_por_tipo = $conn->query("
 ");
 ?>
 
-<div class="row mt-4 admin-reports">
-    <div class="col-12">
-        <div class="card admin-reports__shell">
-            <div class="card-header admin-reports__header">
-                <span class="admin-reports__header-icon"><i class="fas fa-chart-pie"></i></span>
-                <div>
-                    <span class="admin-section-eyebrow">Analítica administrativa</span>
-                    <h4>Reportes del Sistema</h4>
-                    <p>Indicadores de usuarios, cultivos y actividad reciente.</p>
-                </div>
-            </div>
-            <div class="card-body">
+<section class="admin-reports">
+    <header class="admin-reports__header">
+        <span class="admin-reports__header-icon"><i class="fas fa-chart-simple"></i></span>
+        <div>
+            <span class="admin-section-eyebrow">Analítica administrativa</span>
+            <h4>Reportes del Sistema</h4>
+            <p>Indicadores de usuarios, cultivos y actividad reciente.</p>
+        </div>
+    </header>
                 <!-- Resumen Estadístico -->
                 <div class="row mb-4 admin-reports__metrics">
                     <div class="col-md-4">
                         <article class="admin-reports__metric admin-reports__metric--users">
-                            <span class="admin-reports__metric-icon"><i class="fas fa-users"></i></span>
+                            <span class="admin-reports__metric-icon"><i class="fas fa-users-gear"></i></span>
                             <div>
                                 <span>Resumen de cuentas</span>
                                 <h3><?php echo $total_usuarios; ?></h3>
@@ -59,7 +56,7 @@ $cultivos_por_tipo = $conn->query("
                     </div>
                     <div class="col-md-4">
                         <article class="admin-reports__metric admin-reports__metric--crops">
-                            <span class="admin-reports__metric-icon"><i class="fas fa-leaf"></i></span>
+                            <span class="admin-reports__metric-icon"><i class="fas fa-seedling"></i></span>
                             <div>
                                 <span>Producción registrada</span>
                                 <h3><?php echo $total_cultivos; ?></h3>
@@ -83,7 +80,7 @@ $cultivos_por_tipo = $conn->query("
                 <ul class="nav nav-tabs admin-reports__tabs" id="reportTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-report" type="button">
-                            <i class="fas fa-users"></i> Usuarios
+                            <i class="fas fa-users-gear"></i> Usuarios
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -103,9 +100,9 @@ $cultivos_por_tipo = $conn->query("
                     <div class="tab-pane fade show active" id="usuarios-report">
                         <div class="row mt-3">
                             <div class="col-md-6 admin-report-panel">
-                                <h5><span><i class="fas fa-chart-pie"></i></span> Distribución por Rol</h5>
+                                <h5><span><i class="fas fa-chart-simple"></i></span> Distribución por Rol</h5>
                                 <div class="table-responsive">
-                                    <table class="table table-striped">
+                                    <table class="table table-striped" data-app-table-owner="report-users-role">
                                         <thead>
                                             <tr>
                                                 <th>Rol</th>
@@ -115,14 +112,14 @@ $cultivos_por_tipo = $conn->query("
                                         </thead>
                                         <tbody>
                                             <?php while ($row = $usuarios_por_rol->fetch_assoc()): 
-                                                $porcentaje = round(($row['cantidad'] / $total_usuarios) * 100, 1);
+                                                $porcentaje = $total_usuarios > 0 ? round(($row['cantidad'] / $total_usuarios) * 100, 1) : 0;
                                             ?>
                                             <tr>
                                                 <td><?php echo $row['rol']; ?></td>
                                                 <td><?php echo $row['cantidad']; ?></td>
                                                 <td>
                                                     <div class="progress" data-progress="<?php echo $porcentaje; ?>">
-                                                        <div class="progress-bar">
+                                                        <div class="progress-bar" style="width: <?php echo $porcentaje; ?>%;">
                                                             <?php echo $porcentaje; ?>%
                                                         </div>
                                                     </div>
@@ -134,9 +131,9 @@ $cultivos_por_tipo = $conn->query("
                                 </div>
                             </div>
                             <div class="col-md-6 admin-report-panel">
-                                <h5><span><i class="fas fa-user-group"></i></span> Lista Completa de Usuarios</h5>
+                                <h5><span><i class="fas fa-address-book"></i></span> Lista Completa de Usuarios</h5>
                                 <div class="table-responsive app-scroll-panel-sm">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm" data-app-table-owner="report-users-list">
                                         <thead>
                                             <tr>
                                                 <th>Nombre</th>
@@ -173,10 +170,10 @@ $cultivos_por_tipo = $conn->query("
                     <div class="tab-pane fade" id="cultivos-report">
                         <div class="row mt-3">
                             <div class="col-md-6 admin-report-panel">
-                                <h5><span><i class="fas fa-chart-column"></i></span> Cultivos por Tipo</h5>
+                                <h5><span><i class="fas fa-chart-bar"></i></span> Cultivos por Tipo</h5>
                                 <?php if ($cultivos_por_tipo->num_rows > 0): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-striped">
+                                    <table class="table table-striped" data-app-table-owner="report-crops-type">
                                         <thead>
                                             <tr>
                                                 <th>Tipo de Cultivo</th>
@@ -204,7 +201,7 @@ $cultivos_por_tipo = $conn->query("
                                 <h5><span><i class="fas fa-clock-rotate-left"></i></span> Últimos Cultivos Registrados</h5>
                                 <?php if ($cultivos_recientes->num_rows > 0): ?>
                                 <div class="table-responsive app-scroll-panel-sm">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm" data-app-table-owner="report-crops-recent">
                                         <thead>
                                             <tr>
                                                 <th>Tipo</th>
@@ -232,7 +229,7 @@ $cultivos_por_tipo = $conn->query("
                     <div class="tab-pane fade" id="actividad-report">
                         <div class="row mt-3">
                             <div class="col-md-12 admin-report-panel">
-                                <h5><span><i class="fas fa-wave-square"></i></span> Última Actividad</h5>
+                                <h5><span><i class="fas fa-signal"></i></span> Última Actividad</h5>
                                 <?php
                                 // ejemplo: combinamos actividades de usuarios y cultivos
                                 $actividad = $conn->query("
@@ -248,7 +245,7 @@ $cultivos_por_tipo = $conn->query("
 
                                 <?php if ($actividad && $actividad->num_rows > 0): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-striped">
+                                    <table class="table table-striped" data-app-table-owner="report-activity">
                                         <thead>
                                             <tr>
                                                 <th>Tipo</th>
@@ -280,7 +277,4 @@ $cultivos_por_tipo = $conn->query("
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+</section>

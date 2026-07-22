@@ -146,58 +146,51 @@ if ($tablesReady) {
 }
 ?>
 
-<div class="row mt-4 admin-invoice-module">
-    <div class="col-12">
+<section class="admin-invoices">
         <?php if (!$tablesReady): ?>
             <div class="alert alert-warning">
                 <i class="fas fa-triangle-exclamation"></i>
                 El módulo requiere ejecutar <strong>facturas_compra.sql</strong> en phpMyAdmin.
             </div>
         <?php else: ?>
-            <div class="card mb-4 admin-invoice-card">
-                <div class="card-header admin-invoice-header">
-                    <div>
-                        <span class="admin-invoice-kicker">Control financiero</span>
-                        <h4><i class="fas fa-file-invoice-dollar"></i> Facturas de Compra</h4>
+            <div class="admin-invoice-card">
+                <header class="admin-invoice-header">
+                    <span class="admin-invoice-header__icon"><i class="fas fa-receipt"></i></span>
+                    <div class="admin-invoice-heading-copy">
+                        <span class="admin-section-eyebrow">Control financiero</span>
+                        <h4>Facturas de compra</h4>
+                        <p>Revisa comprobantes, montos y estados de las compras registradas.</p>
                     </div>
-                    <span class="admin-invoice-count"><?php echo (int) $stats['registradas']; ?> por revisar</span>
-                </div>
-                <div class="card-body">
-                    <div class="admin-invoice-stats">
-                        <div class="admin-invoice-stat">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body text-center">
-                                    <h3><?php echo (int) $stats['total_facturas']; ?></h3>
-                                    <p class="mb-0">Facturas</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="admin-invoice-stat">
-                            <div class="card bg-info text-white">
-                                <div class="card-body text-center">
-                                    <h3>$<?php echo number_format((float) $stats['total_monto'], 2); ?></h3>
-                                    <p class="mb-0">Total registrado</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="admin-invoice-stat">
-                            <div class="card bg-success text-white">
-                                <div class="card-body text-center">
-                                    <h3>$<?php echo number_format((float) $stats['total_aprobado'], 2); ?></h3>
-                                    <p class="mb-0">Total aprobado</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="admin-invoice-stat">
-                            <div class="card bg-warning text-white">
-                                <div class="card-body text-center">
-                                    <h3><?php echo (int) $stats['registradas']; ?></h3>
-                                    <p class="mb-0">Por revisar</p>
-                                </div>
-                            </div>
-                        </div>
+                    <span class="admin-invoice-count">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                        <strong><?php echo (int) $stats['registradas']; ?></strong>
+                        <span>por revisar</span>
+                    </span>
+                </header>
+                    <div class="admin-invoice-stats" aria-label="Resumen financiero">
+                        <article class="admin-invoice-stat admin-invoice-stat--documents">
+                            <span class="admin-invoice-stat__icon"><i class="fas fa-file-invoice"></i></span>
+                            <div><span>Documentos</span><strong><?php echo (int) $stats['total_facturas']; ?></strong><small>Facturas registradas</small></div>
+                        </article>
+                        <article class="admin-invoice-stat admin-invoice-stat--amount">
+                            <span class="admin-invoice-stat__icon"><i class="fas fa-coins"></i></span>
+                            <div><span>Volumen total</span><strong>$<?php echo number_format((float) $stats['total_monto'], 2); ?></strong><small>Monto registrado</small></div>
+                        </article>
+                        <article class="admin-invoice-stat admin-invoice-stat--approved">
+                            <span class="admin-invoice-stat__icon"><i class="fas fa-circle-check"></i></span>
+                            <div><span>Aprobado</span><strong>$<?php echo number_format((float) $stats['total_aprobado'], 2); ?></strong><small>Monto validado</small></div>
+                        </article>
+                        <article class="admin-invoice-stat admin-invoice-stat--pending">
+                            <span class="admin-invoice-stat__icon"><i class="fas fa-hourglass-half"></i></span>
+                            <div><span>Pendientes</span><strong><?php echo (int) $stats['registradas']; ?></strong><small>Requieren revisión</small></div>
+                        </article>
                     </div>
 
+                    <section class="admin-invoice-filter-panel" aria-labelledby="adminInvoiceFiltersTitle">
+                        <div class="admin-invoice-section-heading">
+                            <span><i class="fas fa-sliders"></i></span>
+                            <div><h5 id="adminInvoiceFiltersTitle">Filtrar facturas</h5><p>Combina proveedor, estado o rango de fechas.</p></div>
+                        </div>
                     <form class="admin-invoice-filters" id="purchaseInvoiceFilters">
                         <div class="admin-invoice-filter admin-invoice-filter--provider">
                             <label class="form-label">Proveedor</label>
@@ -228,14 +221,20 @@ if ($tablesReady) {
                             <input type="date" name="fecha_hasta" class="form-control" value="<?php echo e($fechaHasta); ?>">
                         </div>
                         <div class="admin-invoice-filter-actions">
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filtrar</button>
-                            <button type="button" class="btn btn-outline-secondary" data-clear-invoice-filters>Limpiar</button>
+                            <button type="button" class="btn btn-outline-secondary" data-clear-invoice-filters><i class="fas fa-rotate-left"></i> Limpiar</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Aplicar filtros</button>
                         </div>
                     </form>
+                    </section>
 
+                    <section class="admin-invoice-ledger" aria-labelledby="adminInvoiceLedgerTitle">
+                        <div class="admin-invoice-ledger__heading">
+                            <div><span class="admin-section-eyebrow">Registro contable</span><h5 id="adminInvoiceLedgerTitle">Historial de facturas</h5></div>
+                            <span class="admin-invoice-ledger__count"><?php echo count($facturas); ?> resultados</span>
+                        </div>
                     <div class="table-responsive admin-invoice-table-wrap">
-                        <table class="table table-striped table-hover align-middle admin-invoice-table">
-                            <thead class="table-dark">
+                        <table class="table align-middle admin-invoice-table" data-app-table-owner="admin-invoices-table">
+                            <thead>
                                 <tr>
                                     <th>Pedido</th>
                                     <th>Número</th>
@@ -258,37 +257,37 @@ if ($tablesReady) {
                                                 : ($factura['estado'] === 'Anulada' ? 'secondary' : 'danger'));
                                         ?>
                                         <tr>
-                                            <td><?php echo $factura['id_pedido'] ? '#' . (int) $factura['id_pedido'] : 'Sin pedido'; ?></td>
-                                            <td><strong><?php echo e($factura['numero_factura']); ?></strong></td>
-                                            <td><?php echo date('d/m/Y', strtotime($factura['fecha'])); ?></td>
-                                            <td><?php echo e($factura['proveedor_nombre']); ?></td>
-                                            <td><?php echo e($factura['bodeguero_nombre']); ?></td>
-                                            <td><strong>$<?php echo number_format((float) $factura['total'], 2); ?></strong></td>
-                                            <td><span class="badge bg-<?php echo $badge; ?>"><?php echo e($factura['estado']); ?></span></td>
+                                            <td><span class="admin-invoice-order"><?php echo $factura['id_pedido'] ? '#' . (int) $factura['id_pedido'] : 'Sin pedido'; ?></span></td>
+                                            <td><strong class="admin-invoice-number"><?php echo e($factura['numero_factura']); ?></strong></td>
+                                            <td><time class="admin-invoice-date" datetime="<?php echo e($factura['fecha']); ?>"><?php echo date('d/m/Y', strtotime($factura['fecha'])); ?></time></td>
+                                            <td><span class="admin-invoice-provider"><?php echo e($factura['proveedor_nombre']); ?></span></td>
+                                            <td><span class="admin-invoice-owner"><?php echo e($factura['bodeguero_nombre']); ?></span></td>
+                                            <td><strong class="admin-invoice-total">$<?php echo number_format((float) $factura['total'], 2); ?></strong></td>
+                                            <td><span class="admin-invoice-status admin-invoice-status--<?php echo strtolower(e($factura['estado'])); ?>"><i></i><?php echo e($factura['estado']); ?></span></td>
                                             <td class="admin-invoice-actions">
-                                                <button class="btn btn-sm btn-outline-info" onclick="verDetallesFactura(<?php echo (int) $factura['id_factura_compra']; ?>)">
-                                                    <i class="fas fa-eye"></i> Ver
+                                                <button class="admin-invoice-action admin-invoice-action--view" onclick="verDetallesFactura(<?php echo (int) $factura['id_factura_compra']; ?>)" aria-label="Ver factura <?php echo e($factura['numero_factura']); ?>">
+                                                    <i class="fas fa-eye"></i><span>Ver</span>
                                                 </button>
                                                 <?php if ($factura['estado'] === 'Registrada'): ?>
                                                     <button
                                                         type="button"
-                                                        class="btn btn-sm btn-success"
+                                                        class="admin-invoice-action admin-invoice-action--approve"
                                                         data-admin-invoice-action="aprobar_factura"
                                                         data-invoice-id="<?php echo (int) $factura['id_factura_compra']; ?>"
                                                         data-invoice-number="<?php echo e($factura['numero_factura']); ?>"
                                                         data-invoice-provider="<?php echo e($factura['proveedor_nombre']); ?>"
                                                         data-invoice-total="$<?php echo number_format((float) $factura['total'], 2); ?>">
-                                                        <i class="fas fa-check"></i> Aprobar
+                                                        <i class="fas fa-check"></i><span>Aprobar</span>
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        class="btn btn-sm btn-danger"
+                                                        class="admin-invoice-action admin-invoice-action--reject"
                                                         data-admin-invoice-action="rechazar_factura"
                                                         data-invoice-id="<?php echo (int) $factura['id_factura_compra']; ?>"
                                                         data-invoice-number="<?php echo e($factura['numero_factura']); ?>"
                                                         data-invoice-provider="<?php echo e($factura['proveedor_nombre']); ?>"
                                                         data-invoice-total="$<?php echo number_format((float) $factura['total'], 2); ?>">
-                                                        <i class="fas fa-xmark"></i> Rechazar
+                                                        <i class="fas fa-xmark"></i><span>Rechazar</span>
                                                     </button>
                                                 <?php endif; ?>
                                             </td>
@@ -300,13 +299,12 @@ if ($tablesReady) {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                    </section>
             </div>
         <?php endif; ?>
-    </div>
-</div>
+</section>
 
-<div class="modal fade warehouse-confirm-modal admin-premium-modal" id="adminInvoiceConfirmModal" tabindex="-1" aria-labelledby="adminInvoiceConfirmTitle" aria-hidden="true">
+<div class="modal fade admin-premium-modal admin-invoice-review-modal" id="adminInvoiceConfirmModal" tabindex="-1" aria-labelledby="adminInvoiceConfirmTitle" aria-describedby="adminInvoiceConfirmMessage" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form id="adminInvoiceConfirmForm">
@@ -314,28 +312,32 @@ if ($tablesReady) {
                 <input type="hidden" id="adminInvoiceConfirmAction">
 
                 <div class="modal-header">
-                    <span class="warehouse-modal-icon" data-admin-invoice-modal-icon>
+                    <span class="admin-invoice-review__icon" data-admin-invoice-modal-icon>
                         <i class="fas fa-file-circle-check"></i>
                     </span>
-                    <div>
-                        <span class="farmer-kicker">Revisión administrativa</span>
+                    <div class="admin-premium-modal__heading">
+                        <span class="farmer-kicker" data-admin-invoice-modal-eyebrow>Revisión administrativa</span>
                         <h2 class="modal-title" id="adminInvoiceConfirmTitle">Aprobar factura</h2>
+                        <p>Verifique los datos antes de registrar la decisión.</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
 
                 <div class="modal-body">
-                    <p data-admin-invoice-modal-message>Revise la factura antes de continuar.</p>
-                    <div class="warehouse-modal-summary">
-                        <div>
+                    <div class="admin-invoice-review__message">
+                        <i class="fas fa-circle-info" data-admin-invoice-message-icon aria-hidden="true"></i>
+                        <p id="adminInvoiceConfirmMessage" data-admin-invoice-modal-message>Revise la factura antes de continuar.</p>
+                    </div>
+                    <div class="admin-invoice-review__summary">
+                        <div class="admin-invoice-review__number">
                             <span>Número</span>
                             <strong data-admin-invoice-modal-number></strong>
                         </div>
-                        <div>
+                        <div class="admin-invoice-review__provider">
                             <span>Proveedor</span>
                             <strong data-admin-invoice-modal-provider></strong>
                         </div>
-                        <div>
+                        <div class="admin-invoice-review__total">
                             <span>Total</span>
                             <strong data-admin-invoice-modal-total></strong>
                         </div>
@@ -343,8 +345,8 @@ if ($tablesReady) {
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn warehouse-modal-back" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn warehouse-modal-confirm" data-admin-invoice-modal-confirm data-skip-loading="1">
+                    <button type="button" class="btn admin-invoice-review__back" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn admin-invoice-review__confirm" data-admin-invoice-modal-confirm data-skip-loading="1">
                         <i class="fas fa-check"></i>
                         <span>Confirmar aprobación</span>
                     </button>
@@ -355,14 +357,14 @@ if ($tablesReady) {
 </div>
 
 <div class="modal fade admin-premium-modal admin-invoice-detail-modal" id="modalDetallesFactura" tabindex="-1" aria-labelledby="modalDetallesFacturaTitle" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <span class="admin-premium-modal__icon"><i class="fas fa-file-invoice-dollar"></i></span>
                 <div class="admin-premium-modal__heading">
                     <span class="farmer-kicker">Control financiero</span>
                     <h2 class="modal-title" id="modalDetallesFacturaTitle">Detalle de factura</h2>
-                    <p>Información de compra, proveedor e insumos recibidos.</p>
+                    <p>Resumen contable y recepción de insumos.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>

@@ -130,224 +130,190 @@ if ($area_total_query) {
 }
 ?>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4><i class="fas fa-seedling"></i> Gestión de Cultivos y Lotes</h4>
-            </div>
-            <div class="card-body">
-                <!-- Estadísticas rápidas -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card bg-success text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-leaf fa-2x mb-2"></i>
-                                <h3><?php echo $stats_cultivos['total_cultivos'] ?: 0; ?></h3>
-                                <p class="mb-0">Total Cultivos</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-info text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-layer-group fa-2x mb-2"></i>
-                                <h3><?php echo $stats_cultivos['tipos_diferentes'] ?: 0; ?></h3>
-                                <p class="mb-0">Tipos de Cultivo</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-warning text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-map-location-dot fa-2x mb-2"></i>
-                                <h3><?php echo $stats_lotes['total_lotes'] ?: 0; ?></h3>
-                                <p class="mb-0">Total Lotes</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-primary text-white">
-                            <div class="card-body text-center">
-                                <i class="fas fa-maximize fa-2x mb-2"></i>
-                                <h3><?php echo number_format($area_total, 1); ?></h3>
-                                <p class="mb-0">Área Total (aprox.)</p>
-                            </div>
-                        </div>
-                    </div>
+<section class="admin-crops">
+    <header class="admin-crops__header">
+        <span class="admin-crops__header-icon"><i class="fas fa-seedling"></i></span>
+        <div>
+            <span class="admin-section-eyebrow">Producción agrícola</span>
+            <h4>Gestión de cultivos y lotes</h4>
+            <p>Supervisa ciclos, terrenos y responsables desde una vista operativa.</p>
+        </div>
+    </header>
+
+    <div class="admin-crops__metrics">
+        <article class="admin-crops__metric admin-crops__metric--crop">
+            <span class="admin-crops__metric-icon"><i class="fas fa-leaf"></i></span>
+            <div><span>Cultivos</span><strong><?php echo $stats_cultivos['total_cultivos'] ?: 0; ?></strong><small>Registros activos</small></div>
+        </article>
+        <article class="admin-crops__metric admin-crops__metric--type">
+            <span class="admin-crops__metric-icon"><i class="fas fa-layer-group"></i></span>
+            <div><span>Tipos</span><strong><?php echo $stats_cultivos['tipos_diferentes'] ?: 0; ?></strong><small>Variedades registradas</small></div>
+        </article>
+        <article class="admin-crops__metric admin-crops__metric--lot">
+            <span class="admin-crops__metric-icon"><i class="fas fa-map-location-dot"></i></span>
+            <div><span>Lotes</span><strong><?php echo $stats_lotes['total_lotes'] ?: 0; ?></strong><small>Superficie productiva</small></div>
+        </article>
+        <article class="admin-crops__metric admin-crops__metric--area">
+            <span class="admin-crops__metric-icon"><i class="fas fa-maximize"></i></span>
+            <div><span>Área aprox.</span><strong><?php echo number_format($area_total, 1); ?></strong><small>Total reportado</small></div>
+        </article>
+    </div>
+
+    <ul class="nav admin-crops__tabs" id="cultivoTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="cultivos-tab" data-bs-toggle="tab" data-bs-target="#cultivos-section" type="button">
+                <i class="fas fa-seedling"></i> Cultivos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="lotes-tab" data-bs-toggle="tab" data-bs-target="#lotes-section" type="button">
+                <i class="fas fa-map-location-dot"></i> Lotes
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content admin-crops__content" id="cultivoTabsContent">
+        <div class="tab-pane fade show active" id="cultivos-section">
+            <section class="admin-crops__panel">
+                <div class="admin-crops__panel-heading">
+                    <div><span class="admin-section-eyebrow">Registro productivo</span><h5>Cultivos registrados</h5></div>
+                    <span class="admin-crops__count"><?php echo $cultivos ? $cultivos->num_rows : 0; ?> resultados</span>
                 </div>
-
-                <!-- Tabs para cultivos y lotes -->
-                <ul class="nav nav-tabs" id="cultivoTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="cultivos-tab" data-bs-toggle="tab" data-bs-target="#cultivos-section" type="button">
-                            <i class="fas fa-seedling"></i> Cultivos Registrados
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="lotes-tab" data-bs-toggle="tab" data-bs-target="#lotes-section" type="button">
-                            <i class="fas fa-map-location-dot"></i> Lotes
-                        </button>
-                    </li>
-                </ul>
-
-                <div class="tab-content" id="cultivoTabsContent">
-                    <!-- Sección de Cultivos -->
-                    <div class="tab-pane fade show active" id="cultivos-section">
-                        <div class="mt-3">
-                            <?php if ($cultivos && $cultivos->num_rows > 0): ?>
-                                <div class="alert alert-warning">
-                                    <i class="fas fa-triangle-exclamation"></i> <strong>Nota:</strong> No se puede eliminar un cultivo que tenga lotes asociados. Elimine primero los lotes o contacte al administrador del sistema.
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Tipo de Cultivo</th>
-                                                <th>Fecha Siembra</th>
-                                                <th>Agricultor</th>
-                                                <th>Estado</th>
-                                                <th>Lotes Asociados</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php while ($cultivo = $cultivos->fetch_assoc()): ?>
-                                            <?php 
-                                            // Contar lotes asociados
-                                            $lotes_count = (int) db_value(
-                                                $conn,
-                                                "SELECT COUNT(*) FROM lotes WHERE id_cultivo = ?",
-                                                "i",
-                                                [(int) $cultivo['id_cultivo']],
-                                                0
-                                            );
-                                            ?>
-                                            <tr>
-                                                <td><?php echo $cultivo['id_cultivo']; ?></td>
-                                                <td>
-                                                    <span class="badge bg-success">
-                                                        <?php echo htmlspecialchars($cultivo['tipo']); ?>
-                                                    </span>
-                                                </td>
-                                                <td><?php echo date('d/m/Y', strtotime($cultivo['fecha_siembra'])); ?></td>
-                                                <td><?php echo htmlspecialchars($cultivo['agricultor_nombre'] ?: 'No asignado'); ?></td>
-                                                <td>
-                                                    <?php 
-                                                    if ((int) $cultivo['lotes_en_cosecha'] > 0) {
-                                                        echo '<span class="badge admin-crop-status admin-crop-status--harvest">En cosecha</span>';
-                                                    } elseif ((int) $cultivo['total_lotes'] > 0
-                                                        && (int) $cultivo['lotes_finalizados'] === (int) $cultivo['total_lotes']) {
-                                                        echo '<span class="badge admin-crop-status admin-crop-status--finished">Finalizado</span>';
-                                                    } elseif ((int) $cultivo['total_lotes'] > 0
-                                                        && (int) $cultivo['lotes_cancelados'] === (int) $cultivo['total_lotes']) {
-                                                        echo '<span class="badge admin-crop-status admin-crop-status--cancelled">Cancelado</span>';
-                                                    } else {
-                                                        echo '<span class="badge admin-crop-status admin-crop-status--active">Activo</span>';
-                                                    }
-                                                    ?>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-<?php echo $lotes_count > 0 ? 'warning' : 'secondary'; ?>">
-                                                        <?php echo $lotes_count; ?> lote(s)
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-info" onclick="verDetallesCultivo(<?php echo $cultivo['id_cultivo']; ?>)">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        data-admin-crop-delete="cultivo"
-                                                        data-record-id="<?php echo (int) $cultivo['id_cultivo']; ?>"
-                                                        data-record-name="<?php echo htmlspecialchars($cultivo['tipo'], ENT_QUOTES, 'UTF-8'); ?>"
-                                                        <?php echo $lotes_count > 0 ? 'disabled title="No se puede eliminar: tiene lotes asociados"' : ''; ?>>
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <?php endwhile; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php else: ?>
-                                <div class="alert alert-info text-center">
-                                    <i class="fas fa-seedling fa-3x mb-3"></i>
-                                    <h5>No hay cultivos registrados</h5>
-                                    <p>Los agricultores pueden registrar sus cultivos desde su panel de control.</p>
-                                </div>
-                            <?php endif; ?>
-                        </div>
+                <?php if ($cultivos && $cultivos->num_rows > 0): ?>
+                    <div class="admin-crops__notice">
+                        <span><i class="fas fa-triangle-exclamation"></i></span>
+                        <p><strong>Eliminación protegida</strong> No se puede eliminar un cultivo con lotes asociados.</p>
                     </div>
-
-                    <!-- Sección de Lotes -->
-                    <div class="tab-pane fade" id="lotes-section">
-                        <div class="mt-3">
-                            <?php if ($lotes && $lotes->num_rows > 0): ?>
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Ubicación</th>
-                                                <th>Área/Zona</th>
-                                                <th>Cultivo</th>
-                                                <th>Agricultor</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php while ($lote = $lotes->fetch_assoc()): ?>
-                                            <tr>
-                                                <td><?php echo $lote['id_lote']; ?></td>
-                                                <td>
-                                                    <strong><?php echo htmlspecialchars($lote['ubicacion']); ?></strong>
-                                                </td>
-                                                <td><?php echo htmlspecialchars($lote['area']); ?></td>
-                                                <td>
-                                                    <span class="badge bg-primary">
-                                                        <?php echo htmlspecialchars($lote['cultivo_tipo'] ?: 'Sin cultivo'); ?>
-                                                    </span>
-                                                </td>
-                                                <td><?php echo htmlspecialchars($lote['agricultor_nombre'] ?: 'No asignado'); ?></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-info" onclick="verDetalleLote(<?php echo $lote['id_lote']; ?>)">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        data-admin-crop-delete="lote"
-                                                        data-record-id="<?php echo (int) $lote['id_lote']; ?>"
-                                                        data-record-name="<?php echo htmlspecialchars($lote['ubicacion'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <?php endwhile; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php else: ?>
-                                <div class="alert alert-info text-center">
-                                    <i class="fas fa-map-location-dot fa-3x mb-3"></i>
-                                    <h5>No hay lotes registrados</h5>
-                                    <p>Los agricultores pueden registrar sus lotes desde su panel de control.</p>
-                                </div>
-                            <?php endif; ?>
-                        </div>
+                    <div class="table-responsive admin-crops__table-wrap">
+                        <table class="table align-middle admin-crops__table" data-app-table-owner="admin-crops-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tipo de cultivo</th>
+                                    <th>Fecha siembra</th>
+                                    <th>Agricultor</th>
+                                    <th>Estado</th>
+                                    <th>Lotes</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($cultivo = $cultivos->fetch_assoc()): ?>
+                                <?php 
+                                $lotes_count = (int) db_value(
+                                    $conn,
+                                    "SELECT COUNT(*) FROM lotes WHERE id_cultivo = ?",
+                                    "i",
+                                    [(int) $cultivo['id_cultivo']],
+                                    0
+                                );
+                                ?>
+                                <tr>
+                                    <td><strong>#<?php echo (int) $cultivo['id_cultivo']; ?></strong></td>
+                                    <td><span class="admin-crop-tag"><i class="fas fa-leaf"></i><?php echo htmlspecialchars($cultivo['tipo']); ?></span></td>
+                                    <td><?php echo date('d/m/Y', strtotime($cultivo['fecha_siembra'])); ?></td>
+                                    <td><?php echo htmlspecialchars($cultivo['agricultor_nombre'] ?: 'No asignado'); ?></td>
+                                    <td>
+                                        <?php 
+                                        if ((int) $cultivo['lotes_en_cosecha'] > 0) {
+                                            echo '<span class="admin-crop-status admin-crop-status--harvest"><i></i>En cosecha</span>';
+                                        } elseif ((int) $cultivo['total_lotes'] > 0
+                                            && (int) $cultivo['lotes_finalizados'] === (int) $cultivo['total_lotes']) {
+                                            echo '<span class="admin-crop-status admin-crop-status--finished"><i></i>Finalizado</span>';
+                                        } elseif ((int) $cultivo['total_lotes'] > 0
+                                            && (int) $cultivo['lotes_cancelados'] === (int) $cultivo['total_lotes']) {
+                                            echo '<span class="admin-crop-status admin-crop-status--cancelled"><i></i>Cancelado</span>';
+                                        } else {
+                                            echo '<span class="admin-crop-status admin-crop-status--active"><i></i>Activo</span>';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td><span class="admin-crop-lots"><?php echo $lotes_count; ?> lote(s)</span></td>
+                                    <td>
+                                        <div class="admin-crops__actions">
+                                            <button class="admin-crops__action admin-crops__action--view" onclick="verDetallesCultivo(<?php echo (int) $cultivo['id_cultivo']; ?>)" aria-label="Ver cultivo <?php echo htmlspecialchars($cultivo['tipo'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="admin-crops__action admin-crops__action--delete"
+                                                data-admin-crop-delete="cultivo"
+                                                data-record-id="<?php echo (int) $cultivo['id_cultivo']; ?>"
+                                                data-record-name="<?php echo htmlspecialchars($cultivo['tipo'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                <?php echo $lotes_count > 0 ? 'disabled title="No se puede eliminar: tiene lotes asociados"' : ''; ?>>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
                     </div>
+                <?php else: ?>
+                    <div class="app-empty-state">No hay cultivos registrados.</div>
+                <?php endif; ?>
+            </section>
+        </div>
+
+        <div class="tab-pane fade" id="lotes-section">
+            <section class="admin-crops__panel">
+                <div class="admin-crops__panel-heading">
+                    <div><span class="admin-section-eyebrow">Superficie productiva</span><h5>Lotes registrados</h5></div>
+                    <span class="admin-crops__count"><?php echo $lotes ? $lotes->num_rows : 0; ?> resultados</span>
                 </div>
-            </div>
+                <?php if ($lotes && $lotes->num_rows > 0): ?>
+                    <div class="table-responsive admin-crops__table-wrap">
+                        <table class="table align-middle admin-crops__table" data-app-table-owner="admin-lots-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Ubicación</th>
+                                    <th>Área/Zona</th>
+                                    <th>Cultivo</th>
+                                    <th>Agricultor</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($lote = $lotes->fetch_assoc()): ?>
+                                <tr>
+                                    <td><strong>#<?php echo (int) $lote['id_lote']; ?></strong></td>
+                                    <td><strong><?php echo htmlspecialchars($lote['ubicacion']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($lote['area']); ?></td>
+                                    <td><span class="admin-crop-tag admin-crop-tag--lot"><i class="fas fa-seedling"></i><?php echo htmlspecialchars($lote['cultivo_tipo'] ?: 'Sin cultivo'); ?></span></td>
+                                    <td><?php echo htmlspecialchars($lote['agricultor_nombre'] ?: 'No asignado'); ?></td>
+                                    <td>
+                                        <div class="admin-crops__actions">
+                                            <button class="admin-crops__action admin-crops__action--view" onclick="verDetalleLote(<?php echo (int) $lote['id_lote']; ?>)" aria-label="Ver lote <?php echo htmlspecialchars($lote['ubicacion'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="admin-crops__action admin-crops__action--delete"
+                                                data-admin-crop-delete="lote"
+                                                data-record-id="<?php echo (int) $lote['id_lote']; ?>"
+                                                data-record-name="<?php echo htmlspecialchars($lote['ubicacion'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <div class="app-empty-state">No hay lotes registrados.</div>
+                <?php endif; ?>
+            </section>
         </div>
     </div>
-</div>
+</section>
 
 <!-- Modal para detalles del cultivo -->
 <div class="modal fade admin-premium-modal admin-crop-detail-modal" id="modalDetallesCultivo" tabindex="-1" aria-labelledby="modalDetallesCultivoTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <span class="admin-premium-modal__icon"><i class="fas fa-seedling"></i></span>
@@ -373,7 +339,7 @@ if ($area_total_query) {
 
 <!-- Modal para detalles del lote -->
 <div class="modal fade admin-premium-modal admin-crop-detail-modal" id="modalDetalleLote" tabindex="-1" aria-labelledby="modalDetalleLoteTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <span class="admin-premium-modal__icon"><i class="fas fa-map-location-dot"></i></span>

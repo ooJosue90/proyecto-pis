@@ -5,6 +5,8 @@
 
 # Dependencias instaladas por Composer
 /vendor/
+/node_modules/
+/.pnpm-store/
 
 # Respaldos y scripts de base de datos
 *.sql

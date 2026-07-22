@@ -20,10 +20,6 @@ $productos_factura = $conn->query("
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Productos en Factura</title>
     <link rel="icon" type="image/x-icon" href="assets/mango.ico" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet">
-    <link href="css/dashboard.css?v=<?= filemtime(__DIR__ . '/css/dashboard.css'); ?>" rel="stylesheet">
-    <link href="asistente/asistente_virtual.css" rel="stylesheet">
 </head>
 <body class="print-page warehouse-report-page">
 <main class="print-report">
@@ -94,7 +90,7 @@ $productos_factura = $conn->query("
     </footer>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <?php render_ada_chat(); ?>
 </body>
 </html>

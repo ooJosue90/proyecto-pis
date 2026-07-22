@@ -58,7 +58,8 @@ if ($result->num_rows === 0) {
     exit();
 }
 
-echo "<table class='table table-striped'>";
+echo "<div class='table-responsive admin-lot-history-table-wrap'>";
+echo "<table class='table admin-lot-history-table' data-app-table-owner='historialLoteContent'>";
 echo "<thead><tr><th>ID</th><th>Agricultor</th><th>Producto</th><th>Cantidad</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>";
 
 while ($row = $result->fetch_assoc()) {
@@ -76,6 +77,7 @@ while ($row = $result->fetch_assoc()) {
 }
 
 echo "</tbody></table>";
+echo "</div>";
 
 $stmt->close();
 $conn->close();

@@ -32,13 +32,13 @@ if ($row = $result->fetch_assoc()) {
     
     // El estado operativo depende de los lotes, no solo del tiempo transcurrido.
     if ((int) $row['lotes_en_cosecha'] > 0) {
-        $estado = '<span class="badge bg-warning text-dark">En cosecha</span>';
+        $estado = '<span class="admin-crop-status admin-crop-status--harvest"><i></i>En cosecha</span>';
     } elseif ((int) $row['total_lotes'] > 0 && (int) $row['lotes_finalizados'] === (int) $row['total_lotes']) {
-        $estado = '<span class="badge bg-success">Finalizado</span>';
+        $estado = '<span class="admin-crop-status admin-crop-status--finished"><i></i>Finalizado</span>';
     } elseif ((int) $row['total_lotes'] > 0 && (int) $row['lotes_cancelados'] === (int) $row['total_lotes']) {
-        $estado = '<span class="badge bg-danger">Cancelado</span>';
+        $estado = '<span class="admin-crop-status admin-crop-status--cancelled"><i></i>Cancelado</span>';
     } else {
-        $estado = '<span class="badge bg-primary">Activo</span>';
+        $estado = '<span class="admin-crop-status admin-crop-status--active"><i></i>Activo</span>';
     }
     
     echo "<div class='admin-crop-detail'>";

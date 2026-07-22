@@ -86,7 +86,7 @@ $pending_requests = $conn->query("
 if ((int) $pending_requests['total'] > 0) {
     $notification_total += (int) $pending_requests['total'];
     $system_events[] = [
-        'icon' => 'fas fa-clipboard-list',
+        'icon' => 'fas fa-clipboard-check',
         'title' => 'Solicitudes pendientes',
         'message' => (int) $pending_requests['total'] . ' solicitudes esperan aprobación.',
         'date' => $pending_requests['ultima_fecha'],
@@ -102,7 +102,7 @@ $registered_invoices = $conn->query("
 if ((int) $registered_invoices['total'] > 0) {
     $notification_total += (int) $registered_invoices['total'];
     $system_events[] = [
-        'icon' => 'fas fa-file-invoice-dollar',
+        'icon' => 'fas fa-receipt',
         'title' => 'Facturas registradas',
         'message' => (int) $registered_invoices['total'] . ' facturas están pendientes de revisión.',
         'date' => $registered_invoices['ultima_fecha'],
@@ -118,7 +118,7 @@ $received_orders = $conn->query("
 if ((int) $received_orders['total'] > 0) {
     $notification_total += (int) $received_orders['total'];
     $system_events[] = [
-        'icon' => 'fas fa-truck-ramp-box',
+        'icon' => 'fas fa-truck-fast',
         'title' => 'Pedidos recibidos',
         'message' => (int) $received_orders['total'] . ' pedidos fueron recibidos en los últimos 7 días.',
         'date' => $received_orders['ultima_fecha'],
@@ -134,7 +134,7 @@ $new_users = $conn->query("
 if ((int) $new_users['total'] > 0) {
     $notification_total += (int) $new_users['total'];
     $system_events[] = [
-        'icon' => 'fas fa-user-plus',
+        'icon' => 'fas fa-user-check',
         'title' => 'Usuarios nuevos',
         'message' => (int) $new_users['total'] . ' usuarios se registraron en los últimos 7 días.',
         'date' => $new_users['ultima_fecha'],
@@ -146,7 +146,7 @@ $unread_notifications = $conn->query("SELECT * FROM notificaciones WHERE leida =
 while ($notification = $unread_notifications->fetch_assoc()) {
     $notification_total++;
     $system_events[] = [
-        'icon' => 'fas fa-bell',
+        'icon' => 'fas fa-satellite-dish',
         'title' => 'Actividad del sistema',
         'message' => $notification['mensaje'],
         'date' => $notification['fecha'],
@@ -168,120 +168,188 @@ $last_activity = $conn->query("
         UNION ALL SELECT MAX(fecha) FROM notificaciones
     ) eventos
 ")->fetch_assoc()['ultima_fecha'];
+
+$admin_weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+$admin_months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+$admin_today = $admin_weekdays[(int) date('w')] . ', ' . date('j') . ' de ' . $admin_months[(int) date('n') - 1] . ' de ' . date('Y');
+$pending_requests_count = (int) ($pending_requests['total'] ?? 0);
+$total_inventory_items = (int) $total_inventario_operativo + (int) $total_alertas_inventario;
+$inventory_health = $total_inventory_items > 0
+    ? (int) round(((int) $total_inventario_operativo / $total_inventory_items) * 100)
+    : 100;
 ?>
 
-<?php render_head('Panel Administrador'); ?>
+<?php render_head('Panel Administrador', [
+    'https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Roboto+Condensed:wght@400;500;600;700;800;900&display=swap',
+    'assets/vendor/bootstrap/bootstrap.min.css',
+    'css/admin.css?v=' . filemtime(__DIR__ . '/css/admin.css'),
+]); ?>
 
 <body class="farmer-dashboard-page admin-dashboard-page">
-    <?php render_app_nav('fas fa-seedling', 'SembriExport Admin', [
-        ['href' => '#', 'label' => 'Bienvenido, ' . current_user_name(), 'class' => 'btn btn-link text-white text-decoration-none btn-sm disabled'],
-        ['href' => 'logout.php', 'label' => 'Cerrar Sesión', 'icon' => 'fas fa-arrow-right-from-bracket', 'class' => 'btn btn-outline-light btn-sm'],
-    ]); ?>
+    <div class="admin-tablet-shell">
+        <aside class="sidebar" id="mainSidebar" aria-label="Navegación principal">
+            <div class="logo-container">
+                <div class="admin-sidebar-logo">
+                    <i class="fas fa-seedling" aria-hidden="true"></i>
+                </div>
+                <span class="nav-label admin-sidebar-brand">SembriExport</span>
+            </div>
 
-    <div class="container farmer-dashboard admin-dashboard mt-4">
+            <nav class="app-sidebar-nav admin-reference-nav">
+                <button class="nav-item app-sidebar-link active" type="button" data-app-tab="#dashboard" title="Dashboard">
+                    <i class="fas fa-gauge-high" aria-hidden="true"></i>
+                    <span class="nav-label">Dashboard</span>
+                </button>
+                <button class="nav-item app-sidebar-link" type="button" data-app-tab="#reportes" title="Reportes">
+                    <i class="fas fa-chart-simple" aria-hidden="true"></i>
+                    <span class="nav-label">Reportes</span>
+                </button>
+                <button class="nav-item app-sidebar-link" type="button" data-app-tab="#usuarios" title="Usuarios">
+                    <i class="fas fa-users-gear" aria-hidden="true"></i>
+                    <span class="nav-label">Usuarios</span>
+                </button>
+                <button class="nav-item app-sidebar-link" type="button" data-app-tab="#solicitudes" title="Solicitudes">
+                    <i class="fas fa-clipboard-check" aria-hidden="true"></i>
+                    <span class="nav-label">Solicitudes</span>
+                </button>
+                <button class="nav-item app-sidebar-link" type="button" data-app-tab="#movimientos" title="Movimientos">
+                    <i class="fas fa-arrow-right-arrow-left" aria-hidden="true"></i>
+                    <span class="nav-label">Movimientos</span>
+                </button>
+                <button class="nav-item app-sidebar-link" type="button" data-app-tab="#facturas" title="Facturas">
+                    <i class="fas fa-receipt" aria-hidden="true"></i>
+                    <span class="nav-label">Facturas</span>
+                </button>
+                <button class="nav-item app-sidebar-link" type="button" data-app-tab="#cultivos" title="Cultivos">
+                    <i class="fas fa-seedling" aria-hidden="true"></i>
+                    <span class="nav-label">Cultivos</span>
+                </button>
+                <button class="nav-item app-sidebar-link" type="button" data-app-tab="#pedidos-proveedores" title="Proveedores">
+                    <i class="fas fa-truck-fast" aria-hidden="true"></i>
+                    <span class="nav-label">Proveedores</span>
+                </button>
+            </nav>
+
+            <div class="admin-sidebar-actions">
+                <a class="nav-item" href="logout.php" title="Cerrar sesión">
+                    <i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                    <span class="nav-label">Log out</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="admin-inner-container">
+            <header class="admin-reference-topbar">
+                <div class="admin-topbar-user">
+                    <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
+                    <div>
+                        <h2>Saludos, <?php echo e(current_user_name()); ?></h2>
+                        <p>Inicia tu jornada con Verdeagro ERP</p>
+                    </div>
+                </div>
+                <div class="admin-topbar-actions">
+                    <div class="admin-account-menu" data-admin-account-menu>
+                        <button class="admin-account-button" type="button" aria-haspopup="menu" aria-expanded="false" data-admin-account-trigger>
+                            <span class="admin-account-initials" aria-hidden="true"><?php echo e(app_user_initials()); ?></span>
+                            <span>Cuenta</span>
+                            <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                        </button>
+                        <div class="admin-account-dropdown" role="menu" aria-label="Opciones de cuenta">
+                            <div class="admin-account-dropdown__profile" aria-hidden="true">
+                                <strong>Admin Principal</strong>
+                                <small><?php echo e(current_user_name()); ?></small>
+                            </div>
+                            <a href="logout.php" role="menuitem">
+                                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                                <span>Cerrar sesión</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="container farmer-dashboard admin-dashboard mt-4">
         <?php render_flash_messages(); ?>
 
         <section class="farmer-page-heading admin-page-heading">
-            <div class="admin-heading-copy">
-                <span class="farmer-kicker">Administración</span>
-                <h1>Centro de Control</h1>
-                <p>Resumen general de usuarios, cultivos e inventario de SembriExport.</p>
-            </div>
-            <div class="admin-heading-actions">
-                <span class="admin-status-chip">
-                    <i class="fas fa-bell"></i>
-                    <strong><?php echo $notification_total; ?></strong>
-                    <?php echo $notification_total === 1 ? 'Notificación' : 'Notificaciones'; ?>
-                </span>
-                <span class="admin-status-chip admin-status-chip--warning">
-                    <i class="fas fa-triangle-exclamation"></i>
-                    <strong><?php echo $total_alertas_inventario; ?></strong>
-                    <?php echo $total_alertas_inventario === 1 ? 'Alerta' : 'Alertas'; ?>
-                </span>
+            <div class="admin-greeting">
+                <div class="admin-heading-copy">
+                    <h1>Resumen <span>general</span></h1>
+                    <p><?php echo e($admin_today); ?></p>
+                </div>
             </div>
         </section>
 
         <div class="tab-content" id="adminTabsContent">
             <!-- Dashboard Tab -->
             <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
-                <!-- Estadísticas Principales -->
-                <section class="admin-overview-section" aria-labelledby="admin-overview-title">
-                    <div class="admin-section-heading">
-                        <div>
-                            <span class="admin-section-eyebrow">Vista general</span>
-                            <h2 id="admin-overview-title">Indicadores principales</h2>
+                <section class="admin-hero-banner" aria-labelledby="admin-hero-title">
+                    <div class="admin-hero-copy">
+                        <span class="admin-hero-eyebrow">Control center</span>
+                        <h2 id="admin-hero-title">Operación agrícola en <span>tiempo real</span></h2>
+                        <p>Supervisa inventario, producción, solicitudes y alertas críticas desde una sola vista ejecutiva.</p>
+                        <div class="admin-hero-actions">
+                            <a class="admin-hero-primary" href="#reportes" data-app-tab="#reportes">
+                                <i class="fas fa-chart-simple"></i>
+                                Ver reportes
+                            </a>
+                            <a class="admin-hero-secondary" href="#admin-priorities">
+                                <i class="fas fa-compass"></i>
+                                Ver prioridades
+                            </a>
                         </div>
-                        <span class="admin-live-status"><i class="fas fa-circle"></i> Datos actualizados</span>
                     </div>
-
-                    <div class="admin-metrics-grid">
-                        <article class="admin-metric-card admin-metric-card--users">
-                            <div class="admin-metric-top">
-                                <span class="admin-metric-icon"><i class="fas fa-users"></i></span>
-                                <span class="admin-metric-tag">Usuarios</span>
-                            </div>
-                            <strong class="admin-metric-value"><?php echo $total_usuarios; ?></strong>
-                            <p>Total de usuarios registrados</p>
-                            <span class="admin-metric-detail"><i class="fas fa-user-tie"></i> <?php echo $agricultores; ?> agricultores activos</span>
+                    <div class="admin-hero-metrics" aria-label="Resumen destacado">
+                        <article class="admin-hero-mini">
+                            <span>Usuarios</span>
+                            <strong><?php echo $total_usuarios; ?></strong>
+                            <small><?php echo $agricultores; ?> agricultores activos</small>
                         </article>
-
-                        <article class="admin-metric-card admin-metric-card--crops">
-                            <div class="admin-metric-top">
-                                <span class="admin-metric-icon"><i class="fas fa-seedling"></i></span>
-                                <span class="admin-metric-tag">Producción</span>
-                            </div>
-                            <strong class="admin-metric-value"><?php echo $total_cultivos; ?></strong>
-                            <p>Cultivos registrados</p>
-                            <span class="admin-metric-detail"><i class="fas fa-leaf"></i> Seguimiento agrícola</span>
+                        <article class="admin-hero-mini">
+                            <span>Inventario sano</span>
+                            <strong><?php echo $inventory_health; ?>%</strong>
+                            <small><?php echo $total_inventario_operativo; ?> ítems operativos</small>
                         </article>
-
-                        <article class="admin-metric-card admin-metric-card--lots">
-                            <div class="admin-metric-top">
-                                <span class="admin-metric-icon"><i class="fas fa-map-location-dot"></i></span>
-                                <span class="admin-metric-tag">Territorio</span>
-                            </div>
-                            <strong class="admin-metric-value"><?php echo $total_lotes; ?></strong>
-                            <p>Lotes activos</p>
-                            <span class="admin-metric-detail"><i class="fas fa-location-dot"></i> Áreas bajo gestión</span>
+                        <article class="admin-hero-mini">
+                            <span>Producción</span>
+                            <strong><?php echo $total_cultivos; ?></strong>
+                            <small><?php echo $total_lotes; ?> lotes monitoreados</small>
                         </article>
-
-                        <article class="admin-metric-card admin-metric-card--farmers">
-                            <div class="admin-metric-top">
-                                <span class="admin-metric-icon"><i class="fas fa-user-tie"></i></span>
-                                <span class="admin-metric-tag">Equipo</span>
-                            </div>
-                            <strong class="admin-metric-value"><?php echo $agricultores; ?></strong>
-                            <p>Agricultores vinculados</p>
-                            <span class="admin-metric-detail"><i class="fas fa-circle-check"></i> Personal registrado</span>
+                        <article class="admin-hero-mini">
+                            <span>Pendientes</span>
+                            <strong><?php echo $notification_total; ?></strong>
+                            <small><?php echo $pending_requests_count; ?> solicitudes por revisar</small>
                         </article>
                     </div>
                 </section>
 
-                <section class="admin-dashboard-row">
-                    <div class="admin-notification-panel">
-                        <div class="admin-panel-heading">
-                            <span class="admin-panel-icon"><i class="fas fa-bell"></i></span>
-                            <div>
-                                <span class="admin-section-eyebrow">Actividad reciente</span>
-                                <h2>Centro de notificaciones</h2>
+                <section class="admin-premium-dashboard" aria-labelledby="admin-activity-title">
+                    <div class="admin-premium-main">
+                        <section class="admin-activity-table" aria-labelledby="admin-activity-title">
+                            <div class="admin-section-heading">
+                                <div class="admin-section-title-with-icon">
+                                    <span class="admin-detail-card__icon admin-detail-card__icon--activity"><i class="fas fa-chart-line"></i></span>
+                                    <div>
+                                        <span class="admin-section-eyebrow">Operación</span>
+                                        <h2 id="admin-activity-title">Actividad reciente</h2>
+                                    </div>
+                                </div>
+                                <span class="admin-live-status"><i class="fas fa-circle"></i> Datos actualizados</span>
                             </div>
-                            <span class="admin-panel-count"><?php echo $notification_total; ?> nuevas</span>
-                        </div>
-                        <div class="admin-notification-list">
+
                             <?php if ($system_events): ?>
-                                <?php foreach ($system_events as $event): ?>
-                                    <a class="admin-notification-item" href="<?php echo e($event['target']); ?>" data-app-tab="<?php echo e($event['target']); ?>">
-                                        <span class="admin-notification-event-icon"><i class="<?php echo e($event['icon']); ?>"></i></span>
-                                        <div>
-                                            <strong><?php echo e($event['title']); ?></strong>
-                                            <p><?php echo e($event['message']); ?></p>
-                                            <time datetime="<?php echo e($event['date']); ?>">
-                                                <i class="far fa-clock"></i> <?php echo e(admin_relative_time($event['date'])); ?>
-                                            </time>
-                                        </div>
-                                        <i class="fas fa-chevron-right admin-notification-arrow" aria-hidden="true"></i>
-                                    </a>
-                                <?php endforeach; ?>
+                                <div class="admin-activity-list">
+                                    <?php foreach (array_slice($system_events, 0, 4) as $event): ?>
+                                        <a class="admin-activity-row" href="<?php echo e($event['target']); ?>" data-app-tab="<?php echo e($event['target']); ?>">
+                                            <span class="admin-activity-icon"><i class="<?php echo e($event['icon']); ?>"></i></span>
+                                            <span class="admin-activity-copy">
+                                                <strong><?php echo e($event['title']); ?></strong>
+                                                <small><?php echo e($event['message']); ?></small>
+                                            </span>
+                                            <time datetime="<?php echo e($event['date']); ?>"><?php echo e(admin_relative_time($event['date'])); ?></time>
+                                            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
                             <?php else: ?>
                                 <div class="admin-empty-state">
                                     <i class="fas fa-check"></i>
@@ -292,81 +360,57 @@ $last_activity = $conn->query("
                                     </div>
                                 </div>
                             <?php endif; ?>
-                        </div>
+                        </section>
                     </div>
 
-                    <aside class="admin-attention-panel admin-attention-panel--<?php echo $total_alertas_inventario > 0 ? 'warning' : 'ok'; ?>">
-                        <div class="admin-panel-heading">
-                            <span class="admin-panel-icon admin-panel-icon--status" aria-hidden="true">
-                                <i class="fas <?php echo $total_alertas_inventario > 0 ? 'fa-triangle-exclamation' : 'fa-shield-halved'; ?>"></i>
-                            </span>
-                            <div>
-                                <span class="admin-section-eyebrow">Estado operativo</span>
-                                <h2><?php echo $total_alertas_inventario > 0 ? 'Atención requerida' : 'Todo operativo'; ?></h2>
+                    <aside class="admin-premium-side">
+                        <section class="admin-side-list" id="admin-priorities" aria-labelledby="admin-priorities-title">
+                            <div class="admin-stat-card__header">
+                                <div class="admin-section-title-with-icon">
+                                    <span class="admin-detail-card__icon admin-detail-card__icon--focus"><i class="fas fa-compass"></i></span>
+                                    <div>
+                                        <span class="admin-section-eyebrow">Enfoque</span>
+                                        <h2 id="admin-priorities-title">Prioridades</h2>
+                                    </div>
+                                </div>
+                                <a class="admin-inline-link" href="#admin-inventory-alerts">Ver detalle</a>
                             </div>
-                        </div>
-                        <div class="admin-attention-summary">
-                            <strong><?php echo $total_alertas_inventario; ?> <?php echo $total_alertas_inventario === 1 ? 'incidencia detectada' : 'incidencias detectadas'; ?></strong>
-                            <span>Área afectada</span>
-                            <p><?php echo $total_alertas_inventario > 0 ? 'Inventario' : 'Ninguna'; ?></p>
-                        </div>
-                        <a class="admin-attention-link" href="#admin-inventory-alerts">
-                            <?php echo $total_alertas_inventario > 0 ? 'Ver detalles' : 'Ver inventario'; ?>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
+                            <div class="admin-side-items">
+                                <article class="admin-side-item <?php echo $pending_requests_count > 0 ? 'admin-side-item--warning' : ''; ?>">
+                                    <span><i class="fas fa-clipboard-check"></i></span>
+                                    <div><strong>Solicitudes por revisar</strong><small><?php echo $pending_requests_count > 0 ? 'Requieren aprobación' : 'Sin pendientes'; ?></small></div>
+                                    <b><?php echo $pending_requests_count; ?></b>
+                                </article>
+                                <article class="admin-side-item <?php echo (int) $registered_invoices['total'] > 0 ? 'admin-side-item--warning' : ''; ?>">
+                                    <span><i class="fas fa-receipt"></i></span>
+                                    <div><strong>Facturas registradas</strong><small><?php echo (int) $registered_invoices['total'] > 0 ? 'Pendientes de validación' : 'Sin revisión pendiente'; ?></small></div>
+                                    <b><?php echo (int) $registered_invoices['total']; ?></b>
+                                </article>
+                                <article class="admin-side-item <?php echo $total_alertas_inventario > 0 ? 'admin-side-item--danger' : ''; ?>">
+                                    <span><i class="fas fa-triangle-exclamation"></i></span>
+                                    <div><strong>Alertas de inventario</strong><small><?php echo $total_alertas_inventario > 0 ? 'Revisar existencias' : 'Inventario estable'; ?></small></div>
+                                    <b><?php echo $total_alertas_inventario; ?></b>
+                                </article>
+                                <article class="admin-side-item">
+                                    <span><i class="fas fa-truck-fast"></i></span>
+                                    <div><strong>Pedidos recibidos</strong><small>Últimos 7 días</small></div>
+                                    <b><?php echo (int) $received_orders['total']; ?></b>
+                                </article>
+                            </div>
+                        </section>
                     </aside>
-                </section>
-
-                <!-- Estadísticas de inventario -->
-                <section class="admin-inventory-summary" aria-labelledby="admin-inventory-title">
-                    <div class="admin-section-heading">
-                        <div>
-                            <span class="admin-section-eyebrow">Control operativo</span>
-                            <h2 id="admin-inventory-title">Resumen de inventario</h2>
-                        </div>
-                    </div>
-                    <div class="admin-inventory-grid">
-                        <article class="admin-inventory-card admin-inventory-card--danger">
-                            <span class="admin-inventory-icon"><i class="fas fa-flask-vial"></i></span>
-                            <div>
-                                <span>Insumos agotados</span>
-                                <strong><?php echo $total_insumos_criticos; ?></strong>
-                            </div>
-                            <span class="admin-inventory-state">Crítico</span>
-                        </article>
-                        <article class="admin-inventory-card admin-inventory-card--warning">
-                            <span class="admin-inventory-icon"><i class="fas fa-box-open"></i></span>
-                            <div>
-                                <span>Productos bajos</span>
-                                <strong><?php echo $total_productos_bajos; ?></strong>
-                            </div>
-                            <span class="admin-inventory-state">Atención</span>
-                        </article>
-                        <article class="admin-inventory-card admin-inventory-card--warning">
-                            <span class="admin-inventory-icon"><i class="fas fa-gauge-high"></i></span>
-                            <div>
-                                <span>Stock crítico</span>
-                                <strong><?php echo $total_stock_critico; ?></strong>
-                            </div>
-                            <span class="admin-inventory-state">Revisar</span>
-                        </article>
-                        <article class="admin-inventory-card">
-                            <span class="admin-inventory-icon"><i class="fas fa-circle-check"></i></span>
-                            <div>
-                                <span>Inventario operativo</span>
-                                <strong><?php echo $total_inventario_operativo; ?></strong>
-                            </div>
-                            <span class="admin-inventory-state admin-inventory-state--ok">Normal</span>
-                        </article>
-                    </div>
                 </section>
 
                 <!-- Alertas de inventario -->
                 <div class="row" id="admin-inventory-alerts">
                     <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-danger text-white">
-                                <h5><i class="fas fa-flask-vial"></i> Alertas de Insumos Agrícolas</h5>
+                        <div class="card admin-detail-card admin-detail-card--danger">
+                            <div class="card-header">
+                                <span class="admin-detail-card__icon"><i class="fas fa-vials"></i></span>
+                                <div>
+                                    <span class="admin-section-eyebrow">Inventario</span>
+                                    <h5>Alertas de insumos</h5>
+                                </div>
                             </div>
                             <div class="card-body app-scroll-panel">
                                 <?php if ($alertas_insumos->num_rows > 0): ?>
@@ -404,9 +448,13 @@ $last_activity = $conn->query("
                     </div>
 
                     <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-warning text-white">
-                                <h5><i class="fas fa-boxes-stacked"></i> Alertas de Productos</h5>
+                        <div class="card admin-detail-card admin-detail-card--warning">
+                            <div class="card-header">
+                                <span class="admin-detail-card__icon"><i class="fas fa-box-archive"></i></span>
+                                <div>
+                                    <span class="admin-section-eyebrow">Inventario</span>
+                                    <h5>Alertas de productos</h5>
+                                </div>
                             </div>
                             <div class="card-body app-scroll-panel">
                                 <?php if ($alertas_productos->num_rows > 0): ?>
@@ -447,9 +495,13 @@ $last_activity = $conn->query("
                 <!-- Selector de lotes para historial -->
                 <div class="row mt-4 admin-lot-history">
                     <div class="col-12">
-                        <div class="card">
+                        <div class="card admin-detail-card admin-detail-card--history">
                             <div class="card-header">
-                                <h5><i class="fas fa-clock-rotate-left"></i> Historial por Lote</h5>
+                                <span class="admin-detail-card__icon"><i class="fas fa-route"></i></span>
+                                <div>
+                                    <span class="admin-section-eyebrow">Trazabilidad</span>
+                                    <h5>Historial por lote</h5>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="admin-lot-history-controls">
@@ -506,7 +558,7 @@ $last_activity = $conn->query("
                     <div class="modal-content">
                         <div class="modal-header">
                             <span class="admin-premium-modal__icon admin-user-modal__icon" aria-hidden="true">
-                                <i class="fas fa-user-plus"></i>
+                                <i class="fas fa-user-check"></i>
                             </span>
                             <div class="admin-premium-modal__heading">
                                 <span class="farmer-kicker">Gestión de accesos</span>
@@ -598,7 +650,7 @@ $last_activity = $conn->query("
                                 </span>
                                 <button type="button" class="btn admin-user-modal__cancel" data-bs-dismiss="modal">Cancelar</button>
                                 <button type="submit" class="btn btn-primary admin-user-modal__submit" data-app-no-ripple>
-                                    <i class="fas fa-user-plus"></i>
+                                    <i class="fas fa-user-check"></i>
                                     <span>Crear usuario</span>
                                 </button>
                             </div>
@@ -821,6 +873,16 @@ $last_activity = $conn->query("
                 </div>
             </div>
 
+            <!-- Fitosanitario Tab -->
+            <div class="tab-pane fade" id="fitosanitario" role="tabpanel">
+                <div id="fitosanitario-content">
+                    <div class="text-center mt-5">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Cargando control fitosanitario...</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Pedidos Tab -->
             <div class="tab-pane fade" id="pedidos-proveedores" role="tabpanel">
                 <div id="pedidos-proveedores-content">
@@ -831,14 +893,82 @@ $last_activity = $conn->query("
                 </div>
             </div>
         </div>
+            </div>
+        </main>
     </div>
 
     <?php render_ada_chat(); ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="js/admin.js?v=<?= filemtime(__DIR__ . '/js/admin.js'); ?>"></script>
     <script>
-        console.log('Admin panel inicializado correctamente');
+        (function () {
+            document.querySelectorAll('button, a').forEach((element) => {
+                element.addEventListener('mousedown', () => element.classList.add('admin-pressed'));
+                element.addEventListener('mouseup', () => element.classList.remove('admin-pressed'));
+                element.addEventListener('mouseleave', () => element.classList.remove('admin-pressed'));
+            });
+
+            const historyButton = document.querySelector('[data-admin-lot-history]');
+            const lotSelect = document.getElementById('selectorLote');
+            const historyContent = document.getElementById('historialLoteContent');
+
+            if (!historyButton || !lotSelect || !historyContent) return;
+
+            const normalize = (value) => String(value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .toLowerCase();
+
+            const clearHistoryMenus = () => {
+                document.querySelectorAll('.app-table-filter__menu[data-app-table-owner="historialLoteContent"]').forEach(menu => menu.remove());
+            };
+
+            historyButton.addEventListener('click', async () => {
+                const loteId = lotSelect.value;
+                const icon = historyButton.querySelector('i');
+                const label = historyButton.querySelector('span');
+                const customSelectButton = lotSelect.nextElementSibling?.querySelector('.admin-lot-select__button');
+
+                clearHistoryMenus();
+                historyContent.replaceChildren();
+
+                if (!loteId) {
+                    historyContent.innerHTML = '<div class="alert alert-info"><i class="fas fa-circle-info"></i> Seleccione un lote para consultar su historial.</div>';
+                    customSelectButton?.focus();
+                    return;
+                }
+
+                historyButton.disabled = true;
+                historyButton.classList.add('is-loading');
+                if (icon) icon.className = 'fas fa-circle-notch fa-spin';
+                if (label) label.textContent = 'Cargando historial...';
+                historyContent.innerHTML = '<div class="text-center"><i class="fas fa-circle-notch fa-spin"></i><p>Cargando historial...</p></div>';
+
+                try {
+                    const response = await fetch(`lote_historial.php?id=${encodeURIComponent(loteId)}&_=${Date.now()}`, {
+                        cache: 'no-store',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    const result = document.createElement('div');
+                    result.className = 'admin-lot-history-result';
+                    result.innerHTML = await response.text();
+                    historyContent.replaceChildren(result);
+                    window.AppTable?.enhance?.(result);
+                } catch (error) {
+                    console.error('Error al cargar historial del lote:', error);
+                    historyContent.innerHTML = '<div class="alert alert-danger"><i class="fas fa-triangle-exclamation"></i> No se pudo cargar el historial. Intente nuevamente.</div>';
+                } finally {
+                    historyButton.disabled = false;
+                    historyButton.classList.remove('is-loading');
+                    if (icon) icon.className = 'fas fa-magnifying-glass';
+                    if (label) label.textContent = 'Ver Historial Completo';
+                }
+            });
+        })();
     </script>
 </body>
 

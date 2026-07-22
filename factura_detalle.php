@@ -41,44 +41,46 @@ $detalles = db_fetch_all(
     [$id]
 );
 
-$badge = $factura['estado'] === 'Aprobada'
-    ? 'success'
-    : ($factura['estado'] === 'Registrada'
-        ? 'warning'
-        : ($factura['estado'] === 'Anulada' ? 'secondary' : 'danger'));
+$estadoClase = strtolower((string) $factura['estado']);
 ?>
 
 <div class="admin-invoice-detail">
-<div class="admin-invoice-detail__grid">
-    <section class="admin-invoice-detail__card">
-        <div class="admin-invoice-detail__card-heading">
-            <span><i class="fas fa-file-invoice"></i></span>
-            <div><small>Documento</small><h3>Factura</h3></div>
+<section class="admin-invoice-detail__summary">
+    <div>
+        <span>Número</span>
+        <strong><?php echo e($factura['numero_factura']); ?></strong>
+    </div>
+    <div>
+        <span>Total</span>
+        <strong>$<?php echo number_format((float) $factura['total'], 2); ?></strong>
+    </div>
+    <div>
+        <span>Estado</span>
+        <strong><span class="admin-invoice-status admin-invoice-status--<?php echo e($estadoClase); ?>"><i></i><?php echo e($factura['estado']); ?></span></strong>
+    </div>
+</section>
+
+<section class="admin-invoice-detail__meta">
+    <div class="admin-invoice-detail__meta-group">
+        <span class="admin-invoice-detail__meta-icon"><i class="fas fa-file-invoice"></i></span>
+        <div class="admin-invoice-detail__meta-list">
+            <p><span>Pedido</span><strong><?php echo $factura['id_pedido'] ? '#' . (int) $factura['id_pedido'] : 'Sin pedido'; ?></strong></p>
+            <p><span>Fecha</span><strong><?php echo date('d/m/Y', strtotime($factura['fecha'])); ?></strong></p>
+            <p><span>Registrada por</span><strong><?php echo e($factura['bodeguero_nombre']); ?></strong></p>
+            <p><span>Revisada por</span><strong><?php echo e($factura['revisor_nombre'] ?: 'Pendiente'); ?></strong></p>
         </div>
-        <table class="table table-sm admin-invoice-detail__data">
-            <tr><th>Número:</th><td><?php echo e($factura['numero_factura']); ?></td></tr>
-            <tr><th>Pedido:</th><td><?php echo $factura['id_pedido'] ? '#' . (int) $factura['id_pedido'] : 'Sin pedido'; ?></td></tr>
-            <tr><th>Fecha:</th><td><?php echo date('d/m/Y', strtotime($factura['fecha'])); ?></td></tr>
-            <tr><th>Registrada por:</th><td><?php echo e($factura['bodeguero_nombre']); ?></td></tr>
-            <tr><th>Total:</th><td><strong>$<?php echo number_format((float) $factura['total'], 2); ?></strong></td></tr>
-            <tr><th>Estado:</th><td><span class="badge bg-<?php echo $badge; ?>"><?php echo e($factura['estado']); ?></span></td></tr>
-            <tr><th>Revisada por:</th><td><?php echo e($factura['revisor_nombre'] ?: 'Pendiente'); ?></td></tr>
-        </table>
-    </section>
-    <section class="admin-invoice-detail__card">
-        <div class="admin-invoice-detail__card-heading">
-            <span><i class="fas fa-truck"></i></span>
-            <div><small>Origen de compra</small><h3>Proveedor</h3></div>
+    </div>
+    <div class="admin-invoice-detail__meta-group">
+        <span class="admin-invoice-detail__meta-icon"><i class="fas fa-truck"></i></span>
+        <div class="admin-invoice-detail__meta-list">
+            <p><span>Proveedor</span><strong><?php echo e($factura['proveedor_nombre']); ?></strong></p>
+            <p><span>RUC/Cédula</span><strong><?php echo e($factura['ruc_cedula']); ?></strong></p>
+            <p><span>Teléfono</span><strong><?php echo e($factura['telefono'] ?: 'N/A'); ?></strong></p>
+            <p><span>Email</span><strong><?php echo e($factura['proveedor_email'] ?: 'N/A'); ?></strong></p>
         </div>
-        <table class="table table-sm admin-invoice-detail__data">
-            <tr><th>Nombre:</th><td><?php echo e($factura['proveedor_nombre']); ?></td></tr>
-            <tr><th>RUC/Cédula:</th><td><?php echo e($factura['ruc_cedula']); ?></td></tr>
-            <tr><th>Teléfono:</th><td><?php echo e($factura['telefono'] ?: 'N/A'); ?></td></tr>
-            <tr><th>Email:</th><td><?php echo e($factura['proveedor_email'] ?: 'N/A'); ?></td></tr>
-            <tr><th>Observación:</th><td><?php echo e($factura['observaciones'] ?: 'Ninguna'); ?></td></tr>
-        </table>
-    </section>
-</div>
+    </div>
+    <p class="admin-invoice-detail__note"><span>Observación</span><strong><?php echo e($factura['observaciones'] ?: 'Ninguna'); ?></strong></p>
+</section>
 
 <section class="admin-invoice-detail__items">
     <div class="admin-invoice-detail__items-heading">
@@ -89,7 +91,7 @@ $badge = $factura['estado'] === 'Aprobada'
         <span class="admin-invoice-detail__count"><?php echo count($detalles); ?> registros</span>
     </div>
 <div class="table-responsive admin-invoice-detail__table-wrap">
-    <table class="table table-striped align-middle">
+    <table class="table align-middle admin-invoice-detail__table">
         <thead>
             <tr>
                 <th>Insumo</th>
@@ -112,7 +114,7 @@ $badge = $factura['estado'] === 'Aprobada'
                 </tr>
             <?php endforeach; ?>
         </tbody>
-        <tfoot class="table-dark">
+        <tfoot>
             <tr>
                 <th colspan="5" class="text-end">TOTAL</th>
                 <th>$<?php echo number_format((float) $factura['total'], 2); ?></th>

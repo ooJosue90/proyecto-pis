@@ -1,8 +1,6 @@
 (function (window, document) {
     'use strict';
 
-    const PAGE_SIZE = 10;
-
     const AppUI = {
         init() {
             this.setupMotion();
@@ -521,41 +519,82 @@
 
             const syncSidebarMode = () => {
                 if (mobileSidebarQuery.matches) {
-                    document.body.classList.remove('app-sidebar-collapsed');
+                    document.body.classList.remove('app-sidebar-collapsed', 'app-sidebar-pinned');
                     return;
                 }
 
-                document.body.classList.toggle(
-                    'app-sidebar-collapsed',
-                    localStorage.getItem('appSidebarCollapsed') === '1'
-                );
+                document.body.classList.add('app-sidebar-collapsed');
                 document.body.classList.remove('app-mobile-nav-open');
             };
 
             syncSidebarMode();
             mobileSidebarQuery.addEventListener?.('change', syncSidebarMode);
 
+            const sidebar = document.querySelector('.app-sidebar');
+            if (sidebar && sidebar.dataset.appSidebarHoverBound !== '1') {
+                sidebar.dataset.appSidebarHoverBound = '1';
+
+                sidebar.addEventListener('mouseenter', () => {
+                    if (!mobileSidebarQuery.matches) document.body.classList.add('app-sidebar-hovered');
+                });
+                sidebar.addEventListener('mouseleave', () => {
+                    document.body.classList.remove('app-sidebar-hovered');
+                });
+                sidebar.addEventListener('focusin', () => {
+                    if (!mobileSidebarQuery.matches) document.body.classList.add('app-sidebar-hovered');
+                });
+                sidebar.addEventListener('focusout', (event) => {
+                    if (!sidebar.contains(event.relatedTarget)) {
+                        document.body.classList.remove('app-sidebar-hovered');
+                    }
+                });
+            }
+
             const currentPath = window.location.pathname.split('/').pop() || 'index.html';
             document.querySelectorAll('.app-sidebar-link[href]').forEach((link) => {
                 const linkPath = link.getAttribute('href').split('/').pop();
-                if (linkPath === currentPath) link.classList.add('active');
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                    this.openSidebarGroup(link.closest('[data-app-sidebar-group]'));
+                }
+            });
+
+            document.querySelectorAll('[data-app-sidebar-section]').forEach((button) => {
+                if (button.dataset.appSidebarSectionBound === '1') return;
+                button.dataset.appSidebarSectionBound = '1';
+
+                button.addEventListener('click', () => {
+                    const group = button.closest('[data-app-sidebar-group]');
+                    const open = !group?.classList.contains('is-open');
+
+                    if (open) {
+                        document.querySelectorAll('[data-app-sidebar-group].is-open').forEach((openGroup) => {
+                            if (openGroup !== group) this.setSidebarGroupOpen(openGroup, false);
+                        });
+                    }
+
+                    this.setSidebarGroupOpen(group, open);
+                });
             });
 
             document.querySelectorAll('[data-app-sidebar-toggle]').forEach((button) => {
                 if (button.dataset.appSidebarToggleBound === '1') return;
                 button.dataset.appSidebarToggleBound = '1';
 
-                button.addEventListener('click', () => {
+button.addEventListener('click', () => {
                     if (mobileSidebarQuery.matches) {
                         document.body.classList.toggle('app-mobile-nav-open');
                         return;
                     }
 
-                    document.body.classList.toggle('app-sidebar-collapsed');
-                    localStorage.setItem(
-                        'appSidebarCollapsed',
-                        document.body.classList.contains('app-sidebar-collapsed') ? '1' : '0'
-                    );
+                    const isPinned = document.body.classList.contains('app-sidebar-pinned');
+                    if (isPinned) {
+                        document.body.classList.remove('app-sidebar-pinned');
+                        document.body.classList.add('app-sidebar-collapsed');
+                    } else {
+                        document.body.classList.remove('app-sidebar-collapsed');
+                        document.body.classList.add('app-sidebar-pinned');
+                    }
                 });
             });
 
@@ -640,6 +679,18 @@
 
             group.querySelectorAll('.app-sidebar-link').forEach((item) => item.classList.remove('active'));
             activeItem.classList.add('active');
+            this.openSidebarGroup(activeItem.closest('[data-app-sidebar-group]'));
+        },
+
+        setSidebarGroupOpen(group, open) {
+            if (!group) return;
+            group.classList.toggle('is-open', open);
+            group.querySelector('[data-app-sidebar-section]')
+                ?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        },
+
+        openSidebarGroup(group) {
+            this.setSidebarGroupOpen(group, true);
         },
 
         observeDynamicContent() {
@@ -754,278 +805,7 @@
         },
 
         enhanceTables(root) {
-            root.querySelectorAll('.table').forEach((table) => {
-                if (table.dataset.appTable === '1') return;
-                if (table.closest('.modal')) return;
-
-                const tbody = table.tBodies[0];
-                if (!tbody || tbody.rows.length < 3) return;
-
-                table.dataset.appTable = '1';
-                const rows = Array.from(tbody.rows);
-                let currentPage = 1;
-                let query = '';
-                let status = '';
-                const normalizeHeading = (value) => String(value || '')
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .trim()
-                    .toLowerCase();
-                const headings = Array.from(table.tHead?.rows[0]?.cells || []);
-                const filterColumnIndex = headings.findIndex((heading) => {
-                    const value = normalizeHeading(heading.textContent);
-                    return value === 'estado' || value === 'rol';
-                });
-                const filterHeading = filterColumnIndex >= 0
-                    ? normalizeHeading(headings[filterColumnIndex].textContent)
-                    : '';
-                const filterAllLabel = filterHeading === 'rol' ? 'Todos los roles' : 'Todos los estados';
-
-                const wrapper = table.closest('.table-responsive') || table.parentElement;
-                const tableOwner = table.closest('[id]')?.id || '';
-                const tableHost = wrapper.parentElement;
-                if (tableOwner) {
-                    tableHost.querySelectorAll(
-                        `:scope > .app-table-tools[data-app-table-owner="${tableOwner}"], ` +
-                        `:scope > .app-table-pagination[data-app-table-owner="${tableOwner}"]`
-                    ).forEach(element => element.remove());
-                    document.querySelectorAll(
-                        `.app-table-filter__menu[data-app-table-owner="${tableOwner}"]`
-                    ).forEach(element => element.remove());
-                }
-                const tools = document.createElement('div');
-                tools.className = 'app-table-tools';
-                if (tableOwner) tools.dataset.appTableOwner = tableOwner;
-                tools.innerHTML = `
-                    <div class="app-table-tools-left">
-                        <div class="input-group app-table-search">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="search" class="form-control" placeholder="Buscar en la tabla">
-                        </div>
-                    </div>
-                    <div class="app-table-tools-right">
-                        <div class="app-table-filter">
-                            <button type="button" class="app-table-filter__button" aria-haspopup="listbox" aria-expanded="false">
-                                <i class="fas fa-filter" aria-hidden="true"></i>
-                                <span>${filterAllLabel}</span>
-                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                            </button>
-                            <div class="app-table-filter__menu" role="listbox" aria-label="Filtrar por ${filterHeading || 'estado'}"></div>
-                        </div>
-                    </div>
-                `;
-
-                wrapper.parentElement.insertBefore(tools, wrapper);
-
-                const pagination = document.createElement('div');
-                pagination.className = 'app-table-pagination';
-                if (tableOwner) pagination.dataset.appTableOwner = tableOwner;
-                pagination.innerHTML = `
-                    <span class="app-table-page-info"></span>
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-prev><i class="fas fa-chevron-left"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-next><i class="fas fa-chevron-right"></i></button>
-                `;
-                wrapper.parentElement.insertBefore(pagination, wrapper.nextSibling);
-
-                const searchInput = tools.querySelector('input[type="search"]');
-                const statusFilter = tools.querySelector('.app-table-filter');
-                const statusButton = tools.querySelector('.app-table-filter__button');
-                const statusLabel = statusButton.querySelector('span');
-                const statusMenu = tools.querySelector('.app-table-filter__menu');
-                if (tableOwner) statusMenu.dataset.appTableOwner = tableOwner;
-                const statusValues = new Set();
-                const statusTone = (value) => {
-                    const normalized = normalizeHeading(value);
-                    if (!normalized) return 'all';
-                    if (/pendiente|espera|revision|cosecha|warning/.test(normalized)) return 'warning';
-                    if (/aprobado|procesando|informacion|administrador/.test(normalized)) return 'info';
-                    if (/entregado|activo|finalizado|completado|agricultor/.test(normalized)) return 'success';
-                    if (/rechazado|error|critico/.test(normalized)) return 'danger';
-                    if (/cancelado|inactivo|bodeguero/.test(normalized)) return 'neutral';
-                    return 'default';
-                };
-                const setCurrentStatus = (value, label) => {
-                    statusLabel.textContent = label;
-                    statusLabel.className = 'app-table-filter__current';
-                };
-                const positionStatusMenu = () => {
-                    const rect = statusButton.getBoundingClientRect();
-                    const viewportGap = 12;
-                    const desiredHeight = Math.min(statusMenu.scrollHeight || 280, 280);
-                    const spaceBelow = window.innerHeight - rect.bottom - viewportGap;
-                    const spaceAbove = rect.top - viewportGap;
-                    const openAbove = spaceBelow < Math.min(desiredHeight, 190) && spaceAbove > spaceBelow;
-                    const availableHeight = Math.max(120, openAbove ? spaceAbove - 8 : spaceBelow - 8);
-                    const width = Math.min(Math.max(rect.width, 270), window.innerWidth - (viewportGap * 2));
-                    const left = Math.min(
-                        Math.max(viewportGap, rect.right - width),
-                        window.innerWidth - width - viewportGap
-                    );
-
-                    statusMenu.style.left = `${Math.round(left)}px`;
-                    statusMenu.style.width = `${Math.round(width)}px`;
-                    statusMenu.style.maxHeight = `${Math.min(280, availableHeight)}px`;
-                    statusMenu.style.top = openAbove
-                        ? `${Math.round(rect.top - Math.min(desiredHeight, availableHeight) - 7)}px`
-                        : `${Math.round(rect.bottom + 7)}px`;
-                    statusMenu.dataset.placement = openAbove ? 'top' : 'bottom';
-                };
-                const closeStatusMenu = () => {
-                    statusFilter.classList.remove('is-open');
-                    statusMenu.classList.remove('is-open');
-                    statusButton.setAttribute('aria-expanded', 'false');
-                };
-                const getRowStatus = (row) => {
-                    if (filterColumnIndex < 0) return '';
-                    const cell = row.cells[filterColumnIndex];
-                    const statusElement = cell?.querySelector('.app-table-status-capsule, .badge');
-                    return (statusElement?.textContent || cell?.textContent || '').trim();
-                };
-
-                rows.forEach((row) => {
-                    const value = getRowStatus(row);
-                    if (filterHeading === 'estado' && value) {
-                        const cell = row.cells[filterColumnIndex];
-                        let capsule = cell.querySelector('.app-table-status-capsule');
-
-                        if (!capsule) {
-                            capsule = document.createElement('span');
-                            cell.replaceChildren(capsule);
-                        }
-
-                        capsule.className = `app-table-status-capsule app-table-status-capsule--${statusTone(value)}`;
-                        capsule.textContent = value;
-                    }
-                    if (value) statusValues.add(value);
-                });
-
-                const addFilterOption = (value, label) => {
-                    const option = document.createElement('button');
-                    const optionLabel = document.createElement('span');
-                    const checkIcon = document.createElement('i');
-                    option.type = 'button';
-                    option.className = 'app-table-filter__option';
-                    option.dataset.value = value;
-                    option.setAttribute('role', 'option');
-                    option.setAttribute('aria-selected', value === '' ? 'true' : 'false');
-                    optionLabel.className = 'app-table-filter__option-label';
-                    optionLabel.textContent = label;
-                    checkIcon.className = 'fas fa-check';
-                    checkIcon.setAttribute('aria-hidden', 'true');
-                    option.append(optionLabel, checkIcon);
-                    statusMenu.appendChild(option);
-                };
-
-                if (filterColumnIndex < 0 || statusValues.size === 0) {
-                    statusFilter.remove();
-                } else {
-                    addFilterOption('', filterAllLabel);
-                    Array.from(statusValues)
-                        .sort((first, second) => first.localeCompare(second, 'es'))
-                        .forEach((value) => addFilterOption(value.toLowerCase(), value));
-                    document.body.appendChild(statusMenu);
-                    setCurrentStatus('', filterAllLabel);
-                }
-
-                const getFilteredRows = () => rows.filter((row) => {
-                    const text = row.textContent.toLowerCase();
-                    const matchesQuery = !query || text.includes(query);
-                    const matchesStatus = !status || getRowStatus(row).toLowerCase() === status;
-                    return matchesQuery && matchesStatus;
-                });
-
-                const render = () => {
-                    const filtered = getFilteredRows();
-                    const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-                    currentPage = Math.min(currentPage, pages);
-                    const start = (currentPage - 1) * PAGE_SIZE;
-                    const visible = new Set(filtered.slice(start, start + PAGE_SIZE));
-
-                    rows.forEach((row) => {
-                        row.style.display = visible.has(row) ? '' : 'none';
-                    });
-
-                    if (this.motionAllowed()) {
-                        Array.from(visible).forEach((row, index) => {
-                            row.classList.remove('app-row-enter');
-                            row.style.setProperty('--app-row-delay', `${Math.min(index * 24, 144)}ms`);
-                            void row.offsetWidth;
-                            row.classList.add('app-row-enter');
-                        });
-                    }
-
-                    pagination.querySelector('.app-table-page-info').textContent =
-                        `${filtered.length} registros · Página ${currentPage} de ${pages}`;
-                    pagination.querySelector('[data-prev]').disabled = currentPage === 1;
-                    pagination.querySelector('[data-next]').disabled = currentPage === pages;
-                };
-
-                searchInput.addEventListener('input', () => {
-                    query = searchInput.value.trim().toLowerCase();
-                    currentPage = 1;
-                    render();
-                });
-
-                if (statusFilter.isConnected) {
-                    statusButton.addEventListener('click', () => {
-                        const willOpen = !statusFilter.classList.contains('is-open');
-                        statusFilter.classList.toggle('is-open', willOpen);
-                        statusMenu.classList.toggle('is-open', willOpen);
-                        statusButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-                        if (willOpen) positionStatusMenu();
-                    });
-
-                    statusMenu.addEventListener('click', (event) => {
-                        const option = event.target.closest('.app-table-filter__option');
-                        if (!option) return;
-
-                        status = option.dataset.value || '';
-                        setCurrentStatus(status, option.querySelector('span').textContent);
-                        statusMenu.querySelectorAll('.app-table-filter__option').forEach(item => {
-                            const isSelected = item === option;
-                            item.classList.toggle('is-selected', isSelected);
-                            item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-                        });
-                        closeStatusMenu();
-                        currentPage = 1;
-                        render();
-                    });
-
-                    const handleFilterEscape = (event) => {
-                        if (event.key === 'Escape') {
-                            closeStatusMenu();
-                            statusButton.focus();
-                        }
-                    };
-                    statusFilter.addEventListener('keydown', handleFilterEscape);
-                    statusMenu.addEventListener('keydown', handleFilterEscape);
-
-                    document.addEventListener('click', (event) => {
-                        if (!statusFilter.contains(event.target) && !statusMenu.contains(event.target)) {
-                            closeStatusMenu();
-                        }
-                    });
-
-                    window.addEventListener('resize', () => {
-                        if (statusFilter.classList.contains('is-open')) positionStatusMenu();
-                    });
-                    window.addEventListener('scroll', () => {
-                        if (statusFilter.classList.contains('is-open')) positionStatusMenu();
-                    }, true);
-                }
-
-                pagination.querySelector('[data-prev]').addEventListener('click', () => {
-                    currentPage = Math.max(1, currentPage - 1);
-                    render();
-                });
-
-                pagination.querySelector('[data-next]').addEventListener('click', () => {
-                    currentPage += 1;
-                    render();
-                });
-
-                render();
-            });
+            window.AppTable?.enhance(root);
         },
 
         enhanceCounters(root) {

@@ -1,7 +1,10 @@
 # Arquitectura CSS
 
 Los estilos editables de la aplicación viven en `css/src`. El archivo
-`css/dashboard.css` es un bundle generado y no debe editarse directamente.
+Los archivos `css/dashboard.css`, `admin.css`, `farmer.css`, `warehouse.css`,
+`public.css` y `auth.css` son bundles generados y no deben editarse directamente.
+`css/theme.css` es una capa final deliberadamente pequeña: adapta superficies
+y controles a los temas oscuro y noche, pero no redefine componentes completos.
 
 ## Compilar
 
@@ -30,6 +33,10 @@ El compilador no requiere paquetes externos y conserva el orden de la cascada.
 - `140-compatibility.css`: ajustes responsivos y compatibilidad final.
 - `150-home-hero.css`: composicion final del hero de inicio.
 - `160-role-actions.css`: acciones principales compartidas por rol.
+- `170-admin-controls.css`: controles, filtros y selectores del administrador.
+- `180-admin-minimal.css`: acabado visual y jerarquía del panel administrativo.
+- `190-admin-modals.css`: ajuste final, variantes y adaptación responsive de modales administrativos.
+- `200-admin-invoices.css`: composición financiera de métricas, filtros y tabla de facturas del administrador.
 
 ## Reglas de mantenimiento
 
@@ -38,3 +45,5 @@ El compilador no requiere paquetes externos y conserva el orden de la cascada.
 3. Limitar `!important` a integraciones con utilidades de Bootstrap o estilos de impresion.
 4. Evitar selectores por pagina cuando una clase de componente sea suficiente.
 5. Compilar y revisar las paginas afectadas antes de entregar cambios.
+6. No crear hojas globales paralelas: todo CSS usado debe pertenecer a un modulo
+   de `css/src` o a la capa de tokens de `theme.css`.

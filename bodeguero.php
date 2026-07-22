@@ -27,6 +27,14 @@ $total_solicitudes_aprobadas = (int) db_value(
     [],
     0
 );
+$notificaciones_cosecha = db_fetch_all(
+    $conn,
+    "SELECT mensaje, fecha
+     FROM notificaciones
+     WHERE leida = 0 AND rol_destino = 'Bodeguero'
+     ORDER BY fecha DESC
+     LIMIT 5"
+);
 
 // Datos del dashboard
 $insumos = db_fetch_all($conn, "
@@ -68,16 +76,107 @@ $solicitudes_procesadas = db_fetch_all($conn, "
     ORDER BY ps.fecha DESC
 ");
 ?>
-<?php render_head('Panel Bodeguero'); ?>
-<body class="farmer-dashboard-page warehouse-dashboard-page">
-<?php render_app_nav('fas fa-warehouse', 'Bodeguero - ' . current_user_name(), [
-    ['href' => 'bodeguero_facturas.php', 'label' => 'Registrar Factura', 'icon' => 'fas fa-file-invoice-dollar', 'class' => 'btn btn-sm warehouse-primary-action warehouse-primary-action--compact'],
-    ['href' => 'logout.php', 'label' => 'Salir', 'icon' => 'fas fa-sign-out-alt', 'class' => 'btn btn-outline-light btn-sm'],
+<?php render_head('Panel Bodeguero', [
+    'https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Roboto+Condensed:wght@400;500;600;700;800;900&display=swap',
+    'assets/vendor/bootstrap/bootstrap.min.css',
+    'assets/vendor/fontawesome/css/all.min.css',
+    'css/admin.css?v=' . filemtime(__DIR__ . '/css/admin.css'),
 ]); ?>
+<body class="farmer-dashboard-page admin-dashboard-page farmer-admin-page warehouse-dashboard-page">
+    <div class="admin-tablet-shell">
+        <aside class="sidebar" id="mainSidebar" aria-label="Navegación principal">
+            <div class="logo-container">
+                <div class="admin-sidebar-logo">
+                    <span class="material-symbols-outlined" aria-hidden="true">agriculture</span>
+                </div>
+                <span class="nav-label admin-sidebar-brand">SembriExport</span>
+            </div>
 
-<div class="container farmer-dashboard warehouse-dashboard mt-4">
+            <nav class="app-sidebar-nav admin-reference-nav">
+                <a class="nav-item app-sidebar-link active" href="bodeguero.php" title="Bodega">
+                    <span class="material-symbols-outlined" aria-hidden="true">warehouse</span>
+                    <span class="nav-label">Bodega</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="fitosanitario.php" title="Fitosanitario">
+                    <span class="material-symbols-outlined" aria-hidden="true">health_and_safety</span>
+                    <span class="nav-label">Fitosanitario</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="cosechas.php" title="Cosecha">
+                    <span class="material-symbols-outlined" aria-hidden="true">agriculture</span>
+                    <span class="nav-label">Cosecha</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="poscosecha.php" title="Poscosecha">
+                    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                    <span class="nav-label">Poscosecha</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="bodeguero_facturas.php" title="Facturas">
+                    <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+                    <span class="nav-label">Facturas</span>
+                </a>
+                <a class="nav-item app-sidebar-link" href="imprimir_solicitudes.php" title="Solicitudes">
+                    <span class="material-symbols-outlined" aria-hidden="true">assignment</span>
+                    <span class="nav-label">Solicitudes</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-actions">
+                <a class="nav-item" href="logout.php" title="Cerrar sesión">
+                    <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                    <span class="nav-label">Log out</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="admin-inner-container">
+            <header class="admin-reference-topbar">
+                <div class="admin-topbar-user">
+                    <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
+                    <div>
+                        <h2>Saludos, <?php echo e(current_user_name()); ?></h2>
+                        <p>Supervisa inventario, compras y solicitudes aprobadas desde bodega.</p>
+                    </div>
+                </div>
+                <div class="admin-topbar-actions">
+                    <a href="bodeguero_facturas.php" class="warehouse-topbar-action">
+                        <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+                        <span>Registrar factura</span>
+                    </a>
+                    <div class="admin-account-menu" data-admin-account-menu>
+                        <button class="admin-account-button" type="button" aria-haspopup="menu" aria-expanded="false" data-admin-account-trigger>
+                            <span class="admin-account-initials" aria-hidden="true"><?php echo e(app_user_initials()); ?></span>
+                            <span>Cuenta</span>
+                            <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                        </button>
+                        <div class="admin-account-dropdown" role="menu" aria-label="Opciones de cuenta">
+                            <div class="admin-account-dropdown__profile" aria-hidden="true">
+                                <strong>Bodeguero</strong>
+                                <small><?php echo e(current_user_name()); ?></small>
+                            </div>
+                            <a href="logout.php" role="menuitem">
+                                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                                <span>Cerrar sesión</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="container farmer-dashboard warehouse-dashboard admin-dashboard mt-4">
 
 <?php render_flash_messages(); ?>
+
+<?php if ($notificaciones_cosecha): ?>
+<section class="alert alert-info d-flex align-items-start gap-3">
+    <i class="fas fa-wheat-awn mt-1"></i>
+    <div>
+        <strong>Cosechas validadas para recepción</strong>
+        <?php foreach ($notificaciones_cosecha as $notificacion): ?>
+            <p class="mb-1"><?php echo e($notificacion['mensaje']); ?> <small><?php echo e(date('d/m/Y H:i', strtotime($notificacion['fecha']))); ?></small></p>
+        <?php endforeach; ?>
+        <a href="cosechas.php" class="alert-link">Ver cosechas validadas</a>
+    </div>
+</section>
+<?php endif; ?>
 
 <section class="farmer-page-heading warehouse-page-heading">
     <div class="warehouse-heading-copy">
@@ -322,6 +421,8 @@ $solicitudes_procesadas = db_fetch_all($conn, "
     </div>
 </div>
 </div>
+</main>
+</div>
 
 <div class="modal fade warehouse-confirm-modal" id="warehouseConfirmModal" tabindex="-1" aria-labelledby="warehouseConfirmTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -368,7 +469,7 @@ $solicitudes_procesadas = db_fetch_all($conn, "
 </div>
 
 <?php render_ada_chat(); ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modalElement = document.getElementById('warehouseConfirmModal');

@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS control_fitosanitario (
+    id_control INT NOT NULL AUTO_INCREMENT,
+    id_lote INT NOT NULL,
+    id_usuario VARCHAR(20) NOT NULL,
+    tipo ENUM('Plaga','Enfermedad','Hongo','Otro') NOT NULL,
+    nombre_problema VARCHAR(200) NOT NULL,
+    severidad ENUM('Baja','Media','Alta') NOT NULL,
+    descripcion TEXT NOT NULL,
+    producto_aplicado VARCHAR(200) DEFAULT NULL,
+    dosis VARCHAR(100) DEFAULT NULL,
+    fecha_deteccion DATE NOT NULL,
+    fecha_aplicacion DATE DEFAULT NULL,
+    estado ENUM('Pendiente','En tratamiento','Controlado') NOT NULL DEFAULT 'Pendiente',
+    observaciones TEXT DEFAULT NULL,
+    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion DATETIME DEFAULT NULL,
+    PRIMARY KEY (id_control),
+    KEY idx_cf_lote (id_lote),
+    KEY idx_cf_usuario (id_usuario),
+    KEY idx_cf_estado (estado),
+    KEY idx_cf_severidad (severidad),
+    KEY idx_cf_fecha_deteccion (fecha_deteccion),
+    CONSTRAINT fk_cf_lote FOREIGN KEY (id_lote) REFERENCES lotes (id_lote),
+    CONSTRAINT fk_cf_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS control_fitosanitario_tratamientos (
+    id_tratamiento INT NOT NULL AUTO_INCREMENT,
+    id_control INT NOT NULL,
+    id_usuario VARCHAR(20) NOT NULL,
+    producto_aplicado VARCHAR(200) NOT NULL,
+    dosis VARCHAR(100) NOT NULL,
+    fecha_aplicacion DATE NOT NULL,
+    estado_resultante ENUM('Pendiente','En tratamiento','Controlado') NOT NULL,
+    observaciones TEXT DEFAULT NULL,
+    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_tratamiento),
+    KEY idx_cft_control (id_control),
+    KEY idx_cft_usuario (id_usuario),
+    KEY idx_cft_fecha_aplicacion (fecha_aplicacion),
+    CONSTRAINT fk_cft_control FOREIGN KEY (id_control) REFERENCES control_fitosanitario (id_control),
+    CONSTRAINT fk_cft_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
