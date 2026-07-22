@@ -11,7 +11,8 @@
     const messages = chat.querySelector('[data-ada-messages]');
     const sendButton = chat.querySelector('[data-ada-send]');
     const chatWindow = chat.querySelector('.ada-chat__window');
-    const endpoint = chat.dataset.endpoint || 'asistente/asistente_virtual.php';
+    const endpoint = chat.dataset.endpoint || 'api/asistente/chat';
+    const csrfToken = chat.dataset.csrf || '';
     let typingNode = null;
 
     function abrirChat() {
@@ -197,7 +198,7 @@
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ pregunta }),
+                body: JSON.stringify({ pregunta, _token: csrfToken }),
             });
 
             const data = await respuesta.json();

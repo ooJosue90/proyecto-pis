@@ -173,13 +173,13 @@
         },
 
         // Pestañas: carga el contenido en la zona correspondiente
-        loadUsuarios: function () { return this.loadContent('admin_usuarios.php', 'usuarios-content', { useCache: false }); },
-        loadSolicitudes: function () { return this.loadContent('admin_solicitudes.php', 'solicitudes-content', { useCache: false }); },
-        loadMovimientos: function () { return this.loadContent('admin_movimientos.php', 'movimientos-content', { useCache: false }); },
-        loadFacturas: function () { return this.loadContent('admin_facturas.php', 'facturas-content', { useCache: false }); },
-        loadReportes: function () { return this.loadContent('admin_reportes.php', 'reportes-content', { useCache: false }); },
-        loadCultivos: function () { return this.loadContent('admin_cultivos.php', 'cultivos-content', { useCache: false }); },
-        loadPedidosProveedores: function () { return this.loadContent('admin_pedidos_proveedores.php', 'pedidos-proveedores-content', { useCache: false }); },
+        loadUsuarios: function () { return this.loadContent('usuarios', 'usuarios-content', { useCache: false }); },
+        loadSolicitudes: function () { return this.loadContent('solicitudes/admin', 'solicitudes-content', { useCache: false }); },
+        loadMovimientos: function () { return this.loadContent('movimientos', 'movimientos-content', { useCache: false }); },
+        loadFacturas: function () { return this.loadContent('facturas', 'facturas-content', { useCache: false }); },
+        loadReportes: function () { return this.loadContent('reportes', 'reportes-content', { useCache: false }); },
+        loadCultivos: function () { return this.loadContent('admin/agricultura', 'cultivos-content', { useCache: false }); },
+        loadPedidosProveedores: function () { return this.loadContent('abastecimiento', 'pedidos-proveedores-content', { useCache: false }); },
 
         setupRequestConfirmation: function (root) {
             const modalElement = this.mountDynamicModal(
@@ -242,11 +242,16 @@
                 const fd = new FormData();
                 fd.append('action', action);
                 fd.append('id_solicitud', requestId);
+                fd.append('_token', modalForm.querySelector('[name="_token"]')?.value || '');
 
                 confirmButton.disabled = true;
                 confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span> Procesando...</span>';
 
-                fetch('admin_solicitudes.php', { method: 'POST', body: fd })
+                fetch(modalForm.dataset.reviewUrl || 'solicitudes/revisar', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
@@ -335,12 +340,13 @@
                 const fd = new FormData();
                 fd.append('action', actionInput.value);
                 fd.append('id_factura_compra', invoiceIdInput.value);
+                fd.append('_token', root.querySelector('[data-facturas-csrf]')?.dataset.facturasCsrf || '');
                 const originalContent = confirmButton.innerHTML;
 
                 confirmButton.disabled = true;
                 confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span> Procesando...</span>';
 
-                fetch('admin_facturas.php', { method: 'POST', body: fd })
+                fetch('facturas/revisar', { method: 'POST', body: fd })
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
@@ -418,7 +424,8 @@
                 confirmButton.disabled = true;
                 confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span> Eliminando...</span>';
 
-                fetch('admin_cultivos.php', { method: 'POST', body: fd })
+                fd.append('_token', document.querySelector('[data-admin-agriculture-csrf]')?.dataset.adminAgricultureCsrf || '');
+                fetch('admin/agricultura', { method: 'POST', body: fd })
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
@@ -458,7 +465,7 @@
 
         // Mostrar detalles (cultivo, lote, factura) en modal
         verDetallesCultivo: function (id) {
-            fetch(`cultivo_detalle.php?id=${id}`)
+            fetch(`admin/agricultura/cultivos/${encodeURIComponent(id)}`)
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById('detallesCultivoContent');
@@ -480,7 +487,7 @@
         },
 
         verDetalleLote: function (id) {
-            fetch(`lote_detalle.php?id=${id}`)
+            fetch(`admin/agricultura/lotes/${encodeURIComponent(id)}`)
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById('detalleLoteContent');
@@ -502,7 +509,7 @@
         },
 
         verDetallesFactura: function (id) {
-            fetch(`factura_detalle.php?id=${id}`)
+            fetch(`facturas/${encodeURIComponent(id)}`)
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById('detallesFacturaContent');
@@ -589,7 +596,7 @@
 
                 try {
                     await this.ensureFormModule();
-                    const response = await fetch(`lote_historial.php?id=${encodeURIComponent(loteId)}&_=${Date.now()}`, {
+                    const response = await fetch(`admin/agricultura/lotes/${encodeURIComponent(loteId)}/historial?_=${Date.now()}`, {
                         cache: 'no-store',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     });

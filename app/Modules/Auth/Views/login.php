@@ -1,0 +1,85 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Core\Url;
+use App\Shared\Helpers\Html;
+?>
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Iniciar sesión - SEMBRIEXPORT</title>
+    <link rel="icon" type="image/x-icon" href="<?= Html::escape(Url::root('assets/mango.ico')) ?>">
+    <link href="<?= Html::escape(Url::root('assets/vendor/bootstrap/bootstrap.min.css')) ?>" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="<?= Html::escape(Url::root('css/material-icons.css?v=20260713-google-icons')) ?>" rel="stylesheet">
+    <link href="<?= Html::escape(Url::root('css/auth.css?v=20260722-auth-links')) ?>" rel="stylesheet">
+</head>
+<body class="auth-page auth-login-page">
+<main class="auth-shell auth-login-shell">
+    <section class="auth-aside auth-login-aside">
+        <a class="auth-login-brand" href="<?= Html::escape(Url::root('index.html')) ?>">
+            <span class="public-brand-mark"><i class="fas fa-seedling"></i></span><span>SEMBRIEXPORT</span>
+        </a>
+        <div class="auth-login-story">
+            <span class="auth-login-eyebrow"><i class="fas fa-leaf"></i> Gestión agrícola inteligente</span>
+            <h1>Todo el campo, bajo control.</h1>
+            <p>Una plataforma diseñada para conectar cultivos, inventario, trazabilidad y decisiones en una sola experiencia.</p>
+        </div>
+        <div class="auth-login-metrics" aria-label="Características de la plataforma">
+            <div><strong>24/7</strong><span>Información disponible</span></div>
+            <div><strong>100%</strong><span>Trazabilidad operativa</span></div>
+            <div><strong>3 roles</strong><span>Trabajo coordinado</span></div>
+        </div>
+    </section>
+    <section class="auth-panel auth-login-panel">
+        <div class="auth-login-panel-top">
+            <a class="auth-login-home" href="<?= Html::escape(Url::root('index.html')) ?>"><i class="fas fa-arrow-left"></i> Volver al sitio</a>
+            <span class="auth-login-security"><i class="fas fa-shield-alt"></i> Conexión segura</span>
+        </div>
+        <div class="auth-login-card">
+            <div class="auth-login-heading">
+                <span class="auth-kicker"><i class="fas fa-lock"></i> Acceso privado</span>
+                <h1 class="auth-title">Bienvenido de nuevo</h1>
+                <p class="auth-subtitle">Ingresa tus credenciales para acceder a tu espacio de trabajo.</p>
+            </div>
+            <?php if ($error): ?><div class="alert alert-danger" role="alert"><?= Html::escape($error) ?></div><?php endif; ?>
+            <form class="auth-login-form" action="<?= Html::escape(Url::route('/login')) ?>" method="post">
+                <input type="hidden" name="_token" value="<?= Html::escape($csrfToken) ?>">
+                <div class="auth-field">
+                    <label for="inputEmail" class="form-label">Correo electrónico</label>
+                    <div class="auth-input-wrap"><i class="fas fa-envelope" aria-hidden="true"></i>
+                        <input class="form-control" id="inputEmail" name="email" type="email" value="<?= Html::escape($email) ?>" placeholder="usuario@sembriexport.com" autocomplete="email" maxlength="100" required autofocus>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label for="inputPassword" class="form-label">Contraseña</label>
+                    <div class="auth-input-wrap"><i class="fas fa-key" aria-hidden="true"></i>
+                        <input class="form-control" id="inputPassword" name="password" type="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" maxlength="4096" required>
+                        <button class="auth-password-toggle" type="button" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="auth-links"><span></span><a href="<?= Html::escape(Url::route('/password/forgot')) ?>">¿Olvidaste tu contraseña?</a></div>
+                <button type="submit" class="btn btn-primary auth-login-submit"><span>Iniciar sesión</span><i class="fas fa-arrow-right"></i></button>
+                <p class="auth-login-privacy"><i class="fas fa-shield-halved"></i> Tus credenciales se procesan de forma segura.</p>
+            </form>
+        </div>
+        <p class="auth-login-footer">&copy; 2026 SEMBRIEXPORT. Plataforma de gestión agrícola.</p>
+    </section>
+</main>
+<script src="<?= Html::escape(Url::root('js/app-ui.js?v=20260607-login-light')) ?>"></script>
+<script src="<?= Html::escape(Url::root('assets/vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>
+<script>
+document.querySelector('[data-password-toggle]')?.addEventListener('click', function () {
+    const input = document.getElementById('inputPassword');
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    this.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    this.setAttribute('aria-pressed', String(!showing));
+    this.querySelector('i').className = showing ? 'fas fa-eye' : 'fas fa-eye-slash';
+});
+</script>
+</body>
+</html>

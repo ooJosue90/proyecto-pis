@@ -113,10 +113,12 @@
             });
 
             root.querySelectorAll('select.form-control, select.form-select').forEach(nativeSelect => {
-                if (nativeSelect.multiple || nativeSelect.dataset.hasCustomSelect ||
+                const forceAdminSelect = nativeSelect.matches('[data-admin-select]');
+                if (nativeSelect.multiple || nativeSelect.dataset.hasCustomSelect || (!forceAdminSelect && (
                     nativeSelect.matches('[data-admin-lot-select], [data-purchase-select], [data-product-filter-select], .admin-user-role__native') ||
                     nativeSelect.closest('.phytosanitary-page, .phytosanitary-admin, .phytosanitary-modal') ||
-                    nativeSelect.matches('[data-fito-product-select], [data-fito-edit-lote], [data-fito-edit-tipo], [data-fito-edit-severidad], [data-fito-status-estado]')) return;
+                    nativeSelect.matches('[data-fito-product-select], [data-fito-edit-lote], [data-fito-edit-tipo], [data-fito-edit-severidad], [data-fito-status-estado]')
+                ))) return;
 
                 nativeSelect.dataset.hasCustomSelect = '1';
                 nativeSelect.classList.add('admin-select__native');
@@ -136,7 +138,9 @@
                 const list = document.createElement('div');
                 const options = Array.from(nativeSelect.options);
                 const fieldName = (nativeSelect.name || nativeSelect.id).toLowerCase();
-                const iconName = fieldName.includes('estado') ? 'fa-circle-check'
+                const isFilterControl = nativeSelect.matches('[data-filter-control]');
+                const iconName = isFilterControl ? 'fa-filter'
+                    : fieldName.includes('estado') ? 'fa-circle-check'
                     : fieldName.includes('lote') ? 'fa-map-location-dot'
                     : fieldName.includes('usuario') ? 'fa-user'
                     : fieldName.includes('proveedor') ? 'fa-truck'
@@ -150,7 +154,7 @@
                     : fieldName.includes('producto') || fieldName.includes('insumo') ? 'fa-box'
                     : iconName;
 
-                select.className = 'admin-select';
+                select.className = `admin-select${isFilterControl ? ' admin-select--filter' : ''}`;
                 button.type = 'button';
                 button.className = 'admin-select__button';
                 button.disabled = nativeSelect.disabled;
@@ -160,7 +164,7 @@
                 leading.innerHTML = `<i class="fas ${iconName}" aria-hidden="true"></i>`;
                 label.className = 'admin-select__label';
                 arrow.className = 'fas fa-chevron-down admin-select__arrow';
-                menu.className = 'admin-select__menu';
+                menu.className = `admin-select__menu${isFilterControl ? ' admin-select__menu--filter' : ''}`;
                 menu.dataset.nativeId = nativeSelect.id;
                 list.className = 'admin-select__list';
                 list.setAttribute('role', 'listbox');
@@ -385,9 +389,10 @@
                 const formData = new FormData();
                 formData.append('action', 'eliminar');
                 formData.append('id_usuario', id);
+                formData.append('_token', root.querySelector('[data-users-csrf]')?.dataset.usersCsrf || '');
 
                 try {
-                    const response = await fetch('admin_usuarios.php', {
+                    const response = await fetch('usuarios/eliminar', {
                         method: 'POST',
                         body: formData
                     });
@@ -1035,7 +1040,7 @@
                 invoiceFilters.addEventListener('submit', function (event) {
                     event.preventDefault();
                     const query = new URLSearchParams(new FormData(this)).toString();
-                    window.Admin.loadContent(`admin_facturas.php?${query}`, 'facturas-content', { useCache: false });
+                    window.Admin.loadContent(`facturas?${query}`, 'facturas-content', { useCache: false });
                 });
             }
 
@@ -1062,7 +1067,7 @@
                     const fd = new FormData(this);
                     fd.append('action', 'crear');
 
-                    fetch('admin_usuarios.php', { method: 'POST', body: fd })
+                    fetch('usuarios', { method: 'POST', body: fd })
                         .then(r => r.text())
                         .then(text => {
                             try {
@@ -1106,8 +1111,7 @@
                 formEditar.addEventListener('submit', function (e) {
                     e.preventDefault();
                     const fd = new FormData(this);
-                    // No agregamos action aquí, asumimos que admin_usuarios.php lo detecta
-                    fetch('admin_usuarios.php', { method: 'POST', body: fd })
+                    fetch('usuarios/actualizar', { method: 'POST', body: fd })
                         .then(r => r.text())
                         .then(text => {
                             try {
@@ -1148,7 +1152,7 @@
                 e.preventDefault();
                 const fd = new FormData(this);
                 fd.append('action','crear_proveedor');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
+                fetch('proveedores', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1168,9 +1172,15 @@
             editProv.dataset.hasListener = '1';
             editProv.addEventListener('submit', function (e) {
                 e.preventDefault();
+                const submitButton = this.querySelector('[type="submit"]');
+                const originalContent = submitButton?.innerHTML;
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                }
                 const fd = new FormData(this);
                 fd.append('action','editar_proveedor');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
+                fetch('proveedores/actualizar', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1180,7 +1190,57 @@
                         );
                     }
                     else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Editar proveedor:', err); alert('Error de conexión'); });
+                }).catch(err => { console.error('Editar proveedor:', err); alert('Error de conexión'); })
+                .finally(() => {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalContent;
+                    }
+                });
+            });
+            }
+
+            const deleteProv = root.querySelector('#formEliminarProveedor');
+            if (deleteProv && !deleteProv.dataset.hasListener) {
+            deleteProv.dataset.hasListener = '1';
+            deleteProv.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const modalElement = document.getElementById('modalEliminarProveedor');
+                const submitButton = this.querySelector('[type="submit"]');
+                const buttonLabel = submitButton?.querySelector('span');
+                const errorMessage = modalElement?.querySelector('[data-delete-provider-error]');
+
+                if (errorMessage) {
+                    errorMessage.hidden = true;
+                    errorMessage.textContent = '';
+                }
+                if (submitButton) submitButton.disabled = true;
+                if (buttonLabel) buttonLabel.textContent = 'Eliminando...';
+
+                const fd = new FormData(this);
+                fd.append('action', 'eliminar_proveedor');
+                fetch('proveedores/eliminar', { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message || 'No se pudo eliminar el proveedor.');
+                        }
+                        alert(data.message || 'Proveedor eliminado exitosamente.');
+                        return window.Admin.refreshPedidosProveedores(modalElement);
+                    })
+                    .catch(err => {
+                        console.error('Eliminar proveedor:', err);
+                        if (errorMessage) {
+                            errorMessage.textContent = err.message === 'Failed to fetch'
+                                ? 'No se pudo conectar con el servidor. Inténtalo nuevamente.'
+                                : err.message;
+                            errorMessage.hidden = false;
+                        }
+                    })
+                    .finally(() => {
+                        if (submitButton) submitButton.disabled = false;
+                        if (buttonLabel) buttonLabel.textContent = 'Eliminar proveedor';
+                    });
             });
             }
 
@@ -1192,7 +1252,7 @@
                 e.preventDefault();
                 const fd = new FormData(this);
                 fd.append('action','crear_pedido');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
+                fetch('pedidos', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1213,7 +1273,7 @@
                 e.preventDefault();
                 const fd = new FormData(this);
                 fd.append('action', 'editar_pedido');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
+                fetch('pedidos/actualizar', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -1269,24 +1329,45 @@
             if (modalEl && typeof bootstrap !== 'undefined') new bootstrap.Modal(modalEl).show();
             };
 
-            window.eliminarProveedor = function (id) {
-            if (!confirm('¿Seguro de eliminar este proveedor?')) return;
-            const fd = new FormData(); fd.append('action','eliminar_proveedor'); fd.append('id_proveedor', id);
-            fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                if (data.success) {
-                    alert(data.message || 'Proveedor eliminado');
-                    window.Admin.loadPedidosProveedores();
-                }
-                else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Eliminar proveedor:', err); alert('Error de conexión'); });
+            window.eliminarProveedor = function (id, nombre, email) {
+            const modalElement = document.getElementById('modalEliminarProveedor');
+            if (!modalElement || typeof bootstrap === 'undefined') return;
+
+            const idInput = modalElement.querySelector('#delete_proveedor_id');
+            const nameDisplay = modalElement.querySelector('#delete_proveedor_nombre');
+            const codeDisplay = modalElement.querySelector('#delete_proveedor_codigo');
+            const emailDisplay = modalElement.querySelector('#delete_proveedor_email');
+            const errorMessage = modalElement.querySelector('[data-delete-provider-error]');
+
+            if (idInput) idInput.value = id;
+            if (nameDisplay) nameDisplay.textContent = nombre || 'Proveedor sin nombre';
+            if (codeDisplay) codeDisplay.textContent = `#${id}`;
+            if (emailDisplay) emailDisplay.textContent = email || 'Sin correo registrado';
+            if (errorMessage) {
+                errorMessage.hidden = true;
+                errorMessage.textContent = '';
+            }
+
+            bootstrap.Modal.getOrCreateInstance(modalElement).show();
             };
+
+            root.querySelectorAll('[data-delete-provider]:not(:disabled)').forEach((button) => {
+                if (button.dataset.hasListener) return;
+                button.dataset.hasListener = '1';
+                button.addEventListener('click', () => {
+                    window.eliminarProveedor(
+                        button.dataset.providerId,
+                        button.dataset.providerName,
+                        button.dataset.providerEmail
+                    );
+                });
+            });
 
             window.cancelarPedido = function (id) {
             if (!confirm('¿Seguro de cancelar este pedido? Esta acción impedirá registrar su comprobante.')) return;
             const fd = new FormData(); fd.append('action','cancelar_pedido'); fd.append('id_pedido', id);
-            fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
+            fd.append('_token', root.querySelector('[data-abastecimiento-csrf]')?.dataset.abastecimientoCsrf || '');
+            fetch('pedidos/cancelar', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
                 if (data.success) {

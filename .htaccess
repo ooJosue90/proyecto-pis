@@ -1,0 +1,19 @@
+Options -Indexes
+DirectoryIndex index.html
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(composer\.(json|lock)|phpunit\.xml)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Los archivos públicos se sirven directamente; las rutas MVC pasan por el Front Controller.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+?)/?$ public/index.php?route=/$1 [QSA,L]
+</IfModule>

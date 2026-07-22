@@ -37,10 +37,10 @@ const ctx = document.getElementById('etapaChart').getContext('2d');
 const etapaChart = new Chart(ctx,{
     type:'doughnut',
     data:{
-        labels:['Siembra','Desarrollo','Cosecha'],
+        labels: farmerStageLabels,
         datasets:[{
             data: farmerStageTotals,
-            backgroundColor:['#08752b','#145ee8','#ffb43b'],
+            backgroundColor:['#08752b','#145ee8','#ffb43b','#94a3b8'],
             borderColor: document.documentElement.dataset.theme === 'light'
                 ? '#ffffff'
                 : (document.documentElement.dataset.theme === 'night' ? '#080d0a' : '#172033'),
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         insumosContainer.innerHTML = '<p>Cargando insumos...</p>';
 
-        fetch(`calcular_insumos.php?id_lote=${loteId}`)
+        fetch(`api/insumos/calcular/${encodeURIComponent(loteId)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {

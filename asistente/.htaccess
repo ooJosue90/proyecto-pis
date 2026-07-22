@@ -1,0 +1,3 @@
+<FilesMatch "^(config_gemini|permisos_asistente)\.php$">
+    Require all denied
+</FilesMatch>

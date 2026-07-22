@@ -6,6 +6,7 @@
             this.setupMotion();
             this.setupTheme();
             this.setupNotifications();
+            this.setupAccountMenus();
             this.setupShell();
             this.setupSidebarTabs();
             this.setupModalMotion();
@@ -405,6 +406,32 @@
                 url.searchParams.delete('type');
                 window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
             }
+        },
+
+        setupAccountMenus() {
+            document.querySelectorAll('[data-admin-account-menu]').forEach((menu) => {
+                const trigger = menu.querySelector('[data-admin-account-trigger]');
+                if (!trigger || menu.dataset.adminAccountListener === '1') return;
+
+                menu.dataset.adminAccountListener = '1';
+                const setOpen = (open) => {
+                    menu.classList.toggle('is-open', open);
+                    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                };
+
+                trigger.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setOpen(!menu.classList.contains('is-open'));
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!menu.contains(event.target)) setOpen(false);
+                });
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') setOpen(false);
+                });
+            });
         },
 
         notificationStack() {

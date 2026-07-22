@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         renderEmpty('hourglass_top', 'Calculando insumos', 'Estamos preparando las cantidades recomendadas para el lote seleccionado.');
 
-        fetch(`calcular_insumos.php?id_lote=${loteId}`)
+        fetch(`api/insumos/calcular/${encodeURIComponent(loteId)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {

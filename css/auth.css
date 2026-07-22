@@ -5,6 +5,19 @@
 /* Source: css/src/00-foundation.css */
 @import url("https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Roboto+Condensed:wght@400;500;600;700;800;900&display=swap");
 
+html,
+body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
 :root {
     --app-bg: #f4f6f4;
     --app-surface: #ffffff;
@@ -3612,6 +3625,7 @@ body,
     color: #1f5f47;
     font-weight: 800;
     line-height: 1.25;
+    text-decoration: none;
 }
 
 .auth-login-panel .form-check {
