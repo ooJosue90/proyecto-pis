@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
+use App\Shared\Domain\CultivationStage;
 use App\Shared\Helpers\Html;
 if ($row === null) { echo "<div class='alert alert-danger'>No se encontraron detalles del lote.</div>"; return; }
-$stage = match ((int) ($row['etapa_actual'] ?? 0)) { 1 => 'Siembra', 2 => 'Desarrollo', 3 => 'Cosecha', default => 'Sin etapa' };
+$stage = CultivationStage::label((int) ($row['etapa_actual'] ?? CultivationStage::NONE));
 $status = match ((string) ($row['estado_cultivo'] ?? '')) { 'en_cosecha' => 'En cosecha', 'finalizado' => 'Finalizado', 'cancelado' => 'Cancelado', default => 'Activo' };
 ?>
 <div class="admin-crop-detail">

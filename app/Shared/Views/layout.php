@@ -74,6 +74,7 @@ function app_nav_items(): array
             ['section' => 'Gestión', 'label' => 'Usuarios', 'icon' => 'fas fa-users-gear', 'tab' => '#usuarios'],
             ['section' => 'Gestión', 'label' => 'Solicitudes', 'icon' => 'fas fa-clipboard-check', 'tab' => '#solicitudes'],
             ['section' => 'Operación', 'label' => 'Movimientos', 'icon' => 'fas fa-arrow-right-arrow-left', 'tab' => '#movimientos'],
+            ['section' => 'Operación', 'label' => 'Inventario', 'icon' => 'fas fa-boxes-stacked', 'href' => \App\Core\Url::route('/inventario')],
             ['section' => 'Operación', 'label' => 'Facturas', 'icon' => 'fas fa-receipt', 'tab' => '#facturas'],
             ['section' => 'Producción', 'label' => 'Cultivos', 'icon' => 'fas fa-seedling', 'tab' => '#cultivos'],
             ['section' => 'Producción', 'label' => 'Proveedores', 'icon' => 'fas fa-truck-fast', 'tab' => '#pedidos-proveedores'],
@@ -93,6 +94,7 @@ function app_nav_items(): array
     if ($role === 'Bodeguero') {
         return [
             ['section' => 'Inventario', 'label' => 'Bodega', 'icon' => 'fas fa-warehouse', 'href' => \App\Core\Url::route('/dashboard/bodega')],
+            ['section' => 'Inventario', 'label' => 'Productos', 'icon' => 'fas fa-boxes-stacked', 'href' => \App\Core\Url::route('/inventario')],
             ['section' => 'Documentos', 'label' => 'Facturas', 'icon' => 'fas fa-receipt', 'href' => \App\Core\Url::route('/facturas/recepcion')],
             ['section' => 'Documentos', 'label' => 'Solicitudes', 'icon' => 'fas fa-clipboard-check', 'href' => \App\Core\Url::route('/reportes/solicitudes')],
         ];
@@ -263,19 +265,29 @@ function render_app_nav(string $icon, string $label, array $actions = []): void
 function render_flash_messages(): void
 {
     $messages = [
-        'mensaje' => ['success', 'fa-check', 'Operación completada'],
-        'error' => ['danger', 'fa-exclamation', 'No se pudo completar'],
-        'error_entrega' => ['warning', 'fa-exclamation', 'Requiere atención'],
+        'success' => ['success', 'fa-check', 'Operación completada', 4200],
+        'mensaje' => ['success', 'fa-check', 'Operación completada', 4200],
+        'error' => ['danger', 'fa-exclamation', 'No se pudo completar', 6000],
+        'error_entrega' => ['warning', 'fa-exclamation', 'Requiere atención', 5200],
     ];
 
     $notifications = [];
-    foreach ($messages as $key => [$type, $icon, $title]) {
+    foreach ($messages as $key => [$type, $icon, $title, $duration]) {
         $message = flash($key);
         if ($message === null) {
             continue;
         }
 
-        $notifications[] = compact('type', 'icon', 'title', 'message');
+        $notifications[] = compact('type', 'icon', 'title', 'message') + [
+            'duration' => $duration,
+            'action_label' => null,
+            'action_url' => null,
+        ];
+    }
+
+    $guidance = \App\Shared\Support\ActionGuidance::decode(flash('next_step'));
+    if ($guidance !== null) {
+        $notifications[] = $guidance + ['duration' => 5600];
     }
 
     if (!$notifications) {
@@ -286,7 +298,7 @@ function render_flash_messages(): void
         <?php foreach ($notifications as $notification): ?>
             <div class="app-notification app-notification--<?= e($notification['type']); ?>"
                  data-app-notification
-                 data-duration="4500"
+                 data-duration="<?= (int) $notification['duration']; ?>"
                  role="<?= $notification['type'] === 'danger' ? 'alert' : 'status'; ?>">
                 <span class="app-notification__icon" aria-hidden="true">
                     <i class="fas <?= e($notification['icon']); ?>"></i>
@@ -294,6 +306,13 @@ function render_flash_messages(): void
                 <span class="app-notification__content">
                     <strong class="app-notification__title"><?= e($notification['title']); ?></strong>
                     <span class="app-notification__message"><?= e($notification['message']); ?></span>
+                    <?php if (!empty($notification['action_url']) && !empty($notification['action_label'])): ?>
+                        <a class="app-notification__action"
+                           href="<?= e((string) $notification['action_url']); ?>"
+                           data-app-notification-action>
+                            <?= e((string) $notification['action_label']); ?> <span aria-hidden="true">→</span>
+                        </a>
+                    <?php endif; ?>
                 </span>
                 <button class="app-notification__close" type="button" data-app-notification-close aria-label="Cerrar notificación">
                     <i class="fas fa-xmark"></i>
@@ -301,6 +320,255 @@ function render_flash_messages(): void
             </div>
         <?php endforeach; ?>
     </div>
+    <?php
+}
+
+/** @param array<string, string|null>|null $guidance */
+function render_action_guidance(?array $guidance): void
+{
+    if ($guidance === null) {
+        return;
+    }
+    ?>
+    <aside class="app-action-guidance app-action-guidance--<?= e((string) $guidance['type']); ?>"
+           role="status"
+           aria-label="Siguiente paso">
+        <span class="app-action-guidance__icon" aria-hidden="true">
+            <i class="fas <?= e((string) $guidance['icon']); ?>"></i>
+        </span>
+        <div class="app-action-guidance__content">
+            <strong><?= e((string) $guidance['title']); ?></strong>
+            <p><?= e((string) $guidance['message']); ?></p>
+            <?php if (!empty($guidance['action_url']) && !empty($guidance['action_label'])): ?>
+                <a href="<?= e((string) $guidance['action_url']); ?>">
+                    <?= e((string) $guidance['action_label']); ?> <span aria-hidden="true">→</span>
+                </a>
+            <?php endif; ?>
+        </div>
+    </aside>
+    <?php
+}
+
+/** @param array<string, string> $options @param list<string> $selected */
+function render_associated_crop_picker(array $options, array $selected = []): void
+{
+    static $pickerSequence = 0;
+    $pickerSequence++;
+    $labelId = 'associated-crop-label-' . $pickerSequence;
+    $triggerId = 'associated-crop-trigger-' . $pickerSequence;
+    $listboxId = 'associated-crop-listbox-' . $pickerSequence;
+    $searchId = 'associated-crop-search-' . $pickerSequence;
+    $selected = array_values(array_filter(
+        array_keys($options),
+        static fn (string $code): bool => in_array($code, $selected, true)
+    ));
+    $catalog = \App\Shared\Domain\AssociatedCropCatalog::catalog();
+    $groups = [];
+    foreach ($options as $code => $label) {
+        $details = $catalog[$code] ?? [
+            'label' => $label,
+            'category' => 'Otros',
+            'description' => 'Cultivo asociado',
+            'icon' => 'eco',
+        ];
+        $groups[$details['category']][$code] = $details;
+    }
+    $expanded = $selected !== [];
+    ?>
+    <div class="associated-crop-picker" data-associated-crop-picker>
+        <button class="associated-crop-picker__toggle"
+                type="button"
+                data-associated-crop-toggle
+                aria-expanded="<?= $expanded ? 'true' : 'false'; ?>">
+            <span class="associated-crop-picker__toggle-icon material-symbols-outlined" aria-hidden="true">add_circle</span>
+            <span>
+                <strong>Agregar cultivos asociados</strong>
+                <small>
+                    Opcional ·
+                    <b data-associated-crop-count>
+                        <?= count($selected); ?> <?= count($selected) === 1 ? 'seleccionado' : 'seleccionados'; ?>
+                    </b>
+                </small>
+            </span>
+            <span class="associated-crop-picker__arrow material-symbols-outlined" aria-hidden="true">expand_more</span>
+        </button>
+
+        <div class="associated-crop-picker__panel"
+             data-associated-crop-panel
+             <?= $expanded ? '' : 'hidden'; ?>>
+            <span class="associated-crop-picker__label" id="<?= e($labelId); ?>">
+                Seleccione un cultivo para agregar
+            </span>
+            <div class="associated-crop-picker__controls">
+                <div class="associated-custom-select" data-associated-select>
+                    <button class="associated-custom-select__trigger"
+                            id="<?= e($triggerId); ?>"
+                            type="button"
+                            data-associated-select-trigger
+                            aria-haspopup="listbox"
+                            aria-expanded="false"
+                            aria-labelledby="<?= e($labelId . ' ' . $triggerId); ?>"
+                            aria-controls="<?= e($listboxId); ?>">
+                        <span class="associated-custom-select__leading material-symbols-outlined" aria-hidden="true">eco</span>
+                        <span class="associated-custom-select__value" data-associated-select-value>Seleccione una opción</span>
+                        <span class="associated-custom-select__arrow material-symbols-outlined" aria-hidden="true">expand_more</span>
+                    </button>
+                    <div class="associated-custom-select__menu"
+                         id="<?= e($listboxId); ?>"
+                         data-associated-select-menu
+                         role="listbox"
+                         aria-labelledby="<?= e($labelId); ?>"
+                         hidden>
+                        <div class="associated-custom-select__search">
+                            <span class="material-symbols-outlined" aria-hidden="true">search</span>
+                            <label class="associated-custom-select__sr-only" for="<?= e($searchId); ?>">Buscar cultivo asociado</label>
+                            <input id="<?= e($searchId); ?>"
+                                   type="search"
+                                   data-associated-select-search
+                                   placeholder="Buscar cultivo..."
+                                   autocomplete="off">
+                            <button type="button"
+                                    data-associated-select-search-clear
+                                    aria-label="Limpiar búsqueda"
+                                    hidden>
+                                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                            </button>
+                        </div>
+                        <div class="associated-custom-select__options" data-associated-select-options>
+                            <?php foreach ($groups as $category => $crops): ?>
+                                <div class="associated-custom-select__group"
+                                     data-associated-select-group
+                                     data-associated-category="<?= e($category); ?>">
+                                    <span class="associated-custom-select__group-title"><?= e($category); ?></span>
+                                    <?php foreach ($crops as $code => $details): ?>
+                                        <?php $isSelected = in_array($code, $selected, true); ?>
+                                        <button class="associated-custom-select__option<?= $isSelected ? ' is-added' : ''; ?>"
+                                                type="button"
+                                                role="option"
+                                                data-associated-select-option
+                                                data-associated-code="<?= e($code); ?>"
+                                                data-associated-label="<?= e($details['label']); ?>"
+                                                data-associated-description="<?= e($details['description']); ?>"
+                                                data-associated-category="<?= e($details['category']); ?>"
+                                                aria-selected="false"
+                                                aria-disabled="<?= $isSelected ? 'true' : 'false'; ?>"
+                                                <?= $isSelected ? 'disabled' : ''; ?>>
+                                            <span class="associated-custom-select__option-icon material-symbols-outlined" aria-hidden="true"><?= e($details['icon']); ?></span>
+                                            <span class="associated-custom-select__option-copy">
+                                                <strong><?= e($details['label']); ?></strong>
+                                                <small><?= e($details['description']); ?></small>
+                                            </span>
+                                            <span class="associated-custom-select__option-state" aria-hidden="true">
+                                                <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+                                                <small>Agregado</small>
+                                            </span>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endforeach; ?>
+                            <div class="associated-custom-select__empty" data-associated-select-empty hidden>
+                                <span class="material-symbols-outlined" aria-hidden="true">search_off</span>
+                                <strong>No encontramos coincidencias</strong>
+                                <small>Pruebe con otro nombre o categoría.</small>
+                            </div>
+                        </div>
+                        <div class="associated-custom-select__footer">
+                            <span data-associated-available-count><?= count($options) ?> disponibles</span>
+                            <span><kbd>↑</kbd><kbd>↓</kbd> navegar · <kbd>Enter</kbd> seleccionar</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="farmer-action-button farmer-action-button--secondary"
+                        type="button"
+                        data-associated-crop-add
+                        disabled>
+                    <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                    <span data-associated-add-label>Agregar cultivo</span>
+                </button>
+            </div>
+            <p class="associated-crop-picker__hint">Puede agregar más de uno y retirarlos antes de guardar.</p>
+            <div class="associated-crop-picker__feedback"
+                 data-associated-feedback
+                 role="status"
+                 aria-live="polite"
+                 hidden></div>
+            <div class="associated-crop-picker__summary"
+                 data-associated-summary
+                 <?= $selected === [] ? 'hidden' : ''; ?>>
+                <span class="associated-crop-picker__summary-icon material-symbols-outlined" aria-hidden="true">checklist</span>
+                <span>
+                    <strong data-associated-summary-title>
+                        <?= count($selected); ?> <?= count($selected) === 1 ? 'cultivo asociado' : 'cultivos asociados'; ?>
+                    </strong>
+                    <small data-associated-summary-copy>
+                        <?= e(implode(' · ', array_map(static fn (string $code): string => $options[$code], $selected))); ?>
+                    </small>
+                </span>
+                <button type="button"
+                        data-associated-clear-all
+                        <?= count($selected) < 2 ? 'hidden' : ''; ?>>
+                    Quitar todos
+                </button>
+            </div>
+            <div class="associated-crop-picker__selected"
+                data-associated-crop-selected
+                 aria-live="polite">
+                <?php foreach ($selected as $code): ?>
+                    <span class="associated-crop-chip"
+                          data-associated-crop-chip="<?= e($code); ?>"
+                          data-associated-label="<?= e($options[$code]); ?>">
+                        <span class="associated-crop-chip__icon material-symbols-outlined" aria-hidden="true">
+                            <?= e($catalog[$code]['icon'] ?? 'eco'); ?>
+                        </span>
+                        <span><?= e($options[$code]); ?></span>
+                        <button type="button"
+                                data-associated-crop-remove
+                                data-associated-code="<?= e($code); ?>"
+                                aria-label="Quitar <?= e($options[$code]); ?>">
+                            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                        </button>
+                        <input type="hidden" name="cultivos_asociados[]" value="<?= e($code); ?>">
+                    </span>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
+/** @param array<int, array<string, mixed>> $messages */
+function render_contextual_messages(array $messages): void
+{
+    if ($messages === []) {
+        return;
+    }
+    $userKey = (string) ($_SESSION['id_usuario'] ?? $_SESSION['usuario'] ?? 'guest');
+    ?>
+    <section class="app-context-guidance"
+             data-context-guidance
+             data-context-user="<?= e($userKey); ?>"
+             aria-label="Siguientes pasos recomendados">
+        <?php foreach ($messages as $message): ?>
+            <article class="app-context-message app-context-message--<?= e((string) $message['type']); ?>"
+                     data-context-message
+                     data-context-message-id="<?= e((string) $message['id']); ?>">
+                <span class="app-context-message__icon material-symbols-outlined" aria-hidden="true"><?= e((string) $message['icon']); ?></span>
+                <div class="app-context-message__content">
+                    <strong><?= e((string) $message['title']); ?></strong>
+                    <p><?= e((string) $message['message']); ?></p>
+                    <div class="app-context-message__actions">
+                        <?php if (!empty($message['action_url']) && !empty($message['action_label'])): ?>
+                            <a href="<?= e((string) $message['action_url']); ?>" data-context-action><?= e((string) $message['action_label']); ?> <span aria-hidden="true">→</span></a>
+                        <?php endif; ?>
+                        <button type="button" data-context-dismiss>Descartar permanentemente</button>
+                    </div>
+                </div>
+                <button class="app-context-message__close" type="button" data-context-close aria-label="Cerrar mensaje">
+                    <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
+            </article>
+        <?php endforeach; ?>
+    </section>
     <?php
 }
 

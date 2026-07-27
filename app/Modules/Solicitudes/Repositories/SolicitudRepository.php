@@ -11,7 +11,7 @@ final class SolicitudRepository implements SolicitudRepositoryInterface
     public function adminDashboard(): array
     {
         try {
-            $stmt=$this->database->connection()->prepare('SELECT ps.*,u.nombre agricultor_nombre,u.email agricultor_email FROM productos_solicitud ps JOIN usuarios u ON ps.id_agricultor=u.id_usuario ORDER BY ps.fecha DESC');
+            $stmt=$this->database->connection()->prepare("SELECT ps.*,u.nombre agricultor_nombre,u.email agricultor_email FROM productos_solicitud ps JOIN usuarios u ON ps.id_agricultor=u.id_usuario ORDER BY CASE ps.etapa WHEN 'Siembra' THEN 1 WHEN 'Riego' THEN 2 WHEN 'Cosecha' THEN 3 ELSE 4 END, ps.fecha DESC");
             $stmt->execute();$solicitudes=$stmt->get_result()->fetch_all(MYSQLI_ASSOC);$stmt->close();
             $stmt=$this->database->connection()->prepare("SELECT COUNT(*) total,SUM(CASE WHEN estado='Pendiente' THEN 1 ELSE 0 END) pendientes,SUM(CASE WHEN estado='Entregado' THEN 1 ELSE 0 END) entregadas,SUM(CASE WHEN estado='Rechazado' THEN 1 ELSE 0 END) rechazadas FROM productos_solicitud");
             $stmt->execute();$stats=$stmt->get_result()->fetch_assoc()?:[];$stmt->close();

@@ -59,9 +59,11 @@ if (!function_exists('request_history_quantity')) {
                 <?php render_logout_control(); ?>
             </div>
         </aside>
+        <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
         <main class="admin-inner-container">
             <header class="admin-reference-topbar">
+                <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
                 <div class="admin-topbar-user">
                     <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
                     <div>

@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Core\Url;
 use App\Shared\Helpers\Html;
 
+$projectRoot = dirname(__DIR__, 4);
+require_once $projectRoot . '/app/Shared/Views/layout.php';
+
 $dashboardUrl = Url::route($user['rol'] === 'Administrador' ? '/dashboard/admin' : '/dashboard/agricultor');
 ?>
 <!doctype html>
@@ -24,6 +27,7 @@ $dashboardUrl = Url::route($user['rol'] === 'Administrador' ? '/dashboard/admin'
     </header>
     <?php if ($success): ?><div class="alert alert-success"><?= Html::escape($success) ?></div><?php endif; ?>
     <?php if ($error): ?><div class="alert alert-danger"><?= Html::escape($error) ?></div><?php endif; ?>
+    <?php render_action_guidance($nextStep ?? null); ?>
     <section class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover mb-0">

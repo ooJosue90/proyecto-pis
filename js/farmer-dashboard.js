@@ -10,6 +10,11 @@ function escapeSupplyHtml(value) {
         .replace(/'/g, '&#039;');
 }
 
+function supplyOptionLabel(option) {
+    const label = option?.lastElementChild?.textContent || option?.textContent || '';
+    return label.trim();
+}
+
 function buildSupplyInsumoSelect(index) {
     const options = supplyInsumosOptions.map((insumo) => `
         <button type="button" class="ag-select-option" data-value="${escapeSupplyHtml(insumo.id)}" role="option">
@@ -33,42 +38,303 @@ function buildSupplyInsumoSelect(index) {
     `;
 }
 
-const ctx = document.getElementById('etapaChart').getContext('2d');
-const etapaChart = new Chart(ctx,{
-    type:'doughnut',
-    data:{
-        labels: farmerStageLabels,
-        datasets:[{
-            data: farmerStageTotals,
-            backgroundColor:['#08752b','#145ee8','#ffb43b','#94a3b8'],
-            borderColor: document.documentElement.dataset.theme === 'light'
-                ? '#ffffff'
-                : (document.documentElement.dataset.theme === 'night' ? '#080d0a' : '#172033'),
-            borderWidth:3,
-            hoverOffset:5
-        }]
-    },
-    options:{
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '66%',
-        plugins:{
-            legend:{display:false}
-        },
-        layout:{
-            padding:4
-        }
+let etapaChart = null;
+let stageChartFallback = null;
+let stageChartResizeObserver = null;
+
+function chartBorderColor(theme = document.documentElement.dataset.theme) {
+    return theme === 'light' ? '#ffffff' : (theme === 'night' ? '#080d0a' : '#172033');
+}
+
+function drawStageChartFallback() {
+    if (!stageChartFallback) return;
+
+    const { canvas, values, colors, hasData } = stageChartFallback;
+    const wrapper = canvas.closest('.farmer-chart-wrap');
+    const width = Math.max(220, Math.round(wrapper?.clientWidth || 320));
+    const height = Math.max(180, Math.round(wrapper?.clientHeight || 240));
+    const ratio = Math.max(1, window.devicePixelRatio || 1);
+    const context = canvas.getContext('2d');
+    const total = hasData ? values.reduce((sum, value) => sum + value, 0) : 0;
+    const renderedValues = hasData ? values : [1];
+    const renderedTotal = hasData ? total : 1;
+    const radius = Math.max(48, Math.min(width, height) * 0.36);
+    const lineWidth = Math.max(20, radius * 0.34);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    let startAngle = -Math.PI / 2;
+
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.clearRect(0, 0, width, height);
+    context.lineWidth = lineWidth;
+    context.lineCap = 'butt';
+
+    renderedValues.forEach((value, index) => {
+        if (value <= 0) return;
+        const angle = (value / renderedTotal) * Math.PI * 2;
+        context.beginPath();
+        context.strokeStyle = colors[index] || '#94a3b8';
+        context.arc(centerX, centerY, radius - lineWidth / 2, startAngle, startAngle + angle);
+        context.stroke();
+        startAngle += angle;
+    });
+
+    const styles = getComputedStyle(document.documentElement);
+    context.fillStyle = styles.getPropertyValue('--admin-text').trim() || '#172033';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.font = '900 28px Raleway, sans-serif';
+    context.fillText(String(total), centerX, centerY - 8);
+    context.fillStyle = styles.getPropertyValue('--admin-muted').trim() || '#64748b';
+    context.font = '800 11px Raleway, sans-serif';
+    context.fillText(total === 1 ? 'lote' : 'lotes', centerX, centerY + 18);
+    canvas.dataset.chartFallback = '1';
+}
+
+function useStageChartFallback(canvas, values, colors, hasData) {
+    const wrapper = canvas.closest('.farmer-chart-wrap');
+    wrapper?.classList.remove('farmer-chart-wrap--error');
+    wrapper?.classList.toggle('farmer-chart-wrap--empty', !hasData);
+    stageChartFallback = { canvas, values, colors, hasData };
+    drawStageChartFallback();
+
+    stageChartResizeObserver?.disconnect();
+    if (typeof ResizeObserver === 'function' && wrapper) {
+        stageChartResizeObserver = new ResizeObserver(drawStageChartFallback);
+        stageChartResizeObserver.observe(wrapper);
     }
-});
+}
+
+function initializeStageChart() {
+    const canvas = document.getElementById('etapaChart');
+    const wrapper = canvas?.closest('.farmer-chart-wrap');
+
+    if (!canvas) return;
+
+    const rawTotals = typeof farmerStageTotals !== 'undefined' && Array.isArray(farmerStageTotals)
+        ? farmerStageTotals
+        : [];
+    const rawLabels = typeof farmerStageLabels !== 'undefined' && Array.isArray(farmerStageLabels)
+        ? farmerStageLabels
+        : [];
+    const totals = rawTotals.map((value) => {
+        const number = Number(value);
+        return Number.isFinite(number) && number > 0 ? number : 0;
+    });
+    const hasData = totals.some((value) => value > 0);
+    const labels = hasData ? rawLabels : ['Sin lotes registrados'];
+    const values = hasData ? totals : [1];
+    const colors = hasData
+        ? ['#08752b', '#145ee8', '#ffb43b', '#94a3b8']
+        : ['#d7ddd9'];
+
+    if (typeof window.Chart !== 'function') {
+        useStageChartFallback(canvas, values, colors, hasData);
+        return;
+    }
+
+    wrapper?.classList.toggle('farmer-chart-wrap--empty', !hasData);
+    window.Chart.getChart?.(canvas)?.destroy();
+
+    try {
+        etapaChart = new window.Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: chartBorderColor(),
+                    borderWidth: 3,
+                    hoverOffset: hasData ? 5 : 0,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '66%',
+                animation: {
+                    duration: 450,
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: hasData },
+                },
+                layout: {
+                    padding: 4,
+                },
+            },
+        });
+    } catch (error) {
+        etapaChart = null;
+        useStageChartFallback(canvas, values, colors, hasData);
+        console.error('No se pudo inicializar la gráfica de etapas.', error);
+    }
+}
 
 window.addEventListener('app:themechange', function(event) {
-    etapaChart.data.datasets[0].borderColor = event.detail.theme === 'light'
-        ? '#ffffff'
-        : (event.detail.theme === 'night' ? '#080d0a' : '#172033');
-    etapaChart.update('none');
+    if (etapaChart) {
+        etapaChart.data.datasets[0].borderColor = chartBorderColor(event.detail.theme);
+        etapaChart.update('none');
+        return;
+    }
+    drawStageChartFallback();
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+    initializeStageChart();
+
+    const lotForm = document.querySelector('[data-lot-form]');
+    const stageNames = ['etapa_siembra', 'etapa_riego', 'etapa_cosecha'];
+    const stageInputs = stageNames
+        .map((name) => lotForm?.querySelector(`input[name="${name}"]`))
+        .filter(Boolean);
+    const cropSelect = lotForm?.querySelector('[data-lot-crop-select]');
+    const cropValue = cropSelect?.querySelector('[data-ag-select-value]');
+    const stageDates = [
+        {
+            name: 'Siembra',
+            start: lotForm?.querySelector('[name="fecha_inicio_siembra"]'),
+            end: lotForm?.querySelector('[name="fecha_fin_siembra"]'),
+        },
+        {
+            name: 'Riego',
+            start: lotForm?.querySelector('[name="fecha_inicio_riego"]'),
+            end: lotForm?.querySelector('[name="fecha_fin_riego"]'),
+        },
+        {
+            name: 'Cosecha',
+            start: lotForm?.querySelector('[name="fecha_inicio_cosecha"]'),
+            end: lotForm?.querySelector('[name="fecha_fin_cosecha"]'),
+        },
+    ];
+
+    function stageIsAvailable(index) {
+        if (index === 0) return Boolean(cropValue?.value);
+        return Boolean(stageInputs[index - 1]?.checked && stageDates[index - 1]?.end?.value);
+    }
+
+    function refreshStageAvailability() {
+        stageInputs.forEach((input, index) => {
+            const card = input.closest('.lot-stage-card');
+            const toggle = input.closest('.lot-stage-toggle');
+            const availability = card?.querySelector('[data-stage-availability]');
+            const previousCompleted = stageIsAvailable(index);
+
+            card?.classList.toggle('is-locked', !previousCompleted);
+            card?.classList.toggle('is-selected', input.checked);
+            toggle?.setAttribute('aria-disabled', previousCompleted ? 'false' : 'true');
+            [stageDates[index]?.start, stageDates[index]?.end].forEach((dateInput) => {
+                if (!dateInput) return;
+                dateInput.disabled = !previousCompleted;
+                const dateTrigger = dateInput.closest('.app-date-field')
+                    ?.querySelector('.app-date-field__trigger');
+                if (dateTrigger) dateTrigger.disabled = !previousCompleted;
+            });
+
+            if (availability) {
+                const previousName = index === 1 ? 'Siembra' : 'Riego';
+                availability.textContent = previousCompleted
+                    ? (input.checked ? 'Marcada' : 'Disponible')
+                    : (index === 0 ? 'Seleccione cultivo' : `Finalice ${previousName}`);
+            }
+        });
+
+        if (stageDates[2]?.end) {
+            stageDates[2].end.required = Boolean(stageInputs[2]?.checked);
+        }
+    }
+
+    function openStage(index) {
+        const input = stageInputs[index];
+        const dates = stageDates[index];
+        if (!input || !dates || !stageIsAvailable(index)) return;
+
+        if (!input.checked) {
+            input.checked = true;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+            refreshStageAvailability();
+        }
+        input.closest('.lot-stage-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        window.setTimeout(() => {
+            dates.start?.focus();
+            dates.start?.click();
+        }, 280);
+    }
+
+    stageInputs.forEach((input, index) => {
+        input.addEventListener('click', function(event) {
+            if (index === 0 && cropValue?.value && !input.checked) {
+                event.preventDefault();
+                window.appNotify?.('La etapa Siembra se activa automáticamente con el cultivo seleccionado.', 'info');
+                return;
+            }
+            if (stageIsAvailable(index)) {
+                return;
+            }
+
+            event.preventDefault();
+            const previousName = index === 0 ? 'el cultivo' : stageDates[index - 1].name;
+            const currentName = stageDates[index].name;
+            window.appNotify?.(
+                `Debe completar ${previousName} antes de acceder a ${currentName}.`,
+                'warning'
+            );
+        });
+
+        input.addEventListener('change', function() {
+            if (!input.checked) {
+                stageInputs.slice(index + 1).forEach((following) => {
+                    following.checked = false;
+                });
+            }
+            refreshStageAvailability();
+        });
+
+        [stageDates[index]?.start, stageDates[index]?.end].forEach((dateInput) => {
+            dateInput?.addEventListener('change', function() {
+                if (!dateInput.value || !stageIsAvailable(index) || input.checked) {
+                    refreshStageAvailability();
+                    return;
+                }
+
+                input.checked = true;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+
+        stageDates[index]?.end?.addEventListener('change', function() {
+            const end = stageDates[index].end;
+            if (!end.value || !end.checkValidity()) {
+                refreshStageAvailability();
+                return;
+            }
+
+            const next = stageDates[index + 1];
+            if (!next) {
+                window.appNotify?.('Cronograma completo. Ya puede registrar el lote.', 'success');
+                lotForm?.querySelector('button[type="submit"]')?.focus();
+                return;
+            }
+
+            next.start?.setAttribute('min', end.value);
+            if (next.start?.value && next.start.value < end.value) {
+                next.start.value = '';
+            }
+            window.appNotify?.(
+                `${stageDates[index].name} completada. Continúe con ${next.name}.`,
+                'success',
+                { duration: 6500 }
+            );
+            openStage(index + 1);
+        });
+    });
+
+    refreshStageAvailability();
+
     const harvestModal = document.getElementById('finalizarCosechaModal');
 
     harvestModal?.addEventListener('show.bs.modal', function(event) {
@@ -113,10 +379,15 @@ document.addEventListener('DOMContentLoaded', function() {
         options.forEach((option) => {
             option.addEventListener('click', function() {
                 value.value = option.dataset.value || '';
-                label.textContent = option.textContent.trim();
+                label.textContent = supplyOptionLabel(option);
                 select.classList.remove('is-invalid');
                 options.forEach((item) => item.classList.toggle('is-selected', item === option));
                 closeSelect(select);
+                value.dispatchEvent(new Event('change', { bubbles: true }));
+                select.dispatchEvent(new CustomEvent('ag-select:change', {
+                    bubbles: true,
+                    detail: { value: value.value, option },
+                }));
             });
         });
     }
@@ -124,6 +395,28 @@ document.addEventListener('DOMContentLoaded', function() {
     getSelects().forEach(initializeSelect);
     document.addEventListener('ag-select:mount', function(event) {
         initializeSelect(event.detail?.select);
+    });
+
+    cropSelect?.addEventListener('ag-select:change', function(event) {
+        const plantingDate = event.detail?.option?.dataset.plantingDate || '';
+        const planting = stageDates[0];
+        if (!plantingDate || !planting?.start) return;
+
+        planting.start.value = plantingDate;
+        planting.start.setAttribute('min', plantingDate);
+        planting.end?.setAttribute('min', plantingDate);
+        planting.start.dispatchEvent(new Event('change', { bubbles: true }));
+        if (planting.end?.value && planting.end.value < plantingDate) {
+            planting.end.value = '';
+        }
+        stageInputs[0].checked = true;
+        stageInputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+        refreshStageAvailability();
+        stageInputs[0].closest('.lot-stage-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        window.setTimeout(() => {
+            planting.end?.focus();
+            planting.end?.click();
+        }, 280);
     });
 
     document.addEventListener('click', function(event) {
@@ -170,7 +463,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const addButton = supplyForm.querySelector('[data-add-supply-product]');
     let supplyProductIndex = 0;
 
-    function addSupplyProduct() {
+    function readCalculatorContext() {
+        try {
+            const raw = sessionStorage.getItem('pis.calculatorRequestContext');
+            if (!raw) return null;
+            const context = JSON.parse(raw);
+            const isRecent = Number(context?.createdAt) > Date.now() - (2 * 60 * 60 * 1000);
+            if (!isRecent || !context?.loteId || !Array.isArray(context?.products)) {
+                sessionStorage.removeItem('pis.calculatorRequestContext');
+                return null;
+            }
+            return context;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function setSelectValue(select, value) {
+        const option = Array.from(select?.querySelectorAll('.ag-select-option') || [])
+            .find((candidate) => String(candidate.dataset.value) === String(value));
+        if (!select || !option) return false;
+        select.querySelector('[data-ag-select-value]').value = option.dataset.value || '';
+        select.querySelector('[data-ag-select-label]').textContent = supplyOptionLabel(option);
+        option.classList.add('is-selected');
+        return true;
+    }
+
+    function addSupplyProduct(prefill = null) {
         const row = document.createElement('div');
         row.className = 'producto-item farmer-product-row supply-product-row';
         row.innerHTML = `
@@ -192,6 +511,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.dispatchEvent(new CustomEvent('ag-select:mount', {
             detail: { select: row.querySelector('[data-ag-select]') }
         }));
+        if (prefill) {
+            setSelectValue(row.querySelector('[data-ag-select]'), prefill.id);
+            row.querySelector('input[type="number"]').value = String(prefill.quantity);
+        }
         supplyProductIndex++;
 
         row.querySelector('.remove-producto').addEventListener('click', function() {
@@ -211,8 +534,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    addButton.addEventListener('click', addSupplyProduct);
-    addSupplyProduct();
+    addButton.addEventListener('click', () => addSupplyProduct());
+    const calculatorContext = readCalculatorContext();
+    const normalizedName = (value) => String(value || '').trim().toLocaleLowerCase('es-EC');
+    const prefilledProducts = calculatorContext
+        ? calculatorContext.products.map((product) => {
+            const inventoryItem = supplyInsumosOptions.find(
+                (item) => normalizedName(item.name) === normalizedName(product.name)
+            );
+            return inventoryItem && Number(product.quantityPerHectare) > 0
+                ? { id: inventoryItem.id, quantity: product.quantityPerHectare }
+                : null;
+        }).filter(Boolean)
+        : [];
+
+    if (calculatorContext) {
+        const lotSelect = supplyForm.querySelector('[data-ag-select]');
+        const hectares = supplyForm.querySelector('input[name="hectareas"]');
+        setSelectValue(lotSelect, calculatorContext.loteId);
+        if (hectares && Number(calculatorContext.area) > 0) {
+            hectares.value = String(calculatorContext.area);
+        }
+        prefilledProducts.forEach(addSupplyProduct);
+        if (prefilledProducts.length === 0) addSupplyProduct();
+        sessionStorage.removeItem('pis.calculatorRequestContext');
+        window.appNotify?.(
+            `Pedido preparado con el lote calculado y ${prefilledProducts.length} insumo(s) disponible(s) en inventario.`,
+            'success'
+        );
+        supplyForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        addSupplyProduct();
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function() {

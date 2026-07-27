@@ -43,9 +43,11 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                 <?php render_logout_control(); ?>
             </div>
         </aside>
+        <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
         <main class="admin-inner-container">
             <header class="admin-reference-topbar">
+                <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
                 <div class="admin-topbar-user">
                     <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
                     <div>
@@ -127,7 +129,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                         </div>
                         <strong>3</strong>
                         <p>Etapas de cálculo</p>
-                        <span class="farmer-stat-detail"><span class="material-symbols-outlined" aria-hidden="true">schema</span> Siembra, riego y cosecha</span>
+                        <span class="farmer-stat-detail"><span class="material-symbols-outlined" aria-hidden="true">schema</span> Siembra, Riego y Cosecha</span>
                     </article>
                 </section>
 
@@ -172,7 +174,10 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                                 </label>
                             </div>
 
-                            <div id="insumosCalculados" class="farmer-results-panel calculator-results-panel">
+                            <div
+                                id="insumosCalculados"
+                                class="farmer-results-panel calculator-results-panel"
+                                data-request-url="<?= e(\App\Core\Url::route('/dashboard/agricultor', ['tab' => 'insumos'])); ?>">
                                 <div class="calculator-empty-state">
                                     <span><span class="material-symbols-outlined" aria-hidden="true">tips_and_updates</span></span>
                                     <h2>Seleccione un lote</h2>

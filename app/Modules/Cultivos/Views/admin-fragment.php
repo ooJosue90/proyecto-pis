@@ -19,7 +19,7 @@ declare(strict_types=1);
         </article>
         <article class="admin-crops__metric admin-crops__metric--type">
             <span class="admin-crops__metric-icon"><i class="fas fa-layer-group"></i></span>
-            <div><span>Tipos</span><strong><?php echo $stats_cultivos['tipos_diferentes'] ?: 0; ?></strong><small>Variedades registradas</small></div>
+            <div><span>Asociados</span><strong><?php echo $stats_cultivos['asociados_diferentes'] ?: 0; ?></strong><small>Tipos complementarios</small></div>
         </article>
         <article class="admin-crops__metric admin-crops__metric--lot">
             <span class="admin-crops__metric-icon"><i class="fas fa-map-location-dot"></i></span>
@@ -61,7 +61,7 @@ declare(strict_types=1);
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Tipo de cultivo</th>
+                                    <th>Nombre y variedad</th>
                                     <th>Fecha siembra</th>
                                     <th>Agricultor</th>
                                     <th>Estado</th>
@@ -76,7 +76,15 @@ declare(strict_types=1);
                                 ?>
                                 <tr>
                                     <td><strong>#<?php echo (int) $cultivo['id_cultivo']; ?></strong></td>
-                                    <td><span class="admin-crop-tag"><i class="fas fa-leaf"></i><?php echo htmlspecialchars($cultivo['tipo']); ?></span></td>
+                                    <td>
+                                        <strong class="admin-crop-name"><?php echo htmlspecialchars($cultivo['nombre']); ?></strong>
+                                        <span class="admin-crop-tag"><i class="fas fa-leaf"></i><?php echo htmlspecialchars($cultivo['tipo']); ?></span>
+                                        <small class="admin-crop-associated">
+                                            <?php echo $cultivo['cultivos_asociados'] !== ''
+                                                ? htmlspecialchars($cultivo['cultivos_asociados'])
+                                                : 'Sin cultivos asociados'; ?>
+                                        </small>
+                                    </td>
                                     <td><?php echo date('d/m/Y', strtotime($cultivo['fecha_siembra'])); ?></td>
                                     <td><?php echo htmlspecialchars($cultivo['agricultor_nombre'] ?: 'No asignado'); ?></td>
                                     <td>
@@ -97,7 +105,7 @@ declare(strict_types=1);
                                     <td><span class="admin-crop-lots"><?php echo $lotes_count; ?> lote(s)</span></td>
                                     <td>
                                         <div class="admin-crops__actions">
-                                            <button class="admin-crops__action admin-crops__action--view" onclick="verDetallesCultivo(<?php echo (int) $cultivo['id_cultivo']; ?>)" aria-label="Ver cultivo <?php echo htmlspecialchars($cultivo['tipo'], ENT_QUOTES, 'UTF-8'); ?>">
+                                            <button class="admin-crops__action admin-crops__action--view" onclick="verDetallesCultivo(<?php echo (int) $cultivo['id_cultivo']; ?>)" aria-label="Ver cultivo <?php echo htmlspecialchars($cultivo['nombre'], ENT_QUOTES, 'UTF-8'); ?>">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             <button
@@ -105,7 +113,7 @@ declare(strict_types=1);
                                                 class="admin-crops__action admin-crops__action--delete"
                                                 data-admin-crop-delete="cultivo"
                                                 data-record-id="<?php echo (int) $cultivo['id_cultivo']; ?>"
-                                                data-record-name="<?php echo htmlspecialchars($cultivo['tipo'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                data-record-name="<?php echo htmlspecialchars($cultivo['nombre'], ENT_QUOTES, 'UTF-8'); ?>"
                                                 <?php echo $lotes_count > 0 ? 'disabled title="No se puede eliminar: tiene lotes asociados"' : ''; ?>>
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -147,7 +155,10 @@ declare(strict_types=1);
                                     <td><strong>#<?php echo (int) $lote['id_lote']; ?></strong></td>
                                     <td><strong><?php echo htmlspecialchars($lote['ubicacion']); ?></strong></td>
                                     <td><?php echo htmlspecialchars($lote['area']); ?></td>
-                                    <td><span class="admin-crop-tag admin-crop-tag--lot"><i class="fas fa-seedling"></i><?php echo htmlspecialchars($lote['cultivo_tipo'] ?: 'Sin cultivo'); ?></span></td>
+                                    <td>
+                                        <strong class="admin-crop-name"><?php echo htmlspecialchars($lote['cultivo_nombre'] ?: 'Sin cultivo'); ?></strong>
+                                        <span class="admin-crop-tag admin-crop-tag--lot"><i class="fas fa-seedling"></i><?php echo htmlspecialchars($lote['cultivo_tipo'] ?: 'Sin variedad'); ?></span>
+                                    </td>
                                     <td><?php echo htmlspecialchars($lote['agricultor_nombre'] ?: 'No asignado'); ?></td>
                                     <td>
                                         <div class="admin-crops__actions">

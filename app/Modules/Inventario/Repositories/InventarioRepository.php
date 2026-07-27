@@ -10,7 +10,7 @@ final class InventarioRepository implements InventarioRepositoryInterface
     public function __construct(private readonly Database $database) {}
     public function findAll(): array
     {
-        try{$stmt=$this->database->connection()->prepare('SELECT id_insumos,id_usuario,nombre,tipo,descripcion,unidad_medida,cantidad,observaciones FROM insumos_agricolas ORDER BY nombre');$stmt->execute();$rows=$stmt->get_result()->fetch_all(MYSQLI_ASSOC);$stmt->close();return $rows;}catch(Throwable $e){throw new DatabaseException(previous:$e);}
+        try{$stmt=$this->database->connection()->prepare("SELECT id_insumos,id_usuario,nombre,tipo,descripcion,unidad_medida,cantidad,observaciones FROM insumos_agricolas ORDER BY CASE tipo WHEN 'Siembra' THEN 1 WHEN 'Riego' THEN 2 WHEN 'Cosecha' THEN 3 ELSE 4 END, nombre");$stmt->execute();$rows=$stmt->get_result()->fetch_all(MYSQLI_ASSOC);$stmt->close();return $rows;}catch(Throwable $e){throw new DatabaseException(previous:$e);}
     }
     public function create(string $userId,string $name,string $type,?string $description,string $unit,float $quantity,?string $observations): int
     {

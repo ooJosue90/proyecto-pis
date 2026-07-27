@@ -19,6 +19,8 @@ interface CultivoRepositoryInterface
 
     public function findOwnedBy(int $id, string $userId): ?Cultivo;
 
+    public function nameExistsForUser(string $userId, string $name): bool;
+
     public function create(CreateCultivoData $data): Cultivo;
 
     public function countLotes(int $id): int;

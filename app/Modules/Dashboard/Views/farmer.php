@@ -2,10 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Shared\Domain\AssociatedCropCatalog;
 use App\Shared\Helpers\FarmerView;
 
 $projectRoot = dirname(__DIR__, 4);
 require_once $projectRoot . '/app/Shared/Views/layout.php';
+$cultivoOld = is_array($_SESSION['_cultivo_old'] ?? null) ? $_SESSION['_cultivo_old'] : [];
+unset($_SESSION['_cultivo_old']);
+$associatedCropOptions = AssociatedCropCatalog::options();
+$selectedAssociatedCrops = is_array($cultivoOld['cultivos_asociados'] ?? null)
+    ? $cultivoOld['cultivos_asociados']
+    : [];
 ?>
 <?php render_head('Dashboard Agricultor', [
     'https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Roboto+Condensed:wght@400;500;600;700;800;900&display=swap',
@@ -46,14 +53,16 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                 <?php render_logout_control(); ?>
             </div>
         </aside>
+        <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
         <main class="admin-inner-container">
             <header class="admin-reference-topbar">
+                <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
                 <div class="admin-topbar-user">
                     <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
                     <div>
                         <h2>Saludos, <?php echo e(current_user_name()); ?></h2>
-                        <p>Gestiona tu jornada agrícola con Verdeagro ERP</p>
+                        <p>Gestiona tu jornada agrícola con SembriExport</p>
                     </div>
                 </div>
                 <div class="admin-topbar-actions">
@@ -75,6 +84,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
             </header>
             <div class="container farmer-dashboard admin-dashboard mt-4">
     <?php render_flash_messages(); ?>
+    <?php render_contextual_messages($contextual_messages ?? []); ?>
 
     <section class="farmer-page-heading admin-page-heading farmer-dashboard-hero">
         <div class="farmer-hero-copy">
@@ -107,9 +117,9 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                 <span class="farmer-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">water_drop</span></span>
                 <span class="farmer-stat-status">Activo</span>
             </div>
-            <strong><?php echo $etapas['Desarrollo']; ?></strong>
-            <p>Lotes en desarrollo</p>
-            <span class="farmer-stat-detail"><span class="material-symbols-outlined" aria-hidden="true">water</span> Crecimiento y gestión hídrica</span>
+            <strong><?php echo $etapas['Riego']; ?></strong>
+            <p>Lotes en riego</p>
+            <span class="farmer-stat-detail"><span class="material-symbols-outlined" aria-hidden="true">water</span> Gestión hídrica</span>
         </article>
 
         <article class="farmer-stat-card farmer-stat-card--siembra">
@@ -119,7 +129,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
             </div>
             <strong><?php echo $etapas['Siembra']; ?></strong>
             <p>Lotes en siembra</p>
-            <span class="farmer-stat-detail"><span class="material-symbols-outlined" aria-hidden="true">agriculture</span> Desarrollo inicial</span>
+            <span class="farmer-stat-detail"><span class="material-symbols-outlined" aria-hidden="true">agriculture</span> Implantación inicial</span>
         </article>
 
         <article class="farmer-stat-card farmer-stat-card--cosecha">
@@ -177,11 +187,11 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                             <div class="record-hero-content">
                                 <span class="farmer-kicker">Registro agrícola</span>
                                 <h2>Registrar Cultivo</h2>
-                                <p>Ingrese el tipo de cultivo y la fecha de siembra para iniciar el seguimiento productivo.</p>
+                                <p>Registre la siembra de Mango Tommy Atkins y seleccione, si corresponde, los cultivos complementarios del sistema productivo.</p>
                             </div>
                             <div class="record-hero-meta" aria-label="Detalle del flujo">
-                                <span><strong>Datos mínimos</strong><small>Tipo y fecha</small></span>
-                                <span><strong>Seguimiento</strong><small>Disponible al guardar</small></span>
+                                <span><strong>Variedad fija</strong><small>Mango Tommy Atkins</small></span>
+                                <span><strong>Asociaciones</strong><small>Selección múltiple opcional</small></span>
                             </div>
                             <span class="record-hero-icon" aria-hidden="true"><span class="material-symbols-outlined">agriculture</span></span>
                         </div>
@@ -191,23 +201,43 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                                 <span class="form-section-icon"><span class="material-symbols-outlined" aria-hidden="true">edit_square</span></span>
                                 <div>
                                     <h3>Identificación del cultivo</h3>
-                                    <p>Define el cultivo base que luego se podrá asociar a uno o más lotes.</p>
+                                    <p>La variedad principal está normalizada para todos los registros del PIS.</p>
                                 </div>
                             </header>
-                            <div class="farmer-form-grid record-field-grid">
+                            <div class="farmer-form-grid record-field-grid crop-registration-grid">
+                                <input type="hidden" name="tipo" value="<?php echo e(AssociatedCropCatalog::MAIN_CROP); ?>">
+                                <div class="record-field-card crop-fixed-field" aria-label="Cultivo principal">
+                                    <span>Cultivo principal</span>
+                                    <div class="crop-fixed-value">
+                                        <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+                                        <strong><?php echo e(AssociatedCropCatalog::MAIN_CROP); ?></strong>
+                                        <small>Variedad oficial del programa</small>
+                                    </div>
+                                </div>
                                 <label class="record-field-card">
-                                    <span>Tipo de cultivo</span>
-                                    <input type="text" name="tipo" class="form-control" placeholder="Ej. Mango, banano..." required>
+                                    <span>Nombre del cultivo</span>
+                                    <input
+                                        type="text"
+                                        name="nombre"
+                                        class="form-control"
+                                        maxlength="120"
+                                        placeholder="Ej. Mango norte o Parcela 2026"
+                                        value="<?php echo e((string) ($cultivoOld['nombre'] ?? '')); ?>"
+                                        required>
                                 </label>
                                 <label class="record-field-card">
                                     <span>Fecha de siembra</span>
-                                    <input type="date" name="fecha_siembra" class="form-control" required>
+                                    <input type="date" name="fecha_siembra" class="form-control" value="<?php echo e((string) ($cultivoOld['fecha_siembra'] ?? '')); ?>" min="<?php echo date('Y-m-d'); ?>" required>
                                 </label>
                             </div>
                         </section>
 
+                        <section class="form-section form-section--associated-crops">
+                            <?php render_associated_crop_picker($associatedCropOptions, $selectedAssociatedCrops); ?>
+                        </section>
+
                         <footer class="form-action-bar">
-                            <span><span class="material-symbols-outlined" aria-hidden="true">verified</span> Registro inicial para trazabilidad productiva</span>
+                            <span><span class="material-symbols-outlined" aria-hidden="true">verified</span> Variedad principal y asociaciones normalizadas</span>
                             <button type="submit" name="registrar_cultivo" class="btn farmer-submit farmer-action-button farmer-action-button--primary">
                                 <span>Registrar cultivo</span>
                             </button>
@@ -216,7 +246,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                 </div>
 
                 <div class="tab-pane fade" id="lote" role="tabpanel" aria-labelledby="lote-tab">
-                    <form method="POST" action="<?php echo e(\App\Core\Url::route('/lotes', ['legacy' => 1])); ?>" class="farmer-form farmer-record-form">
+                    <form method="POST" action="<?php echo e(\App\Core\Url::route('/lotes', ['legacy' => 1])); ?>" class="farmer-form farmer-record-form" data-lot-form>
                         <?php echo csrf_field(); ?>
                         <input type="hidden" name="accion" value="registrar_lote">
                         <div class="record-hero record-hero--lot">
@@ -244,7 +274,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                             <div class="farmer-form-grid record-field-grid lot-primary-grid">
                                 <label class="record-field-card lot-crop-field">
                                     <span>Cultivo</span>
-                                    <div class="ag-select" data-ag-select>
+                                    <div class="ag-select" data-ag-select data-lot-crop-select>
                                         <input type="hidden" name="id_cultivo" data-ag-select-value>
                                         <button type="button" class="ag-select-button" data-ag-select-button aria-haspopup="listbox" aria-expanded="false">
                                             <span class="material-symbols-outlined" aria-hidden="true">agriculture</span>
@@ -254,9 +284,9 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                                         <div class="ag-select-menu" data-ag-select-menu role="listbox">
                                             <?php if (!empty($cultivos)): ?>
                                                 <?php foreach($cultivos as $c): ?>
-                                                    <button type="button" class="ag-select-option" data-value="<?php echo e($c['id_cultivo']); ?>" role="option">
+                                                    <button type="button" class="ag-select-option" data-value="<?php echo e($c['id_cultivo']); ?>" data-planting-date="<?php echo e($c['fecha_siembra']); ?>" role="option">
                                                         <span class="material-symbols-outlined" aria-hidden="true">eco</span>
-                                                        <span><?php echo e($c['tipo']); ?> - <?php echo e($c['fecha_siembra']); ?></span>
+                                                        <span><?php echo e($c['nombre']); ?> · <?php echo e($c['tipo']); ?> - <?php echo e($c['fecha_siembra']); ?></span>
                                                     </button>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
@@ -281,7 +311,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                                 <div>
                                     <span class="farmer-kicker">Cronograma productivo</span>
                                     <h3 id="lot-stage-title">Etapas y fechas del lote</h3>
-                                    <p>Seleccione la etapa actual y defina los periodos estimados de trabajo.</p>
+                                    <p>Seleccione las etapas en orden; no podrá omitir ninguna fase del cultivo.</p>
                                 </div>
                                 <div class="lot-stage-summary" aria-label="Resumen del cronograma">
                                     <span><strong>3</strong><small>Etapas</small></span>
@@ -291,48 +321,54 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                             </header>
 
                             <div class="lot-stage-grid">
-                                <article class="lot-stage-card lot-stage-card--riego">
+                                <article class="lot-stage-card lot-stage-card--siembra">
                                     <label class="lot-stage-toggle">
-                                        <input type="checkbox" name="etapa_riego" value="1" class="form-check-input">
+                                        <input type="checkbox" name="etapa_siembra" value="1" class="form-check-input">
                                         <span class="lot-stage-step">01</span>
-                                        <span class="lot-stage-icon"><span class="material-symbols-outlined" aria-hidden="true">water_drop</span></span>
+                                        <span class="lot-stage-icon"><span class="material-symbols-outlined" aria-hidden="true">agriculture</span></span>
                                         <span class="lot-stage-copy">
-                                            <strong>Desarrollo</strong>
-                                            <small>Crecimiento y gestión hídrica</small>
+                                            <strong>Siembra</strong>
+                                            <small>Implantación inicial del cultivo</small>
                                         </span>
-                                        <span class="lot-stage-check"><span class="material-symbols-outlined" aria-hidden="true">check</span></span>
+                                        <span class="lot-stage-state">
+                                            <span class="lot-stage-availability" data-stage-availability>Disponible</span>
+                                            <span class="lot-stage-check"><span class="material-symbols-outlined" aria-hidden="true">check</span></span>
+                                        </span>
                                     </label>
                                     <div class="lot-stage-dates">
                                         <label>
                                             <span>Fecha de inicio</span>
-                                            <input type="date" name="fecha_inicio_riego" class="form-control">
+                                            <input type="date" name="fecha_inicio_siembra" class="form-control" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+10 years')); ?>" data-date-label="la fecha de inicio de siembra">
                                         </label>
                                         <label>
                                             <span>Fecha de finalización</span>
-                                            <input type="date" name="fecha_fin_riego" class="form-control">
+                                            <input type="date" name="fecha_fin_siembra" class="form-control" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+10 years')); ?>" data-date-not-before="fecha_inicio_siembra" data-date-label="la fecha de finalización de siembra">
                                         </label>
                                     </div>
                                 </article>
 
-                                <article class="lot-stage-card lot-stage-card--siembra">
+                                <article class="lot-stage-card lot-stage-card--riego">
                                     <label class="lot-stage-toggle">
-                                        <input type="checkbox" name="etapa_siembra" value="1" class="form-check-input">
+                                        <input type="checkbox" name="etapa_riego" value="1" class="form-check-input">
                                         <span class="lot-stage-step">02</span>
-                                        <span class="lot-stage-icon"><span class="material-symbols-outlined" aria-hidden="true">agriculture</span></span>
+                                        <span class="lot-stage-icon"><span class="material-symbols-outlined" aria-hidden="true">water_drop</span></span>
                                         <span class="lot-stage-copy">
-                                            <strong>Siembra</strong>
-                                            <small>Implantación y desarrollo inicial</small>
+                                            <strong>Riego</strong>
+                                            <small>Gestión hídrica del cultivo</small>
                                         </span>
-                                        <span class="lot-stage-check"><span class="material-symbols-outlined" aria-hidden="true">check</span></span>
+                                        <span class="lot-stage-state">
+                                            <span class="lot-stage-availability" data-stage-availability>Complete Siembra</span>
+                                            <span class="lot-stage-check"><span class="material-symbols-outlined" aria-hidden="true">check</span></span>
+                                        </span>
                                     </label>
                                     <div class="lot-stage-dates">
                                         <label>
                                             <span>Fecha de inicio</span>
-                                            <input type="date" name="fecha_inicio_siembra" class="form-control">
+                                            <input type="date" name="fecha_inicio_riego" class="form-control" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+10 years')); ?>" data-date-not-before="fecha_fin_siembra" data-date-label="la fecha de inicio de riego">
                                         </label>
                                         <label>
                                             <span>Fecha de finalización</span>
-                                            <input type="date" name="fecha_fin_siembra" class="form-control">
+                                            <input type="date" name="fecha_fin_riego" class="form-control" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+10 years')); ?>" data-date-not-before="fecha_inicio_riego" data-date-label="la fecha de finalización de riego">
                                         </label>
                                     </div>
                                 </article>
@@ -346,16 +382,19 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                                             <strong>Cosecha</strong>
                                             <small>Recolección en curso, todavía no finalizada</small>
                                         </span>
-                                        <span class="lot-stage-check"><span class="material-symbols-outlined" aria-hidden="true">check</span></span>
+                                        <span class="lot-stage-state">
+                                            <span class="lot-stage-availability" data-stage-availability>Complete Riego</span>
+                                            <span class="lot-stage-check"><span class="material-symbols-outlined" aria-hidden="true">check</span></span>
+                                        </span>
                                     </label>
                                     <div class="lot-stage-dates">
                                         <label>
                                             <span>Fecha de inicio</span>
-                                            <input type="date" name="fecha_inicio_cosecha" class="form-control">
+                                            <input type="date" name="fecha_inicio_cosecha" class="form-control" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+10 years')); ?>" data-date-not-before="fecha_fin_riego" data-date-label="la fecha de inicio de cosecha">
                                         </label>
                                         <label>
                                             <span>Fecha de finalización</span>
-                                            <input type="date" name="fecha_fin_cosecha" class="form-control">
+                                            <input type="date" name="fecha_fin_cosecha" class="form-control" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+10 years')); ?>" data-date-not-before="fecha_inicio_cosecha" data-date-label="la fecha de finalización de cosecha">
                                         </label>
                                     </div>
                                 </article>
@@ -503,7 +542,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                 </div>
             </div>
 
-            <section class="farmer-lotes-card">
+            <section class="farmer-lotes-card" id="lotes-registrados">
                 <div class="farmer-section-heading">
                     <h2>Lotes Registrados</h2>
                     <span><?php echo $total_lotes; ?> registros</span>
@@ -534,7 +573,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                                 <?php foreach($lotes as $l): ?>
                                 <tr>
                                     <td><?php echo e($l['id_lote']); ?></td>
-                                    <td><?php echo e($l['tipo_cultivo']); ?></td>
+                                    <td><strong><?php echo e($l['nombre_cultivo']); ?></strong><small class="d-block"><?php echo e($l['tipo_cultivo']); ?></small></td>
                                     <td><?php echo e($l['ubicacion']); ?></td>
                                     <td><?php echo e($l['area']); ?></td>
                                     <td><?php echo e(FarmerView::stageLabel((int) $l['etapa_actual'])); ?></td>
@@ -553,7 +592,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#finalizarCosechaModal"
                                                 data-harvest-lot-id="<?php echo (int) $l['id_lote']; ?>"
-                                                data-harvest-lot-name="<?php echo e($l['ubicacion'] . ' - ' . $l['tipo_cultivo']); ?>">
+                                                data-harvest-lot-name="<?php echo e($l['ubicacion'] . ' - ' . $l['nombre_cultivo']); ?>">
                                                 <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
                                                 <span>Registrar</span>
                                             </button>
@@ -588,11 +627,11 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                         <h2>Estado General</h2>
                     </div>
                     <div class="farmer-chart-wrap">
-                        <canvas id="etapaChart" class="farmer-chart"></canvas>
+                        <canvas id="etapaChart" class="farmer-chart" role="img" aria-label="Distribución de lotes por etapa productiva"></canvas>
                     </div>
                     <div class="farmer-stage-legend">
                         <span><i class="farmer-dot farmer-dot--siembra"></i>Siembra</span>
-                        <span><i class="farmer-dot farmer-dot--riego"></i>Desarrollo</span>
+                        <span><i class="farmer-dot farmer-dot--riego"></i>Riego</span>
                         <span><i class="farmer-dot farmer-dot--cosecha"></i>Cosecha</span>
                         <span><i class="farmer-dot farmer-dot--none"></i>Sin etapa</span>
                     </div>
@@ -660,7 +699,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
                         </label>
                         <label class="harvest-field harvest-field--wide">
                             <span><span class="material-symbols-outlined" aria-hidden="true">event_available</span> Fecha real de cosecha</span>
-                            <input type="date" name="fecha_cosecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                            <input type="date" name="fecha_cosecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d'); ?>" required>
                         </label>
                         <label class="harvest-field harvest-field--wide">
                             <span><span class="material-symbols-outlined" aria-hidden="true">note_alt</span> Observación <small>Opcional</small></span>
@@ -693,6 +732,7 @@ require_once $projectRoot . '/app/Shared/Views/layout.php';
 const supplyInsumosOptions = <?php echo json_encode(array_map(static function ($insumo) {
     return [
         'id' => $insumo['id_insumos'],
+        'name' => $insumo['nombre'],
         'label' => $insumo['nombre'] . ' (' . $insumo['cantidad'] . ' ' . $insumo['unidad_medida'] . ')',
     ];
 }, $insumos), JSON_UNESCAPED_UNICODE); ?>;
@@ -700,6 +740,7 @@ const farmerStageTotals = <?php echo json_encode(array_values($etapas)); ?>;
 const farmerStageLabels = <?php echo json_encode(array_keys($etapas), JSON_UNESCAPED_UNICODE); ?>;
 
 </script>
+<script src="js/associated-crops.js?v=<?= filemtime($projectRoot . '/js/associated-crops.js'); ?>" defer></script>
 <script src="js/farmer-dashboard.js?v=<?= filemtime($projectRoot . '/js/farmer-dashboard.js'); ?>" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

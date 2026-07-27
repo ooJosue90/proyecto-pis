@@ -244,6 +244,7 @@ GEMINI_MODEL=gemini-2.0-flash
 | `APP_ENV` | `local` durante desarrollo y `production` al desplegar. |
 | `APP_DEBUG` | Muestra información técnica cuando es `true`; debe ser `false` en producción. |
 | `APP_TIMEZONE` | Zona horaria usada por PHP. |
+| `APP_FOUNDATION_DATE` | Fecha mínima aceptada para registros operativos (`YYYY-MM-DD`). |
 | `DB_HOST` | Host de MySQL; normalmente `localhost`. |
 | `DB_USER` | Usuario de MySQL. |
 | `DB_PASSWORD` | Contraseña del usuario. Puede estar vacía en un XAMPP local. |
@@ -291,13 +292,16 @@ Si el respaldo solo contiene tablas, cree primero la base en phpMyAdmin con cote
 
 Las migraciones versionadas viven en `migrations/` y deben ejecutarse en orden cronológico cuando se instala sobre un respaldo antiguo.
 
-Actualmente está disponible:
+Actualmente están disponibles:
 
 ```text
 migrations/20260613_harvest_state.sql
+migrations/20260724_crop_phase_status_workflow.sql
+migrations/20260724_enforce_crop_stage_sequence.sql
+migrations/20260724_normalize_crop_stages.sql
 ```
 
-Esta migración agrega el estado operativo y la fecha real de finalización de cosecha a `lotes`. Un respaldo reciente puede incluir ya esas columnas; revise el SQL antes de repetir una migración.
+Estas migraciones agregan el estado operativo y la fecha real de cosecha, persisten el estado de cada fase y aplican la secuencia obligatoria Siembra → Riego → Cosecha. Un respaldo reciente puede incluir ya algunas columnas; revise el SQL antes de repetir una migración.
 
 Haga siempre una copia de seguridad antes de modificar una base que ya contiene datos.
 

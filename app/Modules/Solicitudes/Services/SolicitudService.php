@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace App\Modules\Solicitudes\Services;
+use App\Shared\Domain\CultivationStage;
 use App\Shared\Exceptions\ValidationException;
 use App\Shared\Interfaces\InventarioRepositoryInterface;
 use App\Shared\Interfaces\SolicitudRepositoryInterface;
@@ -41,6 +42,6 @@ final class SolicitudService
         $area=$this->requests->ownedLoteArea($loteId,$userId);
         if($loteId<=0||$area===null||$hectares<=0||$hectares>$area){throw new ValidationException(['lote'=>['Las hectáreas deben ser válidas y no superar el área del lote.']]);}
         if($products===[]){throw new ValidationException(['productos'=>['Agregue al menos un insumo.']]);}
-        return $this->transactions->transaction(function()use($products,$userId,$loteId,$hectares,$observations):int{$created=0;foreach($products as $product){if(!is_array($product))continue;$insumoId=(int)($product['id_insumo']??0);$perHectare=(float)($product['cantidad']??0);if($insumoId<=0||$perHectare<=0)continue;$insumo=$this->requests->findInsumo($insumoId);if($insumo===null)continue;$this->requests->create($userId,$loteId,$insumoId,$insumo['tipo'],$insumo['nombre'],$perHectare*$hectares,$observations===''?null:$observations);$created++;}if($created===0){throw new ValidationException(['productos'=>['No se encontró ningún insumo válido.']]);}return $created;});
+        return $this->transactions->transaction(function()use($products,$userId,$loteId,$hectares,$observations):int{$created=0;foreach($products as $product){if(!is_array($product))continue;$insumoId=(int)($product['id_insumo']??0);$perHectare=(float)($product['cantidad']??0);if($insumoId<=0||$perHectare<=0)continue;$insumo=$this->requests->findInsumo($insumoId);if($insumo===null)continue;$stage=CultivationStage::normalizeName($insumo['tipo']);$this->requests->create($userId,$loteId,$insumoId,$stage,$insumo['nombre'],$perHectare*$hectares,$observations===''?null:$observations);$created++;}if($created===0){throw new ValidationException(['productos'=>['No se encontró ningún insumo válido.']]);}return $created;});
     }
 }

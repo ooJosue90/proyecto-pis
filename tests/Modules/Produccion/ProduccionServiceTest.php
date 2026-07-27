@@ -24,7 +24,7 @@ final class ProduccionServiceTest extends TestCase
         $production = $service->finalizeHarvest('AGR001', [
             'id_lote' => 7, 'cantidad_total_kg' => 100,
             'calidad_primera_kg' => 70, 'calidad_segunda_kg' => 20, 'descarte_kg' => 10,
-            'fecha_cosecha' => '2026-07-21', 'observaciones' => 'Cosecha seca',
+            'fecha_cosecha' => date('Y-m-d'), 'observaciones' => 'Cosecha seca',
         ]);
 
         self::assertTrue($transactions->executed);
@@ -40,7 +40,7 @@ final class ProduccionServiceTest extends TestCase
         $service->finalizeHarvest('AGR001', [
             'id_lote' => 7, 'cantidad_total_kg' => 50,
             'calidad_primera_kg' => 40, 'calidad_segunda_kg' => 20, 'descarte_kg' => 0,
-            'fecha_cosecha' => '2026-07-21',
+            'fecha_cosecha' => date('Y-m-d'),
         ]);
     }
 
@@ -51,7 +51,7 @@ final class ProduccionServiceTest extends TestCase
         $service->finalizeHarvest('AGR001', [
             'id_lote' => 7, 'cantidad_total_kg' => 50,
             'calidad_primera_kg' => 0, 'calidad_segunda_kg' => 0, 'descarte_kg' => 0,
-            'fecha_cosecha' => '2026-07-21',
+            'fecha_cosecha' => date('Y-m-d'),
         ]);
     }
 }

@@ -1,4 +1,9 @@
-<?php declare(strict_types=1);$projectRoot=dirname(__DIR__,4);require_once $projectRoot.'/app/Shared/Views/layout.php';
+<?php
+declare(strict_types=1);
+
+use App\Shared\Domain\CultivationStage;
+
+$projectRoot=dirname(__DIR__,4);require_once $projectRoot.'/app/Shared/Views/layout.php';
 ?>
 <?php render_head('Panel Bodeguero', [
     'https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Roboto+Condensed:wght@400;500;600;700;800;900&display=swap',
@@ -21,6 +26,10 @@
                     <span class="material-symbols-outlined" aria-hidden="true">warehouse</span>
                     <span class="nav-label">Bodega</span>
                 </a>
+                <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/inventario')); ?>" title="Inventario">
+                    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                    <span class="nav-label">Inventario</span>
+                </a>
                 <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/facturas/recepcion')); ?>" title="Facturas">
                     <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
                     <span class="nav-label">Facturas</span>
@@ -35,9 +44,11 @@
                 <?php render_logout_control(); ?>
             </div>
         </aside>
+        <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
         <main class="admin-inner-container">
             <header class="admin-reference-topbar">
+                <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
                 <div class="admin-topbar-user">
                     <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
                     <div>
@@ -70,6 +81,7 @@
             <div class="container farmer-dashboard warehouse-dashboard admin-dashboard mt-4">
 
 <?php render_flash_messages(); ?>
+<?php render_contextual_messages($contextual_messages ?? []); ?>
 
 <section class="farmer-page-heading warehouse-page-heading">
     <div class="warehouse-heading-copy">
@@ -139,7 +151,7 @@
     </div>
 </section>
 
-<div class="card mb-4 warehouse-module-card">
+<div class="card mb-4 warehouse-module-card" id="warehouse-pending-orders">
     <div class="card-header warehouse-module-header">
         <span class="warehouse-module-icon warehouse-module-icon--orders" aria-hidden="true">
             <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
@@ -198,7 +210,7 @@
 </div>
 
 <!-- Tabla Solicitudes Aprobadas -->
-<div class="card mt-4 warehouse-module-card">
+<div class="card mt-4 warehouse-module-card" id="warehouse-approved-requests">
     <div class="card-header warehouse-module-header">
         <span class="warehouse-module-icon warehouse-module-icon--approved"><span class="material-symbols-outlined" aria-hidden="true">inventory_2</span></span>
         <div>
@@ -229,7 +241,7 @@
                         <td><?php echo e($sol['id_producto_solicitud']); ?></td>
                         <td><?php echo e($sol['agricultor_nombre']); ?></td>
                         <td><?php echo e($sol['lote_ubicacion']); ?></td>
-                        <td><?php echo e($sol['etapa_lote']); ?></td>
+                        <td><?php echo e(CultivationStage::normalizeName((string) $sol['etapa_lote'])); ?></td>
                         <td><?php echo e($sol['nombre']); ?></td>
                         <td><?php echo e($sol['cantidad_solicitada']); ?> <?php echo e($sol['unidad_medida']); ?></td>
                         <td><?php echo e($sol['stock_disponible'] ?? 'No disponible'); ?> <?php echo e($sol['unidad_medida']); ?></td>
@@ -276,7 +288,7 @@
             <span class="warehouse-module-kicker">Historial operativo</span>
             <h5 class="mb-0">Solicitudes procesadas</h5>
         </div>
-        <a href="<?= e(\App\Core\Url::route('/reportes/solicitudes')); ?>" target="_blank" class="btn btn-light btn-sm warehouse-print-button" onclick="event.stopPropagation();"><span class="material-symbols-outlined" aria-hidden="true">print</span> Imprimir</a>
+        <a href="<?= e(\App\Core\Url::route('/reportes/solicitudes')); ?>" class="btn btn-light btn-sm warehouse-print-button" data-warehouse-print-report><span class="material-symbols-outlined" aria-hidden="true">print</span> Imprimir</a>
     </div>
     <div class="card-body table-responsive">
         <table class="table table-bordered table-hover">
@@ -366,6 +378,38 @@
 <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const printReportButton = document.querySelector('[data-warehouse-print-report]');
+
+    printReportButton?.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        document.querySelector('[data-warehouse-print-frame]')?.remove();
+
+        const printFrame = document.createElement('iframe');
+        printFrame.className = 'warehouse-print-frame';
+        printFrame.dataset.warehousePrintFrame = 'true';
+        printFrame.setAttribute('aria-hidden', 'true');
+        printFrame.title = 'Reporte de solicitudes para impresión';
+
+        printFrame.addEventListener('load', function () {
+            const printWindow = printFrame.contentWindow;
+            if (!printWindow) {
+                window.location.href = printReportButton.href;
+                return;
+            }
+
+            printWindow.addEventListener('afterprint', function () {
+                printFrame.remove();
+            }, { once: true });
+            printWindow.focus();
+            printWindow.print();
+        }, { once: true });
+
+        printFrame.src = printReportButton.href;
+        document.body.appendChild(printFrame);
+    });
+
     const modalElement = document.getElementById('warehouseConfirmModal');
 
     if (!modalElement || !window.bootstrap?.Modal) {

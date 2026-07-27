@@ -27,7 +27,7 @@ final class FacturaRepository implements FacturaRepositoryInterface
     }
 
     public function pendingOrders(): array{return $this->rows("SELECT p.id_pedidos,p.id_proveedor,p.id_insumo,p.nombre_producto,p.cantidad,p.unidad_medida,p.observaciones,p.fecha,pr.Nombre proveedor_nombre,pr.ruc_cedula,u.nombre usuario_responsable FROM pedidos p JOIN proveedor pr ON p.id_proveedor=pr.id_proveedor JOIN usuarios u ON p.id_usuario=u.id_usuario LEFT JOIN facturas_compra fc ON fc.id_pedido=p.id_pedidos WHERE p.estado='Pendiente' AND fc.id_factura_compra IS NULL ORDER BY p.fecha,p.id_pedidos");}
-    public function supplies(): array{return $this->rows('SELECT id_insumos,nombre,tipo,unidad_medida,cantidad FROM insumos_agricolas ORDER BY nombre');}
+    public function supplies(): array{return $this->rows("SELECT id_insumos,nombre,tipo,unidad_medida,cantidad FROM insumos_agricolas ORDER BY CASE tipo WHEN 'Siembra' THEN 1 WHEN 'Riego' THEN 2 WHEN 'Cosecha' THEN 3 ELSE 4 END, nombre");}
     public function recentByUser(string $userId): array{return $this->preparedRows('SELECT fc.*,p.Nombre proveedor_nombre FROM facturas_compra fc JOIN proveedor p ON fc.id_proveedor=p.id_proveedor WHERE fc.id_usuario=? ORDER BY fc.fecha_registro DESC LIMIT 10',[$userId]);}
     public function lockOrder(int $id): ?array{return $this->one('SELECT id_pedidos,id_proveedor,id_insumo,nombre_producto,cantidad,unidad_medida,estado FROM pedidos WHERE id_pedidos=? FOR UPDATE',[$id]);}
     public function invoiceExistsForOrder(int $orderId): bool{return $this->scalar('SELECT COUNT(*) FROM facturas_compra WHERE id_pedido=?',[$orderId])>0;}

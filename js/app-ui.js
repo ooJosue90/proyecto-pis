@@ -6,9 +6,11 @@
             this.setupMotion();
             this.setupTheme();
             this.setupNotifications();
+            this.setupContextualGuidance();
             this.setupAccountMenus();
             this.setupShell();
             this.setupSidebarTabs();
+            this.setupAdminMobileNav();
             this.setupModalMotion();
             this.enhanceAll();
             this.observeDynamicContent();
@@ -138,6 +140,7 @@
             this.enhanceViews(root);
             this.enhanceCards(root);
             this.enhanceTables(root);
+            this.enhanceMoneyInputs(root);
             this.enhanceForms(root);
             this.enhanceDateInputs(root);
             this.enhanceButtons(root);
@@ -177,6 +180,25 @@
                 input.setAttribute('aria-haspopup', 'dialog');
                 input.addEventListener('beforeinput', (event) => event.preventDefault());
                 input.addEventListener('paste', (event) => event.preventDefault());
+
+                const validateDateRange = () => {
+                    input.setCustomValidity('');
+                    const previousName = input.dataset.dateNotBefore;
+                    if (!previousName || !input.value) return;
+                    const form = input.form;
+                    const previous = form?.elements.namedItem(previousName);
+                    if (previous instanceof HTMLInputElement && previous.value && input.value < previous.value) {
+                        const previousLabel = previous.dataset.dateLabel || 'la fecha anterior';
+                        input.setCustomValidity(`Esta fecha no puede ser anterior a ${previousLabel}.`);
+                    }
+                };
+                input.addEventListener('change', validateDateRange);
+                const previousName = input.dataset.dateNotBefore;
+                const previous = previousName ? input.form?.elements.namedItem(previousName) : null;
+                if (previous instanceof HTMLInputElement) {
+                    previous.addEventListener('change', validateDateRange);
+                }
+                validateDateRange();
 
                 const open = () => this.openDatePicker(input, trigger);
                 input.addEventListener('click', open);
@@ -376,9 +398,46 @@
             });
         },
 
+        navigateToInterfaceTarget(target) {
+            if (!target.startsWith('#')) return false;
+
+            const bootstrapTrigger = document.querySelector(`[data-bs-target="${target}"]`);
+            const appTrigger = document.querySelector(`[data-app-tab="${target}"]`);
+            const destination = document.querySelector(target);
+            if (!bootstrapTrigger && !appTrigger && !destination) return false;
+
+            if (bootstrapTrigger && window.bootstrap?.Tab) {
+                window.bootstrap.Tab.getOrCreateInstance(bootstrapTrigger).show();
+                window.setTimeout(() => {
+                    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+                return true;
+            }
+            if (appTrigger) {
+                appTrigger.click();
+                window.setTimeout(() => {
+                    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+                return true;
+            }
+
+            destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return true;
+        },
+
         setupNotifications() {
             window.appNotify = (message, type = 'info', options = {}) =>
                 this.notify(message, type, options);
+
+            document.addEventListener('click', (event) => {
+                const action = event.target.closest('[data-app-notification-action]');
+                if (!action) return;
+
+                const target = action.getAttribute('href') || '';
+                if (this.navigateToInterfaceTarget(target)) {
+                    event.preventDefault();
+                }
+            });
 
             window.alert = (message) => {
                 const text = String(message || '');
@@ -392,7 +451,10 @@
                 const pending = JSON.parse(sessionStorage.getItem('appPendingNotifications') || '[]');
                 sessionStorage.removeItem('appPendingNotifications');
                 pending.forEach((notification) => {
-                    this.notify(notification.message, notification.type, { persist: false });
+                    this.notify(notification.message, notification.type, {
+                        ...(notification.options || {}),
+                        persist: false,
+                    });
                 });
             } catch (error) {
                 sessionStorage.removeItem('appPendingNotifications');
@@ -406,6 +468,72 @@
                 url.searchParams.delete('type');
                 window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
             }
+        },
+
+        setupContextualGuidance() {
+            if (document.querySelector('[data-context-guidance]')
+                && document.documentElement.dataset.contextStateRefreshBound !== '1') {
+                document.documentElement.dataset.contextStateRefreshBound = '1';
+                window.addEventListener('pageshow', (event) => {
+                    if (!event.persisted || !document.querySelector('[data-context-guidance]')) return;
+                    window.location.reload();
+                });
+            }
+
+            document.querySelectorAll('[data-context-guidance]').forEach((guidance) => {
+                if (guidance.dataset.contextGuidanceBound === '1') return;
+                guidance.dataset.contextGuidanceBound = '1';
+
+                const user = guidance.dataset.contextUser || 'guest';
+                const storageKey = `pis.context.dismissed.${user}`;
+                let dismissed = [];
+                try {
+                    dismissed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    if (!Array.isArray(dismissed)) dismissed = [];
+                } catch (error) {
+                    dismissed = [];
+                }
+
+                const removeMessage = (message) => {
+                    message.classList.add('app-context-message--closing');
+                    window.setTimeout(() => {
+                        message.remove();
+                        if (!guidance.querySelector('[data-context-message]')) guidance.remove();
+                    }, 220);
+                };
+
+                guidance.querySelectorAll('[data-context-action]').forEach((action) => {
+                    action.addEventListener('click', (event) => {
+                        const target = action.getAttribute('href') || '';
+                        if (this.navigateToInterfaceTarget(target)) event.preventDefault();
+                    });
+                });
+
+                guidance.querySelectorAll('[data-context-message]').forEach((message) => {
+                    const id = message.dataset.contextMessageId;
+                    if (id && dismissed.includes(id)) {
+                        message.remove();
+                        return;
+                    }
+
+                    message.querySelector('[data-context-close]')
+                        ?.addEventListener('click', () => removeMessage(message));
+                    message.querySelector('[data-context-dismiss]')
+                        ?.addEventListener('click', () => {
+                            if (id && !dismissed.includes(id)) {
+                                dismissed.push(id);
+                                try {
+                                    localStorage.setItem(storageKey, JSON.stringify(dismissed.slice(-100)));
+                                } catch (error) {
+                                    // El cierre actual funciona aunque el almacenamiento esté bloqueado.
+                                }
+                            }
+                            removeMessage(message);
+                        });
+                });
+
+                if (!guidance.querySelector('[data-context-message]')) guidance.remove();
+            });
         },
 
         setupAccountMenus() {
@@ -431,6 +559,58 @@
                 document.addEventListener('keydown', (event) => {
                     if (event.key === 'Escape') setOpen(false);
                 });
+            });
+        },
+
+        enhanceMoneyInputs(root) {
+            const inputs = [];
+            if (root.matches?.('input[data-money]')) inputs.push(root);
+            root.querySelectorAll?.('input[data-money]').forEach((input) => inputs.push(input));
+
+            inputs.forEach((input) => {
+                if (input.dataset.moneyBound === '1') return;
+                input.dataset.moneyBound = '1';
+                input.type = 'text';
+                input.inputMode = 'decimal';
+                input.pattern = '(?:\\d+|\\d{1,3}(?:,\\d{3})+)(?:\\.\\d{1,2})?';
+                input.autocomplete = 'off';
+
+                const rawValue = () => input.value.replace(/,/g, '');
+                const sanitize = () => {
+                    let value = rawValue().replace(/[^\d.]/g, '');
+                    const point = value.indexOf('.');
+                    if (point >= 0) {
+                        value = value.slice(0, point + 1) + value.slice(point + 1).replace(/\./g, '');
+                        value = value.slice(0, point + 3);
+                    }
+                    input.value = value;
+                    input.setCustomValidity('');
+                    if (value !== '' && !/^\d+(?:\.\d{1,2})?$/.test(value)) {
+                        input.setCustomValidity('Ingrese un valor positivo con máximo 2 decimales y use punto decimal.');
+                    } else if (value !== '' && Number(value) < Number(input.getAttribute('min') || 0.01)) {
+                        input.setCustomValidity(`El valor debe ser al menos ${input.getAttribute('min') || '0.01'}.`);
+                    } else if (value !== '' && input.hasAttribute('max') && Number(value) > Number(input.getAttribute('max'))) {
+                        input.setCustomValidity(`El valor no puede superar ${Number(input.getAttribute('max')).toLocaleString('en-US')}.`);
+                    }
+                };
+                const format = () => {
+                    sanitize();
+                    const value = rawValue();
+                    if (value === '' || !/^\d+(?:\.\d{1,2})?$/.test(value)) return;
+                    const [integer, decimals] = value.split('.');
+                    input.value = `${Number(integer).toLocaleString('en-US')}${decimals === undefined ? '' : `.${decimals}`}`;
+                };
+
+                input.addEventListener('input', sanitize);
+                input.addEventListener('focus', () => {
+                    input.value = rawValue();
+                });
+                input.addEventListener('blur', format);
+                input.form?.addEventListener('submit', () => {
+                    input.value = rawValue();
+                    sanitize();
+                });
+                format();
             });
         },
 
@@ -470,7 +650,17 @@
                 try {
                     const notificationId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
                     const pending = JSON.parse(sessionStorage.getItem('appPendingNotifications') || '[]');
-                    pending.push({ id: notificationId, message: text, type: notificationType });
+                    pending.push({
+                        id: notificationId,
+                        message: text,
+                        type: notificationType,
+                        options: {
+                            title: options.title,
+                            actionLabel: options.actionLabel,
+                            actionUrl: options.actionUrl,
+                            duration: options.duration,
+                        },
+                    });
                     sessionStorage.setItem('appPendingNotifications', JSON.stringify(pending.slice(-4)));
 
                     window.setTimeout(() => {
@@ -494,21 +684,29 @@
             const notification = document.createElement('div');
             notification.className = `app-notification app-notification--${notificationType}`;
             notification.dataset.appNotification = '1';
-            notification.dataset.duration = String(options.duration || 4500);
+            notification.dataset.duration = String(options.duration ?? 4800);
             notification.setAttribute('role', notificationType === 'danger' ? 'alert' : 'status');
             notification.innerHTML = `
                 <span class="app-notification__icon" aria-hidden="true">
                     <i class="fas ${icons[notificationType]}"></i>
                 </span>
                 <span class="app-notification__content">
-                    <strong class="app-notification__title">${titles[notificationType]}</strong>
+                    <strong class="app-notification__title"></strong>
                     <span class="app-notification__message"></span>
+                    ${options.actionLabel && options.actionUrl ? '<a class="app-notification__action"></a>' : ''}
                 </span>
                 <button class="app-notification__close" type="button" data-app-notification-close aria-label="Cerrar notificación">
                     <i class="fas fa-xmark"></i>
                 </button>
             `;
+            notification.querySelector('.app-notification__title').textContent =
+                String(options.title || titles[notificationType]);
             notification.querySelector('.app-notification__message').textContent = text;
+            const action = notification.querySelector('.app-notification__action');
+            if (action) {
+                action.textContent = String(options.actionLabel);
+                action.href = String(options.actionUrl);
+            }
             this.notificationStack().appendChild(notification);
             this.bindNotification(notification);
             return notification;
@@ -524,18 +722,43 @@
             if (notification.dataset.appNotificationBound === '1') return;
             notification.dataset.appNotificationBound = '1';
 
-            const duration = Math.max(1500, Number(notification.dataset.duration || 4500));
+            const duration = Math.max(2600, Number(notification.dataset.duration || 4800));
+            const removalDelay = this.motionQuery?.matches ? 0 : 380;
+            notification.style.setProperty('--notification-duration', `${duration}ms`);
+            let timer = null;
+            let remaining = duration;
+            let startedAt = 0;
             const close = () => {
                 if (notification.dataset.closing === '1') return;
                 notification.dataset.closing = '1';
                 notification.classList.add('app-notification--closing');
-                window.setTimeout(() => notification.remove(), 260);
+                window.setTimeout(() => notification.remove(), removalDelay);
             };
 
             notification.querySelector('[data-app-notification-close]')
                 ?.addEventListener('click', close);
 
-            window.setTimeout(close, duration);
+            const startTimer = () => {
+                window.clearTimeout(timer);
+                if (notification.dataset.closing === '1') return;
+                startedAt = Date.now();
+                timer = window.setTimeout(close, Math.max(0, remaining));
+            };
+            const pauseTimer = () => {
+                if (!timer) return;
+                window.clearTimeout(timer);
+                timer = null;
+                remaining = Math.max(0, remaining - (Date.now() - startedAt));
+            };
+            const resumeTimer = () => {
+                if (notification.matches(':hover') || notification.contains(document.activeElement)) return;
+                startTimer();
+            };
+            notification.addEventListener('mouseenter', pauseTimer);
+            notification.addEventListener('mouseleave', resumeTimer);
+            notification.addEventListener('focusin', pauseTimer);
+            notification.addEventListener('focusout', () => window.setTimeout(resumeTimer, 0));
+            startTimer();
         },
 
         setupShell() {
@@ -718,6 +941,32 @@ button.addEventListener('click', () => {
 
         openSidebarGroup(group) {
             this.setSidebarGroupOpen(group, true);
+        },
+
+        setupAdminMobileNav() {
+            const sidebar = document.querySelector('.admin-tablet-shell > .sidebar');
+            if (!sidebar || document.documentElement.dataset.adminMobileNavBound === '1') return;
+            document.documentElement.dataset.adminMobileNavBound = '1';
+
+            const closeNav = () => document.body.classList.remove('admin-mobile-nav-open');
+
+            document.querySelectorAll('[data-admin-mobile-toggle]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    document.body.classList.toggle('admin-mobile-nav-open');
+                });
+            });
+
+            document.querySelectorAll('[data-admin-mobile-close]').forEach((element) => {
+                element.addEventListener('click', closeNav);
+            });
+
+            sidebar.querySelectorAll('.nav-item').forEach((item) => {
+                item.addEventListener('click', closeNav);
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeNav();
+            });
         },
 
         observeDynamicContent() {

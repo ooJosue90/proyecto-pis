@@ -48,9 +48,11 @@ $today = $days[(int) date('w')] . ', ' . date('j') . ' de ' . $months[(int) date
 
         <div class="admin-sidebar-actions"><?php render_logout_control(); ?></div>
     </aside>
+    <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
     <main class="admin-inner-container">
         <header class="admin-reference-topbar">
+            <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
             <div class="admin-topbar-user">
                 <span class="admin-topbar-avatar"><?= e(app_user_initials()); ?></span>
                 <div><h2>Saludos, <?= e(current_user_name()); ?></h2><p>Monitorea la salud de tus lotes y registra novedades.</p></div>
@@ -73,6 +75,7 @@ $today = $days[(int) date('w')] . ', ' . date('j') . ' de ' . $months[(int) date
         <div class="container farmer-dashboard admin-dashboard mt-4">
             <?php if ($success): ?><div class="app-notification alert alert-success" role="status"><i class="fas fa-circle-check"></i> <?= e($success); ?></div><?php endif; ?>
             <?php if ($error): ?><div class="app-notification alert alert-danger" role="alert"><i class="fas fa-triangle-exclamation"></i> <?= e($error); ?></div><?php endif; ?>
+            <?php render_action_guidance($nextStep ?? null); ?>
 
             <section class="farmer-page-heading admin-page-heading">
                 <div class="admin-greeting">

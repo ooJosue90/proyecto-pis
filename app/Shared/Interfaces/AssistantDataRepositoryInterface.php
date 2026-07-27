@@ -7,5 +7,11 @@ namespace App\Shared\Interfaces;
 interface AssistantDataRepositoryInterface
 {
     /** @return list<array<string,mixed>> */
-    public function context(string $topic,string $role,string $userId,int $limit):array;
+    public function context(
+        string $topic,
+        string $role,
+        string $userId,
+        int $limit,
+        array $criteria = []
+    ): array;
 }

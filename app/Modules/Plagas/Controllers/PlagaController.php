@@ -14,6 +14,7 @@ use App\Core\Url;
 use App\Modules\Lotes\Services\LoteService;
 use App\Modules\Plagas\Services\PlagaService;
 use App\Shared\Exceptions\ValidationException;
+use App\Shared\Support\ActionGuidance;
 
 final class PlagaController extends Controller
 {
@@ -38,6 +39,7 @@ final class PlagaController extends Controller
             'csrfToken' => $this->csrf->token(),
             'success' => $this->session->flash('success'),
             'error' => $this->session->flash('error'),
+            'nextStep' => ActionGuidance::decode($this->session->flash('next_step')),
         ]);
     }
 
@@ -48,6 +50,14 @@ final class PlagaController extends Controller
             $this->csrf->validate((string) $request->input('_token', ''));
             $plaga = $this->service->create($user['id_usuario'], $request->all());
             $this->session->flash('success', "Plaga {$plaga->nombre} registrada correctamente.");
+            $this->session->flash('next_step', ActionGuidance::encode(
+                'Continúe con el control fitosanitario',
+                'Revise el lote afectado, aplique las medidas de control y actualice el seguimiento cuando cambie la incidencia.',
+                'Revisar registros',
+                Url::route('/plagas'),
+                'warning',
+                'fa-shield-halved'
+            ));
         } catch (ValidationException $exception) {
             $messages = array_merge(...array_values($exception->errors()));
             $this->session->flash('error', implode(' ', $messages));

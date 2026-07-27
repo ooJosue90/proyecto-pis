@@ -7,6 +7,7 @@ namespace App\Modules\Cultivos\Services;
 use App\Core\Validator;
 use App\Modules\Cultivos\DTOs\CreateCultivoData;
 use App\Modules\Cultivos\Models\Cultivo;
+use App\Shared\Domain\AssociatedCropCatalog;
 use App\Shared\Exceptions\NotFoundException;
 use App\Shared\Exceptions\ValidationException;
 use App\Shared\Interfaces\CultivoRepositoryInterface;
@@ -43,15 +44,35 @@ final class CultivoService
     /** @param array<string, mixed> $input */
     public function create(string $userId, array $input): Cultivo
     {
-        $this->validator->validate($input, [
-            'tipo' => 'required|max_length:150',
-            'fecha_siembra' => 'required|date',
+        $data = [
+            'nombre' => trim((string) ($input['nombre'] ?? '')),
+            'fecha_siembra' => trim((string) ($input['fecha_siembra'] ?? '')),
+        ];
+
+        $this->validator->validate($data, [
+            'nombre' => 'required|max_length:120',
+            'fecha_siembra' => 'required|date|date_min:today',
         ]);
+        if ($this->repository->nameExistsForUser($userId, $data['nombre'])) {
+            throw new ValidationException([
+                'nombre' => ['Ya existe un cultivo con ese nombre. Utilice un identificador diferente.'],
+            ]);
+        }
+        if (!AssociatedCropCatalog::isValidSelection($input['cultivos_asociados'] ?? [])) {
+            throw new ValidationException([
+                'cultivos_asociados' => ['Seleccione únicamente cultivos asociados disponibles en el catálogo.'],
+            ]);
+        }
+        $associatedCropCodes = AssociatedCropCatalog::normalizeSelection(
+            $input['cultivos_asociados'] ?? []
+        );
 
         return $this->repository->create(new CreateCultivoData(
             $userId,
-            trim((string) $input['tipo']),
-            (string) $input['fecha_siembra']
+            AssociatedCropCatalog::MAIN_CROP,
+            $data['fecha_siembra'],
+            $associatedCropCodes,
+            $data['nombre']
         ));
     }
 

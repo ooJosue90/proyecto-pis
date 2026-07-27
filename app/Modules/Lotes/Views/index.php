@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use App\Core\Url;
 use App\Shared\Helpers\Html;
+
+$projectRoot = dirname(__DIR__, 4);
+require_once $projectRoot . '/app/Shared/Views/layout.php';
 ?>
 <!doctype html>
 <html lang="es">
@@ -18,6 +21,7 @@ use App\Shared\Helpers\Html;
     <header class="d-flex justify-content-between align-items-center mb-4"><div><h1>Lotes</h1><p class="text-secondary mb-0">Lotes visibles para <?= Html::escape($user['nombre']) ?>.</p></div><a class="btn btn-outline-dark" href="<?= Html::escape(Url::route($user['rol'] === 'Administrador' ? '/dashboard/admin' : '/dashboard/agricultor')) ?>">Volver al panel</a></header>
     <?php if ($success): ?><div class="alert alert-success"><?= Html::escape($success) ?></div><?php endif; ?>
     <?php if ($error): ?><div class="alert alert-danger"><?= Html::escape($error) ?></div><?php endif; ?>
+    <?php render_action_guidance($nextStep ?? null); ?>
     <section class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
         <thead><tr><th>ID</th><th>Ubicación</th><th>Área</th><th>Cultivo</th><th>Etapa</th><th>Estado</th><?php if ($user['rol'] === 'Administrador'): ?><th>Agricultor</th><?php endif; ?><th></th></tr></thead>
         <tbody>

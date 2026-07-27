@@ -152,6 +152,7 @@ try {
     $cultivosDelete = new PermissionMiddleware($authorization, 'cultivos.eliminar');
     $lotesView = new PermissionMiddleware($authorization, 'lotes.ver');
     $lotesCreate = new PermissionMiddleware($authorization, 'lotes.crear');
+    $lotesUpdate = new PermissionMiddleware($authorization, 'lotes.actualizar');
     $plagasView = new PermissionMiddleware($authorization, 'plagas.ver');
     $plagasCreate = new PermissionMiddleware($authorization, 'plagas.crear');
     $produccionView = new PermissionMiddleware($authorization, 'produccion.ver');
@@ -177,7 +178,7 @@ try {
 
     $router = new Router();
     $registerWebRoutes = require $root . '/routes/web.php';
-    $registerWebRoutes($router, $auth, $authController, $cultivoController, $loteController, $plagaController, $produccionController, $solicitudController, $inventarioController, $insumoController, $proveedorController, $pedidoController, $facturaController, $reporteController, $adminUserController, $movimientoController, $dashboardController, $adminAgricultureController, $authMiddleware, $cultivosView, $cultivosCreate, $cultivosDelete, $lotesView, $lotesCreate, $plagasView, $plagasCreate, $produccionView, $produccionCreate, $solicitudesReview, $solicitudesProcess, $solicitudesCreate, $inventarioView, $inventarioUpdate, $proveedoresManage, $pedidosManage, $facturasView, $facturasCreate, $facturasReview, $reportesAdmin, $reportesBodega, $usersManage, $movimientosView, $adminDashboard, $farmerDashboard, $warehouseDashboard);
+    $registerWebRoutes($router, $auth, $authController, $cultivoController, $loteController, $plagaController, $produccionController, $solicitudController, $inventarioController, $insumoController, $proveedorController, $pedidoController, $facturaController, $reporteController, $adminUserController, $movimientoController, $dashboardController, $adminAgricultureController, $authMiddleware, $cultivosView, $cultivosCreate, $cultivosDelete, $lotesView, $lotesCreate, $lotesUpdate, $plagasView, $plagasCreate, $produccionView, $produccionCreate, $solicitudesReview, $solicitudesProcess, $solicitudesCreate, $inventarioView, $inventarioUpdate, $proveedoresManage, $pedidosManage, $facturasView, $facturasCreate, $facturasReview, $reportesAdmin, $reportesBodega, $usersManage, $movimientosView, $adminDashboard, $farmerDashboard, $warehouseDashboard);
     $registerApiRoutes = require $root . '/routes/api.php';
     $registerApiRoutes($router, $cultivoController, $loteController, $chatController, $authMiddleware, $cultivosView, $lotesView, $assistantUse);
 

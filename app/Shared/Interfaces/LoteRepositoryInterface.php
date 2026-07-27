@@ -19,7 +19,17 @@ interface LoteRepositoryInterface
 
     public function findOwnedBy(int $id, string $userId): ?Lote;
 
-    public function cultivoBelongsToUser(int $cultivoId, string $userId): bool;
+    public function findCultivoPlantingDate(int $cultivoId, string $userId): ?string;
 
     public function create(CreateLoteData $data): Lote;
+
+    /** @param array<int, string> $phaseStates */
+    public function advanceStage(
+        int $id,
+        ?string $ownerId,
+        int $expectedCurrentStage,
+        int $nextStage,
+        array $phaseStates,
+        string $cropState
+    ): bool;
 }

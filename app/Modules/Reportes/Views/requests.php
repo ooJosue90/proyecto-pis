@@ -27,6 +27,9 @@ if (!function_exists('warehouse_request_tone')) {
             <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/dashboard/bodega')); ?>" title="Bodega">
                 <i class="fas fa-warehouse" aria-hidden="true"></i><span class="nav-label">Bodega</span>
             </a>
+            <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/inventario')); ?>" title="Inventario">
+                <i class="fas fa-boxes-stacked" aria-hidden="true"></i><span class="nav-label">Inventario</span>
+            </a>
             <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/facturas/recepcion')); ?>" title="Facturas">
                 <i class="fas fa-receipt" aria-hidden="true"></i><span class="nav-label">Facturas</span>
             </a>
@@ -38,9 +41,11 @@ if (!function_exists('warehouse_request_tone')) {
             <?php render_logout_control(); ?>
         </div>
     </aside>
+    <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
     <main class="admin-inner-container">
         <header class="admin-reference-topbar no-print">
+            <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
             <div class="admin-topbar-user">
                 <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
                 <div><h2>Saludos, <?php echo e(current_user_name()); ?></h2><p>Gestiona documentos y trazabilidad de bodega.</p></div>
@@ -108,7 +113,7 @@ if (!function_exists('warehouse_request_tone')) {
                 </div>
 
                 <div class="table-responsive admin-invoice-table-wrap">
-                    <table class="table admin-invoice-table" data-request-table>
+                    <table class="table admin-invoice-table" data-request-table data-app-table-disabled="true">
                         <thead><tr><th>Solicitud</th><th>Agricultor</th><th>Producto</th><th>Cantidad</th><th>Lote</th><th>Estado</th><th>Fecha</th></tr></thead>
                         <tbody>
                         <?php if ($solicitudes): ?>

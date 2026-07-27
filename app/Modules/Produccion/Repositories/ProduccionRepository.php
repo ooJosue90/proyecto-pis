@@ -30,7 +30,7 @@ final class ProduccionRepository implements ProduccionRepositoryInterface
     {
         try {
             $statement = $this->database->connection()->prepare(
-                'SELECT l.id_lote, l.estado_cultivo, c.tipo FROM lotes l
+                'SELECT l.id_lote, l.estado_cultivo, l.fecha_inicio_cosecha, c.tipo FROM lotes l
                  INNER JOIN cultivos c ON c.id_cultivo = l.id_cultivo
                  WHERE l.id_lote = ? AND c.id_usuario = ? FOR UPDATE'
             );
@@ -38,7 +38,12 @@ final class ProduccionRepository implements ProduccionRepositoryInterface
             $statement->execute();
             $row = $statement->get_result()->fetch_assoc();
             $statement->close();
-            return is_array($row) ? ['id_lote' => (int) $row['id_lote'], 'estado_cultivo' => (string) $row['estado_cultivo'], 'tipo' => (string) $row['tipo']] : null;
+            return is_array($row) ? [
+                'id_lote' => (int) $row['id_lote'],
+                'estado_cultivo' => (string) $row['estado_cultivo'],
+                'fecha_inicio_cosecha' => $row['fecha_inicio_cosecha'] !== null ? (string) $row['fecha_inicio_cosecha'] : null,
+                'tipo' => (string) $row['tipo'],
+            ] : null;
         } catch (Throwable $exception) { throw new DatabaseException(previous: $exception); }
     }
 
@@ -61,7 +66,9 @@ final class ProduccionRepository implements ProduccionRepositoryInterface
     {
         try {
             $statement = $this->database->connection()->prepare(
-                "UPDATE lotes SET estado_cultivo = 'finalizado', fecha_fin_cosecha_real = ?
+                "UPDATE lotes SET estado_cultivo = 'finalizado',
+                                  estado_fase_cosecha = 'completada',
+                                  fecha_fin_cosecha_real = ?
                  WHERE id_lote = ? AND estado_cultivo = 'en_cosecha'"
             );
             $statement->bind_param('si', $harvestDate, $loteId); $statement->execute();

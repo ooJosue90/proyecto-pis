@@ -40,11 +40,11 @@ final class ProduccionService
         ];
         $this->validator->validate($values, [
             'id_lote' => 'required|integer|min:1',
-            'cantidad_total_kg' => 'required|numeric|min:0.01',
-            'calidad_primera_kg' => 'required|numeric|min:0',
-            'calidad_segunda_kg' => 'required|numeric|min:0',
-            'descarte_kg' => 'required|numeric|min:0',
-            'fecha_cosecha' => 'required|date',
+            'cantidad_total_kg' => 'required|decimal:2|min:0.01|max:10000000',
+            'calidad_primera_kg' => 'required|decimal:2|min:0|max:10000000',
+            'calidad_segunda_kg' => 'required|decimal:2|min:0|max:10000000',
+            'descarte_kg' => 'required|decimal:2|min:0|max:10000000',
+            'fecha_cosecha' => 'required|date|date_min:today|date_max:today',
             'observaciones' => 'max_length:2000',
         ]);
 
@@ -65,6 +65,12 @@ final class ProduccionService
             $lote = $this->repository->lockOwnedHarvest($data->loteId, $data->userId);
             if ($lote === null || $lote['estado_cultivo'] !== 'en_cosecha') {
                 throw new ValidationException(['id_lote' => ['El lote no está disponible para finalizar su cosecha.']]);
+            }
+            $harvestStart = $lote['fecha_inicio_cosecha'] ?? null;
+            if (is_string($harvestStart) && $harvestStart !== '' && $data->harvestDate < $harvestStart) {
+                throw new ValidationException([
+                    'fecha_cosecha' => ['La fecha real de cosecha no puede ser anterior al inicio de cosecha del lote.'],
+                ]);
             }
             $production = $this->repository->create($data, $lote['tipo']);
             if (!$this->repository->markLoteFinalized($data->loteId, $data->harvestDate)) {

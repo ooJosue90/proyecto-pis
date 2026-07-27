@@ -25,7 +25,16 @@ final class PedidoRepository implements PedidoRepositoryInterface
 
     public function findSupplies(): array
     {
-        return $this->rows('SELECT id_insumos,nombre,tipo,unidad_medida,cantidad FROM insumos_agricolas ORDER BY tipo,nombre');
+        return $this->rows(
+            "SELECT id_insumos,nombre,tipo,unidad_medida,cantidad
+             FROM insumos_agricolas
+             ORDER BY CASE tipo
+                WHEN 'Siembra' THEN 1
+                WHEN 'Riego' THEN 2
+                WHEN 'Cosecha' THEN 3
+                ELSE 4
+             END, nombre"
+        );
     }
 
     public function stats(): array

@@ -6,7 +6,10 @@ namespace App\Modules\Lotes\DTOs;
 
 final readonly class CreateLoteData
 {
-    /** @param array<string, ?string> $dates */
+    /**
+     * @param array<string, ?string> $dates
+     * @param array<int, string> $phaseStates
+     */
     public function __construct(
         public int $cultivoId,
         public string $ubicacion,
@@ -16,7 +19,8 @@ final readonly class CreateLoteData
         public int $etapaRiego,
         public int $etapaSiembra,
         public int $etapaCosecha,
-        public array $dates
+        public array $dates,
+        public array $phaseStates
     ) {
     }
 }

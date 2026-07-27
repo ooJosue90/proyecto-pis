@@ -16,7 +16,7 @@ final class FacturaServiceTest extends TestCase
     public function testReceptionUpdatesEveryRelatedRecordInOneTransaction():void
     {
         $repository=new FakeFacturaRepository();$transactions=new FakeFacturaTransactions();$service=new FacturaService($repository,$transactions,new Validator());
-        $result=$service->receive('BOD1',['id_pedido'=>7,'numero_factura'=>'001-10','fecha'=>'2026-07-22','cantidad_recibida'=>5,'precio_unitario'=>2.5]);
+        $result=$service->receive('BOD1',['id_pedido'=>7,'numero_factura'=>'001-10','fecha'=>date('Y-m-d'),'cantidad_recibida'=>5,'precio_unitario'=>2.5]);
         self::assertSame(['id'=>21,'number'=>'001-10'],$result);self::assertTrue($transactions->executed);self::assertSame(15.0,$repository->newStock);self::assertTrue($repository->inventoryMovement);self::assertTrue($repository->supplyMovement);self::assertTrue($repository->received);
     }
 
@@ -24,7 +24,7 @@ final class FacturaServiceTest extends TestCase
     {
         $repository=new FakeFacturaRepository();$repository->duplicateNumber=true;
         $this->expectException(ValidationException::class);
-        (new FacturaService($repository,new FakeFacturaTransactions(),new Validator()))->receive('BOD1',['id_pedido'=>7,'numero_factura'=>'DUP','fecha'=>'2026-07-22','cantidad_recibida'=>5,'precio_unitario'=>2]);
+        (new FacturaService($repository,new FakeFacturaTransactions(),new Validator()))->receive('BOD1',['id_pedido'=>7,'numero_factura'=>'DUP','fecha'=>date('Y-m-d'),'cantidad_recibida'=>5,'precio_unitario'=>2]);
     }
 
     public function testOnlyRegisteredInvoiceCanBeReviewed():void
@@ -32,6 +32,15 @@ final class FacturaServiceTest extends TestCase
         $repository=new FakeFacturaRepository();$repository->reviewable=false;
         $this->expectException(ValidationException::class);
         (new FacturaService($repository,new FakeFacturaTransactions(),new Validator()))->review(3,'aprobar_factura','ADM1');
+    }
+
+    public function testReceptionRejectsInvalidMonetaryPrecision():void
+    {
+        $this->expectException(ValidationException::class);
+        (new FacturaService(new FakeFacturaRepository(),new FakeFacturaTransactions(),new Validator()))->receive('BOD1',[
+            'id_pedido'=>7,'numero_factura'=>'001-11','fecha'=>date('Y-m-d'),
+            'cantidad_recibida'=>'5.00','precio_unitario'=>'12.345'
+        ]);
     }
 }
 

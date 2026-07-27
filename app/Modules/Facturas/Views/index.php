@@ -69,11 +69,11 @@
                         </div>
                         <div class="admin-invoice-filter">
                             <label class="form-label">Desde</label>
-                            <input type="date" name="fecha_desde" class="form-control" value="<?php echo e($fechaDesde); ?>">
+                            <input type="date" name="fecha_desde" class="form-control" value="<?php echo e($fechaDesde); ?>" min="<?php echo e((string) app_config('app.foundation_date', '2026-05-18')); ?>" max="<?php echo date('Y-m-d'); ?>" data-date-label="la fecha inicial">
                         </div>
                         <div class="admin-invoice-filter">
                             <label class="form-label">Hasta</label>
-                            <input type="date" name="fecha_hasta" class="form-control" value="<?php echo e($fechaHasta); ?>">
+                            <input type="date" name="fecha_hasta" class="form-control" value="<?php echo e($fechaHasta); ?>" min="<?php echo e((string) app_config('app.foundation_date', '2026-05-18')); ?>" max="<?php echo date('Y-m-d'); ?>" data-date-not-before="fecha_desde">
                         </div>
                         <div class="admin-invoice-filter-actions">
                             <button type="button" class="btn btn-outline-secondary" data-clear-invoice-filters><i class="fas fa-rotate-left"></i> Limpiar</button>

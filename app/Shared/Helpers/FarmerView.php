@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace App\Shared\Helpers;
 
+use App\Shared\Domain\CultivationStage;
+
 final class FarmerView
 {
     public static function stageLabel(int $stage): string
     {
-        return match ($stage) {
-            1 => 'Siembra',
-            2 => 'Desarrollo',
-            3 => 'Cosecha',
-            default => 'Sin etapa',
-        };
+        return CultivationStage::label($stage);
     }
 
     public static function statusLabel(string $status): string

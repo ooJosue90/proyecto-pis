@@ -64,6 +64,10 @@ if (!function_exists('admin_relative_time')) {
                     <i class="fas fa-arrow-right-arrow-left" aria-hidden="true"></i>
                     <span class="nav-label">Movimientos</span>
                 </button>
+                <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/inventario')); ?>" title="Inventario">
+                    <i class="fas fa-boxes-stacked" aria-hidden="true"></i>
+                    <span class="nav-label">Inventario</span>
+                </a>
                 <button class="nav-item app-sidebar-link" type="button" data-app-tab="#facturas" title="Facturas">
                     <i class="fas fa-receipt" aria-hidden="true"></i>
                     <span class="nav-label">Facturas</span>
@@ -82,14 +86,16 @@ if (!function_exists('admin_relative_time')) {
                 <?php render_logout_control(); ?>
             </div>
         </aside>
+        <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
         <main class="admin-inner-container">
             <header class="admin-reference-topbar">
+                <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
                 <div class="admin-topbar-user">
                     <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
                     <div>
                         <h2>Saludos, <?php echo e(current_user_name()); ?></h2>
-                        <p>Inicia tu jornada con Verdeagro ERP</p>
+                        <p>Inicia tu jornada con SembriExport</p>
                     </div>
                 </div>
                 <div class="admin-topbar-actions">
@@ -111,6 +117,7 @@ if (!function_exists('admin_relative_time')) {
             </header>
             <div class="container farmer-dashboard admin-dashboard mt-4">
         <?php render_flash_messages(); ?>
+        <?php render_contextual_messages($contextual_messages ?? []); ?>
 
         <section class="farmer-page-heading admin-page-heading">
             <div class="admin-greeting">
@@ -354,8 +361,8 @@ if (!function_exists('admin_relative_time')) {
                                             <?php foreach ($lotes as $lote): ?>
                                                 <option value="<?php echo $lote['id_lote']; ?>">
                                                     Lote <?php echo $lote['id_lote']; ?> - <?php echo htmlspecialchars($lote['ubicacion']); ?>
-                                                    <?php if ($lote['cultivo_tipo']): ?>
-                                                        (<?php echo htmlspecialchars($lote['cultivo_tipo']); ?>)
+                                                    <?php if ($lote['cultivo_nombre']): ?>
+                                                        (<?php echo htmlspecialchars($lote['cultivo_nombre']); ?> · <?php echo htmlspecialchars($lote['cultivo_tipo']); ?>)
                                                     <?php endif; ?>
                                                 </option>
                                             <?php endforeach; ?>

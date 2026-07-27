@@ -7,6 +7,7 @@ namespace App\Modules\Cultivos\Repositories;
 use App\Core\Database;
 use App\Modules\Cultivos\DTOs\CreateCultivoData;
 use App\Modules\Cultivos\Models\Cultivo;
+use App\Shared\Domain\AssociatedCropCatalog;
 use App\Shared\Exceptions\DatabaseException;
 use App\Shared\Interfaces\CultivoRepositoryInterface;
 use mysqli_stmt;
@@ -21,7 +22,11 @@ final class CultivoRepository implements CultivoRepositoryInterface
     public function findAll(): array
     {
         return $this->fetchMany(
-            'SELECT c.id_cultivo, c.id_usuario, c.tipo, c.fecha_siembra, u.nombre AS agricultor
+            'SELECT c.id_cultivo, c.id_usuario, c.nombre, c.tipo, c.fecha_siembra, u.nombre AS agricultor,
+                    COALESCE((
+                        SELECT GROUP_CONCAT(ca.codigo ORDER BY ca.id_cultivo_asociado SEPARATOR \',\')
+                        FROM cultivos_asociados ca WHERE ca.id_cultivo = c.id_cultivo
+                    ), \'\') AS cultivos_asociados_codigos
              FROM cultivos c
              INNER JOIN usuarios u ON u.id_usuario = c.id_usuario
              ORDER BY c.fecha_siembra DESC, c.id_cultivo DESC'
@@ -31,10 +36,14 @@ final class CultivoRepository implements CultivoRepositoryInterface
     public function findByUser(string $userId): array
     {
         return $this->fetchMany(
-            'SELECT id_cultivo, id_usuario, tipo, fecha_siembra
-             FROM cultivos
-             WHERE id_usuario = ?
-             ORDER BY fecha_siembra DESC, id_cultivo DESC',
+            'SELECT c.id_cultivo, c.id_usuario, c.nombre, c.tipo, c.fecha_siembra,
+                    COALESCE((
+                        SELECT GROUP_CONCAT(ca.codigo ORDER BY ca.id_cultivo_asociado SEPARATOR \',\')
+                        FROM cultivos_asociados ca WHERE ca.id_cultivo = c.id_cultivo
+                    ), \'\') AS cultivos_asociados_codigos
+             FROM cultivos c
+             WHERE c.id_usuario = ?
+             ORDER BY c.fecha_siembra DESC, c.id_cultivo DESC',
             's',
             [$userId]
         );
@@ -43,7 +52,11 @@ final class CultivoRepository implements CultivoRepositoryInterface
     public function find(int $id): ?Cultivo
     {
         return $this->fetchOne(
-            'SELECT c.id_cultivo, c.id_usuario, c.tipo, c.fecha_siembra, u.nombre AS agricultor
+            'SELECT c.id_cultivo, c.id_usuario, c.nombre, c.tipo, c.fecha_siembra, u.nombre AS agricultor,
+                    COALESCE((
+                        SELECT GROUP_CONCAT(ca.codigo ORDER BY ca.id_cultivo_asociado SEPARATOR \',\')
+                        FROM cultivos_asociados ca WHERE ca.id_cultivo = c.id_cultivo
+                    ), \'\') AS cultivos_asociados_codigos
              FROM cultivos c
              INNER JOIN usuarios u ON u.id_usuario = c.id_usuario
              WHERE c.id_cultivo = ?',
@@ -55,9 +68,13 @@ final class CultivoRepository implements CultivoRepositoryInterface
     public function findOwnedBy(int $id, string $userId): ?Cultivo
     {
         return $this->fetchOne(
-            'SELECT id_cultivo, id_usuario, tipo, fecha_siembra
-             FROM cultivos
-             WHERE id_cultivo = ? AND id_usuario = ?',
+            'SELECT c.id_cultivo, c.id_usuario, c.nombre, c.tipo, c.fecha_siembra,
+                    COALESCE((
+                        SELECT GROUP_CONCAT(ca.codigo ORDER BY ca.id_cultivo_asociado SEPARATOR \',\')
+                        FROM cultivos_asociados ca WHERE ca.id_cultivo = c.id_cultivo
+                    ), \'\') AS cultivos_asociados_codigos
+             FROM cultivos c
+             WHERE c.id_cultivo = ? AND c.id_usuario = ?',
             'is',
             [$id, $userId]
         );
@@ -67,20 +84,64 @@ final class CultivoRepository implements CultivoRepositoryInterface
     {
         try {
             $connection = $this->database->connection();
+            $connection->begin_transaction();
             $statement = $connection->prepare(
-                'INSERT INTO cultivos (id_usuario, tipo, fecha_siembra) VALUES (?, ?, ?)'
+                'INSERT INTO cultivos (id_usuario, nombre, tipo, fecha_siembra) VALUES (?, ?, ?, ?)'
             );
             $userId = $data->userId;
+            $nombre = $data->nombre;
             $tipo = $data->tipo;
             $fechaSiembra = $data->fechaSiembra;
-            $statement->bind_param('sss', $userId, $tipo, $fechaSiembra);
+            $statement->bind_param('ssss', $userId, $nombre, $tipo, $fechaSiembra);
             $statement->execute();
             $id = $statement->insert_id;
             $statement->close();
 
-            return new Cultivo($id, $data->userId, $data->tipo, $data->fechaSiembra);
+            if ($data->associatedCropCodes !== []) {
+                $associatedStatement = $connection->prepare(
+                    'INSERT INTO cultivos_asociados (id_cultivo, codigo, nombre) VALUES (?, ?, ?)'
+                );
+                $options = AssociatedCropCatalog::options();
+                foreach ($data->associatedCropCodes as $code) {
+                    $name = $options[$code];
+                    $associatedStatement->bind_param('iss', $id, $code, $name);
+                    $associatedStatement->execute();
+                }
+                $associatedStatement->close();
+            }
+
+            $connection->commit();
+            return new Cultivo(
+                $id,
+                $data->userId,
+                $data->tipo,
+                $data->fechaSiembra,
+                associatedCropCodes: $data->associatedCropCodes,
+                nombre: $data->nombre
+            );
         } catch (Throwable $exception) {
+            if (isset($connection)) {
+                $connection->rollback();
+            }
             throw new DatabaseException('No se pudo registrar el cultivo.', $exception);
+        }
+    }
+
+    public function nameExistsForUser(string $userId, string $name): bool
+    {
+        try {
+            $statement = $this->statement(
+                'SELECT COUNT(*) AS total
+                   FROM cultivos
+                  WHERE id_usuario = ? AND LOWER(TRIM(nombre)) = LOWER(TRIM(?))',
+                'ss',
+                [$userId, $name]
+            );
+            $row = $statement->get_result()->fetch_assoc();
+            $statement->close();
+            return (int) ($row['total'] ?? 0) > 0;
+        } catch (Throwable $exception) {
+            throw new DatabaseException(previous: $exception);
         }
     }
 

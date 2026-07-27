@@ -51,6 +51,7 @@ return static function (
     PermissionMiddleware $cultivosDelete,
     PermissionMiddleware $lotesView,
     PermissionMiddleware $lotesCreate,
+    PermissionMiddleware $lotesUpdate,
     PermissionMiddleware $plagasView,
     PermissionMiddleware $plagasCreate,
     PermissionMiddleware $produccionView,
@@ -101,6 +102,7 @@ return static function (
     $router->get('/lotes', [$loteController, 'index'], [$authMiddleware, $lotesView]);
     $router->post('/lotes', [$loteController, 'store'], [$authMiddleware, $lotesCreate]);
     $router->post('/lotes/con-plagas', [$loteController, 'storeWithPests'], [$authMiddleware, $lotesCreate, $plagasCreate]);
+    $router->post('/lotes/{id}/fases/avanzar', [$loteController, 'advanceStage'], [$authMiddleware, $lotesUpdate]);
     $router->get('/lotes/{id}', [$loteController, 'show'], [$authMiddleware, $lotesView]);
 
     $router->get('/plagas', [$plagaController, 'index'], [$authMiddleware, $plagasView]);
@@ -114,8 +116,6 @@ return static function (
     $router->post('/solicitudes/procesar', [$solicitudController, 'process'], [$authMiddleware, $solicitudesProcess]);
     $router->post('/solicitudes', [$solicitudController, 'create'], [$authMiddleware, $solicitudesCreate]);
     $router->get('/inventario', [$inventarioController, 'index'], [$authMiddleware, $inventarioView]);
-    $router->post('/inventario', [$inventarioController, 'store'], [$authMiddleware, $inventarioUpdate]);
-    $router->post('/inventario/ajustar', [$inventarioController, 'adjust'], [$authMiddleware, $inventarioUpdate]);
     $router->get('/insumos/calculadora', [$insumoController, 'page'], [$authMiddleware, $solicitudesCreate]);
     $router->get('/api/insumos/calcular/{id}', [$insumoController, 'calculate'], [$authMiddleware, $solicitudesCreate]);
     $router->get('/abastecimiento', [$proveedorController, 'index'], [$authMiddleware, $proveedoresManage]);

@@ -13,6 +13,7 @@ use App\Core\Session;
 use App\Core\Url;
 use App\Modules\Produccion\Services\ProduccionService;
 use App\Shared\Exceptions\ValidationException;
+use App\Shared\Support\ActionGuidance;
 
 final class ProduccionController extends Controller
 {
@@ -32,6 +33,7 @@ final class ProduccionController extends Controller
             'user' => $user,
             'success' => $this->session->flash('success'),
             'error' => $this->session->flash('error'),
+            'nextStep' => ActionGuidance::decode($this->session->flash('next_step')),
         ]);
     }
 
@@ -41,7 +43,15 @@ final class ProduccionController extends Controller
         try {
             $this->csrf->validate((string) $request->input('_token', ''));
             $production = $this->service->finalizeHarvest($user['id_usuario'], $request->all());
-            $this->session->flash('success', "Cosecha registrada: {$production->quantity} kg.");
+            $this->session->flash('success', "Cosecha registrada: {$production->quantity} kg. Siguiente paso: revise el consolidado de producción.");
+            $this->session->flash('next_step', ActionGuidance::encode(
+                'Ciclo productivo completado',
+                'Compruebe el consolidado de producción y valide el rendimiento final del lote.',
+                'Ver producción',
+                Url::route('/produccion'),
+                'success',
+                'fa-chart-column'
+            ));
         } catch (ValidationException $exception) {
             $messages = array_merge(...array_values($exception->errors()));
             $this->session->flash('error', implode(' ', $messages));

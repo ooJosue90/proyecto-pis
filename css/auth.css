@@ -3612,20 +3612,23 @@ body,
 
 .auth-login-panel .auth-links {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 8px 14px;
     margin: 0;
     color: #617168;
     font-size: 12px;
 }
 
 .auth-login-panel .auth-links a {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
     color: #1f5f47;
     font-weight: 800;
     line-height: 1.25;
     text-decoration: none;
+    word-break: break-word;
 }
 
 .auth-login-panel .form-check {
@@ -4858,6 +4861,7 @@ body.auth-page.auth-login-page {
     display: grid;
     min-height: 100vh;
     padding: 0;
+    overflow-x: hidden;
     place-items: stretch;
     background: #eef5ef;
 }
@@ -4866,11 +4870,17 @@ body.auth-page.auth-login-page {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+    min-width: 0;
     min-height: 100vh;
     border: 0;
     border-radius: 0;
     background: #fff;
     box-shadow: none;
+}
+
+.auth-shell.auth-login-shell .auth-aside.auth-login-aside,
+.auth-shell.auth-login-shell .auth-panel.auth-login-panel {
+    min-width: 0;
 }
 
 .auth-aside.auth-login-aside {

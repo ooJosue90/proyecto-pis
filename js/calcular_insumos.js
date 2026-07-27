@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const loteSelector = document.getElementById('selectorLote');
     const insumosContainer = document.getElementById('insumosCalculados');
+    const requestUrl = insumosContainer?.dataset.requestUrl || '';
 
     if (!loteSelector || !insumosContainer) return;
 
@@ -126,8 +127,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     html += '</div></section>';
                 });
 
-                html += '</div>';
+                html += `
+                    </div>
+                    <section class="calculator-request-prompt" aria-labelledby="calculatorRequestTitle">
+                        <span class="material-symbols-outlined calculator-request-prompt__icon" aria-hidden="true">shopping_cart_checkout</span>
+                        <div class="calculator-request-prompt__copy">
+                            <h3 id="calculatorRequestTitle">¿Deseas solicitar estos insumos ahora?</h3>
+                            <p>Continuarás con el lote, las ${escapeHtml(data.area)} hectáreas y las cantidades calculadas.</p>
+                        </div>
+                        <a class="farmer-action-button farmer-action-button--primary farmer-action-button--compact calculator-request-prompt__button" href="${escapeHtml(requestUrl)}" data-calculator-request>
+                            <span>Solicitar insumos</span>
+                            <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        </a>
+                    </section>
+                `;
                 insumosContainer.innerHTML = html;
+
+                insumosContainer.querySelector('[data-calculator-request]')?.addEventListener('click', function() {
+                    const area = Number(data.area) || 0;
+                    const context = {
+                        createdAt: Date.now(),
+                        loteId: String(loteId),
+                        area,
+                        products: data.insumos.map((insumo) => ({
+                            name: String(insumo.nombre || ''),
+                            quantityPerHectare: area > 0
+                                ? Number((Number(insumo.cantidad_total || 0) / area).toFixed(2))
+                                : 0,
+                        })),
+                    };
+
+                    try {
+                        sessionStorage.setItem('pis.calculatorRequestContext', JSON.stringify(context));
+                    } catch (error) {
+                        // La navegación continúa aunque el navegador bloquee el almacenamiento temporal.
+                    }
+                });
             })
             .catch(err => {
                 renderEmpty('report_problem', 'Error al cargar insumos', err);

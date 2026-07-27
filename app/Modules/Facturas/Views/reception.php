@@ -17,6 +17,9 @@
             <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/dashboard/bodega')); ?>" title="Bodega">
                 <i class="fas fa-warehouse" aria-hidden="true"></i><span class="nav-label">Bodega</span>
             </a>
+            <a class="nav-item app-sidebar-link" href="<?= e(\App\Core\Url::route('/inventario')); ?>" title="Inventario">
+                <i class="fas fa-boxes-stacked" aria-hidden="true"></i><span class="nav-label">Inventario</span>
+            </a>
             <a class="nav-item app-sidebar-link active" href="<?= e(\App\Core\Url::route('/facturas/recepcion')); ?>" title="Facturas">
                 <i class="fas fa-receipt" aria-hidden="true"></i><span class="nav-label">Facturas</span>
             </a>
@@ -28,9 +31,11 @@
             <?php render_logout_control(); ?>
         </div>
     </aside>
+    <div class="admin-mobile-overlay" data-admin-mobile-close></div>
 
     <main class="admin-inner-container">
         <header class="admin-reference-topbar">
+            <button type="button" class="admin-mobile-toggle" data-admin-mobile-toggle aria-label="Abrir menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
             <div class="admin-topbar-user">
                 <span class="admin-topbar-avatar"><?php echo e(app_user_initials()); ?></span>
                 <div><h2>Saludos, <?php echo e(current_user_name()); ?></h2><p>Gestiona documentos y recepciones de bodega.</p></div>
@@ -129,7 +134,7 @@
                                     </div>
                                     <div class="purchase-field">
                                         <label class="form-label">Fecha *</label>
-                                        <input type="date" name="fecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                                        <input type="date" name="fecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d'); ?>" required>
                                     </div>
                                 </div>
                             </section>
@@ -251,7 +256,7 @@
                             <label class="form-label">Precio unitario *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" name="precio_unitario" id="purchaseUnitPrice" class="form-control" min="0" step="0.01" required>
+                                <input type="text" inputmode="decimal" name="precio_unitario" id="purchaseUnitPrice" class="form-control" min="0.01" max="1000000" data-money required>
                             </div>
                         </div>
                                 </div>
@@ -361,8 +366,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalMirror = document.querySelector('[data-purchase-total-mirror]');
 
     function updateTotal() {
-        const total = (Number(receivedQuantity.value) || 0) * (Number(unitPrice.value) || 0);
-        totalMirror.textContent = '$' + total.toFixed(2);
+        const total = (Number(receivedQuantity.value) || 0) * (Number(unitPrice.value.replace(/,/g, '')) || 0);
+        totalMirror.textContent = total.toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 
     function updateOrder() {

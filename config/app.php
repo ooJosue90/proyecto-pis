@@ -9,4 +9,5 @@ return [
     'environment' => env_value('APP_ENV', 'production'),
     'debug' => filter_var(env_value('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOL),
     'timezone' => env_value('APP_TIMEZONE', 'America/Guayaquil'),
+    'foundation_date' => env_value('APP_FOUNDATION_DATE', '2026-05-18'),
 ];

@@ -13,6 +13,7 @@
         enhance(root) {
             root.querySelectorAll('.table').forEach((table) => {
                 if (table.dataset.appTable === '1') return;
+                if (table.dataset.appTableDisabled === 'true') return;
                 if (table.closest('.modal')) return;
 
                 const tbody = table.tBodies[0];
@@ -24,6 +25,7 @@
                 let currentPage = 1;
                 let query = '';
                 let status = '';
+                let extraFilterValue = '';
                 const normalizeHeading = (value) => String(value || '')
                     .normalize('NFD')
                     .replace(/[\u0300-\u036f]/g, '')
@@ -43,6 +45,13 @@
                     ? normalizeHeading(headings[filterColumnIndex].textContent)
                     : '';
                 const filterAllLabel = filterHeading === 'rol' ? 'Todos los roles' : 'Todos los estados';
+                const extraFilterHeading = normalizeHeading(table.dataset.appTableExtraFilter || '');
+                const extraFilterColumnIndex = extraFilterHeading
+                    ? headings.findIndex((heading) => normalizeHeading(heading.textContent) === extraFilterHeading)
+                    : -1;
+                const extraFilterLabel = extraFilterHeading
+                    ? `Todos los ${extraFilterHeading === 'tipo' ? 'tipos' : extraFilterHeading}`
+                    : '';
 
                 const wrapper = table.closest('.table-responsive') || table.parentElement;
                 const tableOwnerBase = table.closest('[id]')?.id || 'app-table';
@@ -72,7 +81,17 @@
                         </div>
                     </div>
                     <div class="app-table-tools-right">
-                        <div class="app-table-filter">
+                        ${extraFilterColumnIndex >= 0 ? `
+                        <div class="app-table-filter" data-app-table-filter-key="extra">
+                            <button type="button" class="app-table-filter__button" aria-haspopup="listbox" aria-expanded="false">
+                                ${icon('fas fa-tags', 'category')}
+                                <span class="app-table-filter__current">${extraFilterLabel}</span>
+                                ${icon('fas fa-chevron-down', 'keyboard_arrow_down')}
+                            </button>
+                            <div class="app-table-filter__menu" role="listbox" aria-label="Filtrar por ${extraFilterHeading}"></div>
+                        </div>
+                        ` : ''}
+                        <div class="app-table-filter" data-app-table-filter-key="status">
                             <button type="button" class="app-table-filter__button" aria-haspopup="listbox" aria-expanded="false">
                                 ${icon('fas fa-filter', 'filter_alt')}
                                 <span class="app-table-filter__current">${filterAllLabel}</span>
@@ -96,12 +115,22 @@
                 wrapper.parentElement.insertBefore(pagination, wrapper.nextSibling);
 
                 const searchInput = tools.querySelector('input[type="search"]');
-                const statusFilter = tools.querySelector('.app-table-filter');
-                const statusButton = tools.querySelector('.app-table-filter__button');
+                const statusFilter = tools.querySelector('[data-app-table-filter-key="status"]');
+                const statusButton = statusFilter.querySelector('.app-table-filter__button');
                 const statusLabel = statusButton.querySelector('.app-table-filter__current');
-                const statusMenu = tools.querySelector('.app-table-filter__menu');
+                const statusMenu = statusFilter.querySelector('.app-table-filter__menu');
                 statusMenu.dataset.appTableOwner = tableOwner;
+                statusMenu.dataset.appTableFilterKey = 'status';
+                const extraFilter = tools.querySelector('[data-app-table-filter-key="extra"]');
+                const extraFilterButton = extraFilter?.querySelector('.app-table-filter__button');
+                const extraFilterLabelElement = extraFilter?.querySelector('.app-table-filter__current');
+                const extraFilterMenu = extraFilter?.querySelector('.app-table-filter__menu');
+                if (extraFilterMenu) {
+                    extraFilterMenu.dataset.appTableOwner = tableOwner;
+                    extraFilterMenu.dataset.appTableFilterKey = 'extra';
+                }
                 const statusValues = new Set();
+                const extraFilterValues = new Set();
                 const statusTone = (value) => {
                     const normalized = normalizeHeading(value);
                     if (!normalized) return 'all';
@@ -155,9 +184,14 @@
                     const statusElement = cell?.querySelector('.app-table-status-capsule, .crop-status, .badge');
                     return (getStatusText(statusElement) || cell?.textContent || '').trim();
                 };
+                const getRowExtraFilterValue = (row) => {
+                    if (extraFilterColumnIndex < 0) return '';
+                    return (row.cells[extraFilterColumnIndex]?.textContent || '').trim();
+                };
 
                 rows.forEach((row) => {
                     const value = getRowStatus(row);
+                    const extraValue = getRowExtraFilterValue(row);
                     if (filterHeading === 'estado' && value) {
                         const cell = row.cells[filterColumnIndex];
                         let capsule = cell.querySelector('.app-table-status-capsule, .crop-status, .badge');
@@ -174,9 +208,10 @@
                         capsule.classList.add('app-table-status-capsule', `app-table-status-capsule--${statusTone(value)}`);
                     }
                     if (value) statusValues.add(value);
+                    if (extraValue) extraFilterValues.add(extraValue);
                 });
 
-                const addFilterOption = (value, label) => {
+                const addFilterOption = (menu, value, label) => {
                     const option = document.createElement('button');
                     const optionLabel = document.createElement('span');
                     const checkIcon = document.createElement(usesMaterialIcons ? 'span' : 'i');
@@ -191,25 +226,37 @@
                     if (usesMaterialIcons) checkIcon.textContent = 'check';
                     checkIcon.setAttribute('aria-hidden', 'true');
                     option.append(optionLabel, checkIcon);
-                    statusMenu.appendChild(option);
+                    menu.appendChild(option);
                 };
 
                 if (filterColumnIndex < 0 || statusValues.size === 0) {
                     statusFilter.remove();
                 } else {
-                    addFilterOption('', filterAllLabel);
+                    addFilterOption(statusMenu, '', filterAllLabel);
                     Array.from(statusValues)
                         .sort((first, second) => first.localeCompare(second, 'es'))
-                        .forEach((value) => addFilterOption(value.toLowerCase(), value));
+                        .forEach((value) => addFilterOption(statusMenu, value.toLowerCase(), value));
                     document.body.appendChild(statusMenu);
                     setCurrentStatus('', filterAllLabel);
+                }
+
+                if (extraFilter && extraFilterMenu && extraFilterValues.size > 0) {
+                    addFilterOption(extraFilterMenu, '', extraFilterLabel);
+                    Array.from(extraFilterValues)
+                        .sort((first, second) => first.localeCompare(second, 'es'))
+                        .forEach((value) => addFilterOption(extraFilterMenu, value.toLowerCase(), value));
+                    document.body.appendChild(extraFilterMenu);
+                } else {
+                    extraFilter?.remove();
                 }
 
                 const getFilteredRows = () => rows.filter((row) => {
                     const text = normalizeSearch(row.textContent);
                     const matchesQuery = !query || text.includes(query);
                     const matchesStatus = !status || normalizeSearch(getRowStatus(row)) === status;
-                    return matchesQuery && matchesStatus;
+                    const matchesExtraFilter = !extraFilterValue
+                        || normalizeSearch(getRowExtraFilterValue(row)) === extraFilterValue;
+                    return matchesQuery && matchesStatus && matchesExtraFilter;
                 });
 
                 const render = () => {
@@ -294,6 +341,83 @@
                     });
                     window.addEventListener('scroll', () => {
                         if (statusFilter.classList.contains('is-open')) positionStatusMenu();
+                    }, true);
+                }
+
+                if (extraFilter?.isConnected && extraFilterButton && extraFilterMenu && extraFilterLabelElement) {
+                    const positionExtraFilterMenu = () => {
+                        const rect = extraFilterButton.getBoundingClientRect();
+                        const viewportGap = 12;
+                        const desiredHeight = Math.min(extraFilterMenu.scrollHeight || 280, 280);
+                        const spaceBelow = window.innerHeight - rect.bottom - viewportGap;
+                        const spaceAbove = rect.top - viewportGap;
+                        const openAbove = spaceBelow < Math.min(desiredHeight, 190) && spaceAbove > spaceBelow;
+                        const availableHeight = Math.max(120, openAbove ? spaceAbove - 8 : spaceBelow - 8);
+                        const width = Math.min(Math.max(rect.width, 270), window.innerWidth - (viewportGap * 2));
+                        const left = Math.min(
+                            Math.max(viewportGap, rect.right - width),
+                            window.innerWidth - width - viewportGap
+                        );
+
+                        extraFilterMenu.style.left = `${Math.round(left)}px`;
+                        extraFilterMenu.style.width = `${Math.round(width)}px`;
+                        extraFilterMenu.style.maxHeight = `${Math.min(280, availableHeight)}px`;
+                        extraFilterMenu.style.top = openAbove
+                            ? `${Math.round(rect.top - Math.min(desiredHeight, availableHeight) - 7)}px`
+                            : `${Math.round(rect.bottom + 7)}px`;
+                        extraFilterMenu.dataset.placement = openAbove ? 'top' : 'bottom';
+                    };
+                    const closeExtraFilterMenu = () => {
+                        extraFilter.classList.remove('is-open');
+                        extraFilterMenu.classList.remove('is-open');
+                        extraFilterButton.setAttribute('aria-expanded', 'false');
+                    };
+
+                    extraFilterButton.addEventListener('click', () => {
+                        const willOpen = !extraFilter.classList.contains('is-open');
+                        closeStatusMenu();
+                        extraFilter.classList.toggle('is-open', willOpen);
+                        extraFilterMenu.classList.toggle('is-open', willOpen);
+                        extraFilterButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                        if (willOpen) positionExtraFilterMenu();
+                    });
+
+                    extraFilterMenu.addEventListener('click', (event) => {
+                        const option = event.target.closest('.app-table-filter__option');
+                        if (!option) return;
+
+                        extraFilterValue = normalizeSearch(option.dataset.value || '');
+                        extraFilterLabelElement.textContent = option.querySelector('span').textContent;
+                        extraFilterMenu.querySelectorAll('.app-table-filter__option').forEach(item => {
+                            const isSelected = item === option;
+                            item.classList.toggle('is-selected', isSelected);
+                            item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                        });
+                        closeExtraFilterMenu();
+                        currentPage = 1;
+                        render();
+                    });
+
+                    const handleExtraFilterEscape = (event) => {
+                        if (event.key === 'Escape') {
+                            closeExtraFilterMenu();
+                            extraFilterButton.focus();
+                        }
+                    };
+                    extraFilter.addEventListener('keydown', handleExtraFilterEscape);
+                    extraFilterMenu.addEventListener('keydown', handleExtraFilterEscape);
+
+                    document.addEventListener('click', (event) => {
+                        if (!extraFilter.contains(event.target) && !extraFilterMenu.contains(event.target)) {
+                            closeExtraFilterMenu();
+                        }
+                    });
+
+                    window.addEventListener('resize', () => {
+                        if (extraFilter.classList.contains('is-open')) positionExtraFilterMenu();
+                    });
+                    window.addEventListener('scroll', () => {
+                        if (extraFilter.classList.contains('is-open')) positionExtraFilterMenu();
                     }, true);
                 }
 
