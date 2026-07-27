@@ -21,6 +21,29 @@
 
     const Admin = {
         contentCache: {},
+        formModulePromise: null,
+
+        ensureFormModule: function () {
+            if (window.AdminFormMethods) {
+                Object.assign(this, window.AdminFormMethods);
+                return Promise.resolve();
+            }
+
+            if (this.formModulePromise) return this.formModulePromise;
+
+            this.formModulePromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `js/admin-forms.js?v=${Date.now()}`;
+                script.onload = () => {
+                    Object.assign(this, window.AdminFormMethods || {});
+                    resolve();
+                };
+                script.onerror = () => reject(new Error('No se pudo cargar el módulo de formularios.'));
+                document.head.appendChild(script);
+            });
+
+            return this.formModulePromise;
+        },
 
         cleanupModalState: function () {
             const visibleModal = document.querySelector('.modal.show');
@@ -105,14 +128,17 @@
             // Cache simple (5 minutos)
             if (useCache && this.contentCache[file] && (Date.now() - this.contentCache[file].timestamp < 300000)) {
                 target.innerHTML = this.contentCache[file].content;
-                // Asegurar setup de formularios
-                this.setupDynamicForms(target);
-                return Promise.resolve(this.contentCache[file].content);
+                return this.ensureFormModule().then(() => {
+                    this.setupDynamicForms(target);
+                    return this.contentCache[file].content;
+                });
             }
 
             target.innerHTML = '<div class="text-center mt-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Cargando...</p></div>';
 
-            return fetch(file)
+            const requestUrl = useCache ? file : `${file}${file.includes('?') ? '&' : '?'}_=${Date.now()}`;
+
+            return fetch(requestUrl, { cache: useCache ? 'default' : 'no-store' })
                 .then(response => {
                     if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     return response.text();
@@ -120,9 +146,10 @@
                 .then(html => {
                     target.innerHTML = html;
                     this.contentCache[file] = { content: html, timestamp: Date.now() };
-                    // Después de inyectar el HTML configuramos listeners / formularios en ese contenedor
-                    this.setupDynamicForms(target);
-                    return html;
+                    return this.ensureFormModule().then(() => {
+                        this.setupDynamicForms(target);
+                        return html;
+                    });
                 })
                 .catch(error => {
                     console.error(`Error cargando ${file}:`, error);
@@ -145,773 +172,14 @@
             return this.loadContent(file, targetId, { useCache: true });
         },
 
-        setupUserRoleSelect: function (container) {
-            const root = container || document;
-
-            root.querySelectorAll('[data-user-role-select]').forEach(customSelect => {
-                if (customSelect.dataset.hasListener) return;
-                customSelect.dataset.hasListener = '1';
-
-                const nativeSelect = customSelect.querySelector('.admin-user-role__native');
-                const button = customSelect.querySelector('[data-user-role-button]');
-                const label = customSelect.querySelector('[data-user-role-label]');
-                const options = Array.from(customSelect.querySelectorAll('.admin-user-role__option'));
-                const form = customSelect.closest('form');
-
-                if (!nativeSelect || !button || !label) return;
-
-                const close = () => {
-                    customSelect.classList.remove('is-open');
-                    button.setAttribute('aria-expanded', 'false');
-                };
-
-                const sync = () => {
-                    const selected = options.find(option => option.dataset.value === nativeSelect.value);
-                    label.textContent = selected
-                        ? selected.querySelector('strong').textContent
-                        : 'Seleccione el nivel de acceso';
-                    options.forEach(option => {
-                        const isSelected = option === selected;
-                        option.classList.toggle('is-selected', isSelected);
-                        option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-                    });
-                    if (nativeSelect.value) customSelect.classList.remove('is-invalid');
-                };
-
-                button.addEventListener('click', () => {
-                    const willOpen = !customSelect.classList.contains('is-open');
-                    customSelect.classList.toggle('is-open', willOpen);
-                    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-                });
-
-                options.forEach(option => {
-                    option.addEventListener('click', () => {
-                        nativeSelect.value = option.dataset.value || '';
-                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                        sync();
-                        close();
-                        button.focus();
-                    });
-                });
-
-                customSelect.addEventListener('keydown', event => {
-                    if (event.key === 'Escape') {
-                        close();
-                        button.focus();
-                    }
-                });
-
-                nativeSelect.addEventListener('invalid', event => {
-                    event.preventDefault();
-                    customSelect.classList.add('is-invalid');
-                    button.focus();
-                });
-
-                nativeSelect.addEventListener('change', sync);
-
-                document.addEventListener('click', event => {
-                    if (!customSelect.contains(event.target)) close();
-                });
-
-                form?.addEventListener('reset', () => {
-                    window.setTimeout(() => {
-                        sync();
-                        close();
-                    }, 0);
-                });
-
-                sync();
-            });
-        },
-
-        setupUserDeletion: function (container) {
-            const root = container || document;
-            const modalElement = root.querySelector('#adminUserDeleteModal');
-            const form = modalElement?.querySelector('#adminUserDeleteForm');
-
-            if (!modalElement || !form || form.dataset.hasListener) return;
-            form.dataset.hasListener = '1';
-
-            form.addEventListener('submit', async event => {
-                event.preventDefault();
-
-                const id = form.querySelector('#adminUserDeleteId')?.value || '';
-                const submitButton = form.querySelector('button[type="submit"]');
-                const originalContent = submitButton?.innerHTML || '';
-
-                if (!id || !submitButton) return;
-
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Eliminando...</span>';
-
-                const formData = new FormData();
-                formData.append('action', 'eliminar');
-                formData.append('id_usuario', id);
-
-                try {
-                    const response = await fetch('admin_usuarios.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const data = await response.json();
-
-                    if (!data.success) {
-                        throw new Error(data.message || 'No se pudo eliminar el usuario');
-                    }
-
-                    await Admin.closeModal(modalElement);
-                    alert(data.message || 'Usuario eliminado exitosamente');
-                    Admin.loadUsuarios();
-                } catch (error) {
-                    console.error('Error al eliminar usuario:', error);
-                    alert(`Error: ${error.message || 'No se pudo eliminar el usuario'}`);
-                } finally {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalContent;
-                }
-            });
-        },
-
-        setupAdminLotSelect: function (container) {
-            const root = container || document;
-
-            root.querySelectorAll('select[data-admin-lot-select]').forEach(nativeSelect => {
-                if (nativeSelect.dataset.hasCustomSelect) return;
-                nativeSelect.dataset.hasCustomSelect = '1';
-                nativeSelect.classList.add('admin-lot-select__native');
-
-                const customSelect = document.createElement('div');
-                const button = document.createElement('button');
-                const menu = document.createElement('div');
-                const icon = document.createElement('i');
-                const label = document.createElement('span');
-                const arrow = document.createElement('i');
-
-                customSelect.className = 'admin-lot-select';
-                button.type = 'button';
-                button.className = 'admin-lot-select__button';
-                button.setAttribute('aria-haspopup', 'listbox');
-                button.setAttribute('aria-expanded', 'false');
-                icon.className = 'fas fa-location-dot';
-                icon.setAttribute('aria-hidden', 'true');
-                label.className = 'admin-lot-select__label';
-                arrow.className = 'fas fa-chevron-down';
-                arrow.setAttribute('aria-hidden', 'true');
-                menu.className = 'admin-lot-select__menu';
-                menu.setAttribute('role', 'listbox');
-                menu.setAttribute('aria-label', 'Seleccionar lote');
-
-                button.append(icon, label, arrow);
-                customSelect.append(button);
-                nativeSelect.insertAdjacentElement('afterend', customSelect);
-                document.body.appendChild(menu);
-
-                const options = Array.from(nativeSelect.options);
-                const positionMenu = () => {
-                    const rect = button.getBoundingClientRect();
-                    const viewportGap = 12;
-                    const spaceBelow = window.innerHeight - rect.bottom - viewportGap;
-                    const availableHeight = Math.max(120, spaceBelow - 8);
-
-                    menu.style.left = `${Math.round(rect.left)}px`;
-                    menu.style.width = `${Math.round(rect.width)}px`;
-                    menu.style.maxHeight = `${Math.min(210, availableHeight)}px`;
-                    menu.style.top = `${Math.round(rect.bottom + 7)}px`;
-                    menu.dataset.placement = 'bottom';
-                };
-                const sync = () => {
-                    const selectedOption = nativeSelect.selectedOptions[0] || options[0];
-                    label.textContent = nativeSelect.value
-                        ? selectedOption?.textContent.trim().replace(/\s+/g, ' ')
-                        : 'Seleccione un lote';
-                    menu.querySelectorAll('.admin-lot-select__option').forEach(option => {
-                        const isSelected = option.dataset.value === nativeSelect.value;
-                        option.classList.toggle('is-selected', isSelected);
-                        option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-                    });
-                };
-                const close = () => {
-                    customSelect.classList.remove('is-open');
-                    menu.classList.remove('is-open');
-                    button.setAttribute('aria-expanded', 'false');
-                };
-
-                options.forEach((nativeOption, index) => {
-                    if (index === 0 && nativeOption.value === '') return;
-
-                    const option = document.createElement('button');
-                    const optionIcon = document.createElement('i');
-                    const optionCopy = document.createElement('span');
-                    const optionTitle = document.createElement('strong');
-                    const optionHint = document.createElement('small');
-                    const text = nativeOption.textContent.trim().replace(/\s+/g, ' ');
-                    const parts = text.split(' - ');
-
-                    option.type = 'button';
-                    option.className = 'admin-lot-select__option';
-                    option.dataset.value = nativeOption.value;
-                    option.setAttribute('role', 'option');
-                    optionIcon.className = 'fas fa-seedling';
-                    optionTitle.textContent = parts.shift();
-                    optionHint.textContent = parts.join(' - ');
-                    optionCopy.append(optionTitle, optionHint);
-                    option.append(optionIcon, optionCopy);
-                    menu.appendChild(option);
-
-                    option.addEventListener('click', () => {
-                        nativeSelect.value = option.dataset.value;
-                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                        sync();
-                        close();
-                        button.focus();
-                    });
-                });
-
-                button.addEventListener('click', () => {
-                    const willOpen = !customSelect.classList.contains('is-open');
-                    customSelect.classList.toggle('is-open', willOpen);
-                    menu.classList.toggle('is-open', willOpen);
-                    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-                    if (willOpen) positionMenu();
-                });
-
-                const handleEscape = event => {
-                    if (event.key === 'Escape') {
-                        close();
-                        button.focus();
-                    }
-                };
-                customSelect.addEventListener('keydown', handleEscape);
-                menu.addEventListener('keydown', handleEscape);
-
-                document.addEventListener('click', event => {
-                    if (!customSelect.contains(event.target) && !menu.contains(event.target)) close();
-                });
-
-                window.addEventListener('resize', () => {
-                    if (customSelect.classList.contains('is-open')) positionMenu();
-                });
-                window.addEventListener('scroll', () => {
-                    if (customSelect.classList.contains('is-open')) positionMenu();
-                }, true);
-
-                nativeSelect.addEventListener('change', sync);
-                sync();
-            });
-        },
-
-        setupPurchaseSelects: function (container) {
-            const root = container || document;
-
-            root.querySelectorAll('select[data-purchase-select]').forEach(nativeSelect => {
-                if (nativeSelect.dataset.hasCustomSelect) return;
-                nativeSelect.dataset.hasCustomSelect = '1';
-                nativeSelect.classList.add('admin-purchase-select__native');
-
-                const customSelect = document.createElement('div');
-                const button = document.createElement('button');
-                const leadingIcon = document.createElement('i');
-                const label = document.createElement('span');
-                const arrow = document.createElement('i');
-                const menu = document.createElement('div');
-                const placeholder = nativeSelect.dataset.selectLabel || 'Seleccionar opción';
-                const optionIconClass = nativeSelect.dataset.optionIcon || 'fa-circle-check';
-                const options = Array.from(nativeSelect.options);
-
-                customSelect.className = 'admin-purchase-select';
-                button.type = 'button';
-                button.className = 'admin-purchase-select__button';
-                button.setAttribute('aria-haspopup', 'listbox');
-                button.setAttribute('aria-expanded', 'false');
-                leadingIcon.className = `fas ${nativeSelect.dataset.selectIcon || 'fa-list'}`;
-                leadingIcon.setAttribute('aria-hidden', 'true');
-                label.className = 'admin-purchase-select__label';
-                arrow.className = 'fas fa-chevron-down admin-purchase-select__arrow';
-                arrow.setAttribute('aria-hidden', 'true');
-                menu.className = 'admin-purchase-select__menu';
-                menu.setAttribute('role', 'listbox');
-                menu.setAttribute('aria-label', placeholder);
-                menu.dataset.purchaseModalId = nativeSelect.closest('.modal')?.id || '';
-
-                button.append(leadingIcon, label, arrow);
-                customSelect.append(button);
-                nativeSelect.insertAdjacentElement('afterend', customSelect);
-                document.body.appendChild(menu);
-
-                const positionMenu = () => {
-                    const rect = button.getBoundingClientRect();
-                    const viewportGap = 12;
-                    const roomBelow = window.innerHeight - rect.bottom - viewportGap;
-                    const roomAbove = rect.top - viewportGap;
-                    const openAbove = roomBelow < 190 && roomAbove > roomBelow;
-                    const maxHeight = Math.min(260, Math.max(130, openAbove ? roomAbove - 8 : roomBelow - 8));
-
-                    menu.style.left = `${Math.round(rect.left)}px`;
-                    menu.style.width = `${Math.round(rect.width)}px`;
-                    menu.style.maxHeight = `${Math.round(maxHeight)}px`;
-                    const menuHeight = Math.min(menu.scrollHeight, maxHeight);
-                    menu.style.top = openAbove
-                        ? `${Math.round(rect.top - menuHeight - 7)}px`
-                        : `${Math.round(rect.bottom + 7)}px`;
-                    menu.dataset.placement = openAbove ? 'top' : 'bottom';
-                };
-
-                const close = () => {
-                    customSelect.classList.remove('is-open');
-                    menu.classList.remove('is-open');
-                    button.setAttribute('aria-expanded', 'false');
-                };
-
-                const sync = () => {
-                    const selectedOption = nativeSelect.selectedOptions[0];
-                    label.textContent = nativeSelect.value
-                        ? selectedOption?.textContent.trim().replace(/\s+/g, ' ')
-                        : placeholder;
-                    customSelect.classList.toggle('has-value', Boolean(nativeSelect.value));
-                    menu.querySelectorAll('.admin-purchase-select__option').forEach(option => {
-                        const isSelected = option.dataset.value === nativeSelect.value;
-                        option.classList.toggle('is-selected', isSelected);
-                        option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-                    });
-                    if (nativeSelect.value) customSelect.classList.remove('is-invalid');
-                };
-
-                options.forEach(nativeOption => {
-                    if (!nativeOption.value) return;
-
-                    const option = document.createElement('button');
-                    const optionIcon = document.createElement('i');
-                    const optionLabel = document.createElement('span');
-                    const checkIcon = document.createElement('i');
-
-                    option.type = 'button';
-                    option.className = 'admin-purchase-select__option';
-                    option.dataset.value = nativeOption.value;
-                    option.setAttribute('role', 'option');
-                    optionIcon.className = `fas ${optionIconClass}`;
-                    optionIcon.setAttribute('aria-hidden', 'true');
-                    optionLabel.textContent = nativeOption.textContent.trim().replace(/\s+/g, ' ');
-                    checkIcon.className = 'fas fa-check admin-purchase-select__check';
-                    checkIcon.setAttribute('aria-hidden', 'true');
-                    option.append(optionIcon, optionLabel, checkIcon);
-                    menu.appendChild(option);
-
-                    option.addEventListener('click', () => {
-                        nativeSelect.value = option.dataset.value;
-                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                        sync();
-                        close();
-                        button.focus();
-                    });
-                });
-
-                button.addEventListener('click', () => {
-                    const willOpen = !customSelect.classList.contains('is-open');
-                    document.querySelectorAll('.admin-purchase-select.is-open').forEach(select => {
-                        if (select !== customSelect) select.querySelector('button')?.click();
-                    });
-                    customSelect.classList.toggle('is-open', willOpen);
-                    menu.classList.toggle('is-open', willOpen);
-                    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-                    if (willOpen) positionMenu();
-                });
-
-                const handleEscape = event => {
-                    if (event.key === 'Escape') {
-                        close();
-                        button.focus();
-                    }
-                };
-                customSelect.addEventListener('keydown', handleEscape);
-                menu.addEventListener('keydown', handleEscape);
-
-                document.addEventListener('click', event => {
-                    if (!customSelect.contains(event.target) && !menu.contains(event.target)) close();
-                });
-                window.addEventListener('resize', () => {
-                    if (customSelect.classList.contains('is-open')) positionMenu();
-                });
-                window.addEventListener('scroll', () => {
-                    if (customSelect.classList.contains('is-open')) positionMenu();
-                }, true);
-
-                nativeSelect.addEventListener('change', sync);
-                nativeSelect.addEventListener('invalid', event => {
-                    event.preventDefault();
-                    customSelect.classList.add('is-invalid');
-                    button.focus();
-                });
-                nativeSelect.form?.addEventListener('reset', () => {
-                    window.setTimeout(() => {
-                        sync();
-                        close();
-                    }, 0);
-                });
-
-                sync();
-            });
-        },
-
-        setupAdminLotHistory: function (container) {
-            const root = container || document;
-            const button = root.querySelector('[data-admin-lot-history]');
-            const nativeSelect = document.getElementById('selectorLote');
-            const content = document.getElementById('historialLoteContent');
-
-            if (!button || !nativeSelect || !content || button.dataset.hasListener) return;
-            button.dataset.hasListener = '1';
-
-            const clearHistoryResult = () => {
-                content.querySelectorAll(':scope > .app-table-tools, :scope > .app-table-pagination').forEach(element => {
-                    element.remove();
-                });
-                document.querySelectorAll('.app-table-filter__menu[data-app-table-owner="historialLoteContent"]').forEach(menu => {
-                    menu.remove();
-                });
-                content.replaceChildren();
-            };
-
-            button.addEventListener('click', async () => {
-                const loteId = nativeSelect.value;
-                const icon = button.querySelector('i');
-                const label = button.querySelector('span');
-                const customSelectButton = nativeSelect.nextElementSibling?.querySelector('.admin-lot-select__button');
-
-                clearHistoryResult();
-                document.querySelectorAll('.admin-lot-select__menu.is-open').forEach(menu => {
-                    menu.classList.remove('is-open');
-                });
-                nativeSelect.nextElementSibling?.classList.remove('is-open');
-                customSelectButton?.setAttribute('aria-expanded', 'false');
-
-                if (!loteId) {
-                    content.innerHTML = '<div class="alert alert-info"><i class="fas fa-circle-info"></i> Seleccione un lote para consultar su historial.</div>';
-                    customSelectButton?.focus();
-                    return;
-                }
-
-                button.disabled = true;
-                button.classList.add('is-loading');
-                if (icon) icon.className = 'fas fa-circle-notch fa-spin';
-                if (label) label.textContent = 'Cargando historial...';
-                content.innerHTML = '<div class="text-center"><i class="fas fa-circle-notch fa-spin"></i><p>Cargando historial...</p></div>';
-
-                try {
-                    const response = await fetch(`lote_historial.php?id=${encodeURIComponent(loteId)}`, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-                    const result = document.createElement('div');
-                    result.className = 'admin-lot-history-result';
-                    result.innerHTML = await response.text();
-                    content.replaceChildren(result);
-                    window.AppUI?.refresh?.(result);
-                } catch (error) {
-                    console.error('Error al cargar historial del lote:', error);
-                    content.innerHTML = '<div class="alert alert-danger"><i class="fas fa-triangle-exclamation"></i> No se pudo cargar el historial. Intente nuevamente.</div>';
-                } finally {
-                    button.disabled = false;
-                    button.classList.remove('is-loading');
-                    if (icon) icon.className = 'fas fa-magnifying-glass';
-                    if (label) label.textContent = 'Ver Historial Completo';
-                }
-            });
-        },
-
-        // Conecta listeners/handlers para formularios y botones dinámicos dentro de un contenedor
-        setupDynamicForms: function (container) {
-            // container puede ser elemento o id string; si null => document
-            let root = container;
-            if (!root) root = document;
-            if (typeof container === 'string') root = document.getElementById(container) || document;
-
-            this.setupRequestConfirmation(root);
-            this.setupInvoiceConfirmation(root);
-            this.setupCropDeletion(root);
-            this.setupUserRoleSelect(root);
-            this.setupUserDeletion(root);
-            this.setupPurchaseSelects(root);
-
-            const invoiceFilters = root.querySelector('#purchaseInvoiceFilters');
-            if (invoiceFilters && !invoiceFilters.dataset.hasListener) {
-                invoiceFilters.dataset.hasListener = '1';
-                invoiceFilters.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    const query = new URLSearchParams(new FormData(this)).toString();
-                    Admin.loadContent(`admin_facturas.php?${query}`, 'facturas-content', { useCache: false });
-                });
-            }
-
-            const clearInvoiceFilters = root.querySelector('[data-clear-invoice-filters]');
-            if (clearInvoiceFilters && !clearInvoiceFilters.dataset.hasListener) {
-                clearInvoiceFilters.dataset.hasListener = '1';
-                clearInvoiceFilters.addEventListener('click', function () {
-                    Admin.loadFacturas();
-                });
-            }
-
-            // Manejo de formulario crear usuario (si existe)
-            const formCrear = root.querySelector('#formCrearUsuario');
-            if (formCrear && !formCrear.dataset.hasListener) {
-                formCrear.dataset.hasListener = '1';
-                formCrear.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const originalText = submitBtn ? submitBtn.innerHTML : '';
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
-                    }
-                    const fd = new FormData(this);
-                    fd.append('action', 'crear');
-
-                    fetch('admin_usuarios.php', { method: 'POST', body: fd })
-                        .then(r => r.text())
-                        .then(text => {
-                            try {
-                                const data = JSON.parse(text);
-                                if (data.success) {
-                                    alert('Usuario creado exitosamente');
-                                    this.reset();
-                                    if (typeof bootstrap !== 'undefined') {
-                                        const modalEl = document.getElementById('modalCrearUsuario');
-                                        if (modalEl) {
-                                            const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                                            m.hide();
-                                        }
-                                    }
-                                    Admin.loadUsuarios();
-                                } else {
-                                    alert('Error: ' + (data.message || 'Error desconocido'));
-                                }
-                            } catch (err) {
-                                console.error('Respuesta inválida crear usuario:', text, err);
-                                alert('Respuesta inválida del servidor');
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Error crear usuario:', err);
-                            alert('Error de conexión');
-                        })
-                        .finally(() => {
-                            if (submitBtn) {
-                                submitBtn.disabled = false;
-                                submitBtn.innerHTML = originalText;
-                            }
-                        });
-                });
-            }
-
-            // Manejo del formulario editar usuario
-            const formEditar = root.querySelector('#formEditarUsuario');
-            if (formEditar && !formEditar.dataset.hasListener) {
-                formEditar.dataset.hasListener = '1';
-                formEditar.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const fd = new FormData(this);
-                    // No agregamos action aquí, asumimos que admin_usuarios.php lo detecta
-                    fetch('admin_usuarios.php', { method: 'POST', body: fd })
-                        .then(r => r.text())
-                        .then(text => {
-                            try {
-                                const data = JSON.parse(text);
-                                if (data.success) {
-                                    alert('Usuario actualizado exitosamente');
-                                    if (typeof bootstrap !== 'undefined') {
-                                        const modalEl = document.getElementById('modalEditarUsuario');
-                                        if (modalEl) {
-                                            const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                                            m.hide();
-                                        }
-                                    }
-                                    Admin.loadUsuarios();
-                                } else {
-                                    alert('Error: ' + (data.message || 'Error desconocido'));
-                                }
-                            } catch (err) {
-                                console.error('Respuesta inválida editar usuario:', text, err);
-                                alert('Respuesta inválida del servidor');
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Error editar usuario:', err);
-                            alert('Error de conexión');
-                        });
-                });
-            }
-
-            // Delegación para botones dinámicos que no tienen JS - ejemplo: ver detalles, etc. 
-            // si se desea se puede añadir listeners para formularios de cultivos, lotes, facturas según convenga.
-            // --- INICIO: Handlers para Proveedores y Pedidos ---
-            // Crear proveedor
-            const crearProv = root.querySelector('#formCrearProveedor');
-            if (crearProv && !crearProv.dataset.hasListener) {
-            crearProv.dataset.hasListener = '1';
-            crearProv.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const fd = new FormData(this);
-                fd.append('action','crear_proveedor');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message || 'Proveedor creado exitosamente');
-                        Admin.refreshPedidosProveedores(
-                            document.getElementById('modalCrearProveedor')
-                        );
-                    }
-                    else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Crear proveedor:', err); alert('Error de conexión'); });
-            });
-            }
-
-            // Editar proveedor
-            const editProv = root.querySelector('#formEditarProveedor');
-            if (editProv && !editProv.dataset.hasListener) {
-            editProv.dataset.hasListener = '1';
-            editProv.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const fd = new FormData(this);
-                fd.append('action','editar_proveedor');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message || 'Proveedor actualizado');
-                        Admin.refreshPedidosProveedores(
-                            document.getElementById('modalEditarProveedor')
-                        );
-                    }
-                    else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Editar proveedor:', err); alert('Error de conexión'); });
-            });
-            }
-
-            // Crear pedido
-            const crearPedido = root.querySelector('#formCrearPedido');
-            if (crearPedido && !crearPedido.dataset.hasListener) {
-            crearPedido.dataset.hasListener = '1';
-            crearPedido.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const fd = new FormData(this);
-                fd.append('action','crear_pedido');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message || 'Pedido creado exitosamente');
-                        Admin.refreshPedidosProveedores(
-                            document.getElementById('modalCrearPedido')
-                        );
-                    }
-                    else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Crear pedido:', err); alert('Error de conexión'); });
-            });
-            }
-
-            const editarPedido = root.querySelector('#formEditarPedido');
-            if (editarPedido && !editarPedido.dataset.hasListener) {
-            editarPedido.dataset.hasListener = '1';
-            editarPedido.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const fd = new FormData(this);
-                fd.append('action', 'editar_pedido');
-                fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message || 'Pedido actualizado exitosamente');
-                        Admin.refreshPedidosProveedores(
-                            document.getElementById('modalEditarPedido')
-                        );
-                    }
-                    else alert('Error: ' + (data.message || 'No se pudo actualizar el pedido'));
-                }).catch(err => { console.error('Editar pedido:', err); alert('Error de conexión'); });
-            });
-            }
-
-            root.querySelectorAll('[data-edit-order]').forEach((button) => {
-                if (button.dataset.hasListener) return;
-                button.dataset.hasListener = '1';
-                button.addEventListener('click', function () {
-                    const fields = {
-                        edit_pedido_id: button.dataset.orderId,
-                        edit_pedido_proveedor: button.dataset.providerId,
-                        edit_pedido_usuario: button.dataset.userId,
-                        edit_pedido_insumo: button.dataset.itemId,
-                        edit_pedido_cantidad: button.dataset.quantity,
-                        edit_pedido_observaciones: button.dataset.observations,
-                    };
-
-                    Object.entries(fields).forEach(([id, value]) => {
-                        const field = document.getElementById(id);
-                        if (field) field.value = value || '';
-                    });
-
-                    const modalElement = document.getElementById('modalEditarPedido');
-                    if (modalElement && typeof bootstrap !== 'undefined') {
-                        bootstrap.Modal.getOrCreateInstance(modalElement).show();
-                    }
-                });
-            });
-
-            // Exponer funciones globales que tu HTML usa con onclick(...)
-            window.editarProveedor = function (id, nombre, telefono, email, direccion) {
-            const idEl = document.getElementById('edit_proveedor_id');
-            if (idEl) idEl.value = id;
-            const n = document.getElementById('edit_proveedor_nombre'); if (n) n.value = nombre || '';
-            const t = document.getElementById('edit_proveedor_telefono'); if (t) t.value = telefono || '';
-            const e = document.getElementById('edit_proveedor_email'); if (e) e.value = email || '';
-            const d = document.getElementById('edit_proveedor_direccion'); if (d) d.value = direccion || '';
-            const modalEl = document.getElementById('modalEditarProveedor');
-            if (modalEl && typeof bootstrap !== 'undefined') new bootstrap.Modal(modalEl).show();
-            };
-
-            window.eliminarProveedor = function (id) {
-            if (!confirm('¿Seguro de eliminar este proveedor?')) return;
-            const fd = new FormData(); fd.append('action','eliminar_proveedor'); fd.append('id_proveedor', id);
-            fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                if (data.success) {
-                    alert(data.message || 'Proveedor eliminado');
-                    Admin.loadPedidosProveedores();
-                }
-                else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Eliminar proveedor:', err); alert('Error de conexión'); });
-            };
-
-            window.cancelarPedido = function (id) {
-            if (!confirm('¿Seguro de cancelar este pedido? Esta acción impedirá registrar su comprobante.')) return;
-            const fd = new FormData(); fd.append('action','cancelar_pedido'); fd.append('id_pedido', id);
-            fetch('admin_pedidos_proveedores.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                if (data.success) {
-                    alert(data.message || 'Pedido cancelado');
-                    Admin.loadPedidosProveedores();
-                }
-                else alert('Error: ' + (data.message || 'Error desconocido'));
-                }).catch(err => { console.error('Cancelar pedido:', err); alert('Error de conexión'); });
-            };
-            // --- FIN: Handlers para Proveedores y Pedidos ---
-
-            if (root.id) {
-                root.querySelectorAll('.modal').forEach(modalElement => {
-                    Admin.mountDynamicModal(modalElement, root.id);
-                });
-            }
-        },
-
         // Pestañas: carga el contenido en la zona correspondiente
-        loadUsuarios: function () { return this.loadContent('admin_usuarios.php', 'usuarios-content', { useCache: false }); },
-        loadSolicitudes: function () { return this.loadContent('admin_solicitudes.php', 'solicitudes-content', { useCache: false }); },
-        loadMovimientos: function () { return this.loadContent('admin_movimientos.php', 'movimientos-content', { useCache: false }); },
-        loadFacturas: function () { return this.loadContent('admin_facturas.php', 'facturas-content', { useCache: false }); },
-        loadReportes: function () { return this.loadContent('admin_reportes.php', 'reportes-content', { useCache: false }); },
-        loadCultivos: function () { return this.loadContent('admin_cultivos.php', 'cultivos-content', { useCache: false }); },
-        loadPedidosProveedores: function () { return this.loadContent('admin_pedidos_proveedores.php', 'pedidos-proveedores-content', { useCache: false }); },
+        loadUsuarios: function () { return this.loadContent('usuarios', 'usuarios-content', { useCache: false }); },
+        loadSolicitudes: function () { return this.loadContent('solicitudes/admin', 'solicitudes-content', { useCache: false }); },
+        loadMovimientos: function () { return this.loadContent('movimientos', 'movimientos-content', { useCache: false }); },
+        loadFacturas: function () { return this.loadContent('facturas', 'facturas-content', { useCache: false }); },
+        loadReportes: function () { return this.loadContent('reportes', 'reportes-content', { useCache: false }); },
+        loadCultivos: function () { return this.loadContent('admin/agricultura', 'cultivos-content', { useCache: false }); },
+        loadPedidosProveedores: function () { return this.loadContent('abastecimiento', 'pedidos-proveedores-content', { useCache: false }); },
 
         setupRequestConfirmation: function (root) {
             const modalElement = this.mountDynamicModal(
@@ -974,11 +242,16 @@
                 const fd = new FormData();
                 fd.append('action', action);
                 fd.append('id_solicitud', requestId);
+                fd.append('_token', modalForm.querySelector('[name="_token"]')?.value || '');
 
                 confirmButton.disabled = true;
                 confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span> Procesando...</span>';
 
-                fetch('admin_solicitudes.php', { method: 'POST', body: fd })
+                fetch(modalForm.dataset.reviewUrl || 'solicitudes/revisar', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
@@ -1017,6 +290,8 @@
             const title = modalElement.querySelector('#adminInvoiceConfirmTitle');
             const icon = modalElement.querySelector('[data-admin-invoice-modal-icon]');
             const message = modalElement.querySelector('[data-admin-invoice-modal-message]');
+            const messageIcon = modalElement.querySelector('[data-admin-invoice-message-icon]');
+            const eyebrow = modalElement.querySelector('[data-admin-invoice-modal-eyebrow]');
             const number = modalElement.querySelector('[data-admin-invoice-modal-number]');
             const provider = modalElement.querySelector('[data-admin-invoice-modal-provider]');
             const total = modalElement.querySelector('[data-admin-invoice-modal-total]');
@@ -1038,9 +313,13 @@
                     total.textContent = button.dataset.invoiceTotal || '$0.00';
 
                     title.textContent = isApproval ? 'Aprobar factura' : 'Rechazar factura';
+                    if (eyebrow) eyebrow.textContent = isApproval ? 'Aprobación financiera' : 'Revisión con observaciones';
                     message.textContent = isApproval
-                        ? 'La factura quedará aprobada administrativamente.'
-                        : 'La factura quedará rechazada. El stock físico recibido no será revertido.';
+                        ? 'La factura quedará aprobada y registrada como validada administrativamente.'
+                        : 'La factura quedará rechazada. Esta decisión no revierte el stock físico que ya fue recibido.';
+                    if (messageIcon) {
+                        messageIcon.className = isApproval ? 'fas fa-circle-check' : 'fas fa-triangle-exclamation';
+                    }
                     confirmLabel.textContent = isApproval ? 'Confirmar aprobación' : 'Confirmar rechazo';
                     confirmIcon.className = isApproval ? 'fas fa-check' : 'fas fa-xmark';
                     icon.innerHTML = isApproval
@@ -1061,12 +340,13 @@
                 const fd = new FormData();
                 fd.append('action', actionInput.value);
                 fd.append('id_factura_compra', invoiceIdInput.value);
+                fd.append('_token', root.querySelector('[data-facturas-csrf]')?.dataset.facturasCsrf || '');
                 const originalContent = confirmButton.innerHTML;
 
                 confirmButton.disabled = true;
                 confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span> Procesando...</span>';
 
-                fetch('admin_facturas.php', { method: 'POST', body: fd })
+                fetch('facturas/revisar', { method: 'POST', body: fd })
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
@@ -1144,7 +424,8 @@
                 confirmButton.disabled = true;
                 confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span> Eliminando...</span>';
 
-                fetch('admin_cultivos.php', { method: 'POST', body: fd })
+                fd.append('_token', document.querySelector('[data-admin-agriculture-csrf]')?.dataset.adminAgricultureCsrf || '');
+                fetch('admin/agricultura', { method: 'POST', body: fd })
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
@@ -1184,7 +465,7 @@
 
         // Mostrar detalles (cultivo, lote, factura) en modal
         verDetallesCultivo: function (id) {
-            fetch(`cultivo_detalle.php?id=${id}`)
+            fetch(`admin/agricultura/cultivos/${encodeURIComponent(id)}`)
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById('detallesCultivoContent');
@@ -1206,7 +487,7 @@
         },
 
         verDetalleLote: function (id) {
-            fetch(`lote_detalle.php?id=${id}`)
+            fetch(`admin/agricultura/lotes/${encodeURIComponent(id)}`)
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById('detalleLoteContent');
@@ -1228,7 +509,7 @@
         },
 
         verDetallesFactura: function (id) {
-            fetch(`factura_detalle.php?id=${id}`)
+            fetch(`facturas/${encodeURIComponent(id)}`)
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById('detallesFacturaContent');
@@ -1243,11 +524,252 @@
                 }).catch(err => { console.error('Error ver detalles factura:', err); alert('Error al cargar los detalles'); });
         },
 
+        setupAccountMenu: function () {
+            const menu = document.querySelector('[data-admin-account-menu]');
+            const trigger = menu?.querySelector('[data-admin-account-trigger]');
+            if (!menu || !trigger || menu.dataset.adminAccountListener === '1') return;
+
+            menu.dataset.adminAccountListener = '1';
+
+            const setOpen = (open) => {
+                menu.classList.toggle('is-open', open);
+                trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+
+            trigger.addEventListener('click', (event) => {
+                event.stopPropagation();
+                setOpen(!menu.classList.contains('is-open'));
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!menu.contains(event.target)) setOpen(false);
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') setOpen(false);
+            });
+        },
+
+        setupLotHistoryLauncher: function () {
+            if (document.body.dataset.adminLotHistoryDelegated === '1') return;
+            document.body.dataset.adminLotHistoryDelegated = '1';
+
+            const clearHistoryResult = () => {
+                content.querySelectorAll(':scope > .app-table-tools, :scope > .app-table-pagination').forEach(element => {
+                    element.remove();
+                });
+                document.querySelectorAll('.app-table-filter__menu[data-app-table-owner="historialLoteContent"]').forEach(menu => {
+                    menu.remove();
+                });
+                content.replaceChildren();
+            };
+
+            document.addEventListener('click', async (event) => {
+                const button = event.target.closest('[data-admin-lot-history]');
+                if (!button) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const nativeSelect = document.getElementById('selectorLote');
+                const content = document.getElementById('historialLoteContent');
+                if (!nativeSelect || !content || button.disabled) return;
+
+                const loteId = nativeSelect.value;
+                const icon = button.querySelector('i');
+                const label = button.querySelector('span');
+                const customSelectButton = nativeSelect.nextElementSibling?.querySelector('.admin-lot-select__button');
+
+                clearHistoryResult();
+
+                if (!loteId) {
+                    content.innerHTML = '<div class="alert alert-info"><i class="fas fa-circle-info"></i> Seleccione un lote para consultar su historial.</div>';
+                    customSelectButton?.focus();
+                    return;
+                }
+
+                button.disabled = true;
+                button.classList.add('is-loading');
+                if (icon) icon.className = 'fas fa-circle-notch fa-spin';
+                if (label) label.textContent = 'Cargando historial...';
+                content.innerHTML = '<div class="text-center"><i class="fas fa-circle-notch fa-spin"></i><p>Cargando historial...</p></div>';
+
+                try {
+                    await this.ensureFormModule();
+                    const response = await fetch(`admin/agricultura/lotes/${encodeURIComponent(loteId)}/historial?_=${Date.now()}`, {
+                        cache: 'no-store',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    const result = document.createElement('div');
+                    result.className = 'admin-lot-history-result';
+                    result.innerHTML = await response.text();
+                    content.replaceChildren(result);
+
+                    window.AppTable?.enhance?.(content);
+                } catch (error) {
+                    console.error('Error al cargar historial del lote:', error);
+                    content.innerHTML = '<div class="alert alert-danger"><i class="fas fa-triangle-exclamation"></i> No se pudo cargar el historial. Intente nuevamente.</div>';
+                } finally {
+                    button.disabled = false;
+                    button.classList.remove('is-loading');
+                    if (icon) icon.className = 'fas fa-magnifying-glass';
+                    if (label) label.textContent = 'Ver Historial Completo';
+                }
+            });
+        },
+
+        setupLotHistoryControlDelegates: function () {
+            if (document.body.dataset.adminLotHistoryControlsDelegated === '1') return;
+            document.body.dataset.adminLotHistoryControlsDelegated = '1';
+
+            const ownerId = 'historialLoteContent';
+            const getResult = () => document.querySelector('#historialLoteContent .admin-lot-history-result');
+            const getRows = () => Array.from(document.querySelectorAll('#historialLoteContent .admin-lot-history-table tbody tr'));
+            const normalize = (value) => String(value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .toLowerCase();
+            const getStatus = (row) => {
+                const cell = row.cells[4];
+                return (cell?.querySelector('.app-table-status-capsule, .badge')?.textContent || cell?.textContent || '').trim();
+            };
+            const getMenu = () => document.querySelector(`.app-table-filter__menu[data-app-table-owner="${ownerId}"]`);
+            const closeMenu = () => {
+                const result = getResult();
+                const filter = result?.querySelector('.app-table-filter');
+                const button = result?.querySelector('.app-table-filter__button');
+                const menu = getMenu();
+                filter?.classList.remove('is-open');
+                menu?.classList.remove('is-open');
+                button?.setAttribute('aria-expanded', 'false');
+            };
+            const positionMenu = () => {
+                const result = getResult();
+                const button = result?.querySelector('.app-table-filter__button');
+                const menu = getMenu();
+                if (!button || !menu) return;
+
+                const rect = button.getBoundingClientRect();
+                const viewportGap = 12;
+                const width = Math.min(Math.max(rect.width, 270), window.innerWidth - (viewportGap * 2));
+                const left = Math.min(Math.max(viewportGap, rect.right - width), window.innerWidth - width - viewportGap);
+                menu.style.left = `${Math.round(left)}px`;
+                menu.style.top = `${Math.round(rect.bottom + 7)}px`;
+                menu.style.width = `${Math.round(width)}px`;
+            };
+            const render = () => {
+                const result = getResult();
+                if (!result) return;
+
+                const rows = getRows();
+                const query = normalize(result.querySelector('.app-table-search input')?.value || '');
+                const status = result.dataset.historyStatus || '';
+                const pageSize = 10;
+                let page = Number(result.dataset.historyPage || '1') || 1;
+                const filtered = rows.filter(row => {
+                    return (!query || normalize(row.textContent).includes(query))
+                        && (!status || getStatus(row).toLowerCase() === status);
+                });
+                const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+                page = Math.min(Math.max(1, page), pages);
+                result.dataset.historyPage = String(page);
+
+                const visibleRows = new Set(filtered.slice((page - 1) * pageSize, page * pageSize));
+                rows.forEach(row => {
+                    row.style.display = visibleRows.has(row) ? '' : 'none';
+                });
+
+                const pagination = result.querySelector('.app-table-pagination');
+                if (!pagination) return;
+                const info = pagination.querySelector('.app-table-page-info');
+                const prev = pagination.querySelector('[data-prev]');
+                const next = pagination.querySelector('[data-next]');
+                if (info) info.textContent = `${filtered.length} registros · Página ${page} de ${pages}`;
+                if (prev) prev.disabled = page === 1;
+                if (next) next.disabled = page === pages;
+            };
+
+            document.addEventListener('input', (event) => {
+                if (!event.target.matches('#historialLoteContent .app-table-search input')) return;
+                const result = getResult();
+                if (result) result.dataset.historyPage = '1';
+                render();
+            }, true);
+
+            document.addEventListener('click', (event) => {
+                const filterButton = event.target.closest('#historialLoteContent .app-table-filter__button');
+                if (filterButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const result = getResult();
+                    const filter = result?.querySelector('.app-table-filter');
+                    const menu = getMenu();
+                    const willOpen = !filter?.classList.contains('is-open');
+                    filter?.classList.toggle('is-open', willOpen);
+                    menu?.classList.toggle('is-open', willOpen);
+                    filterButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                    if (willOpen) positionMenu();
+                    return;
+                }
+
+                const option = event.target.closest(`.app-table-filter__menu[data-app-table-owner="${ownerId}"] .app-table-filter__option`);
+                if (option) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const result = getResult();
+                    if (result) {
+                        result.dataset.historyStatus = option.dataset.value || '';
+                        result.dataset.historyPage = '1';
+                        const label = result.querySelector('.app-table-filter__current');
+                        if (label) label.textContent = option.querySelector('span')?.textContent || 'Todos los estados';
+                    }
+                    getMenu()?.querySelectorAll('.app-table-filter__option').forEach(item => {
+                        const isSelected = item === option;
+                        item.classList.toggle('is-selected', isSelected);
+                        item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    });
+                    closeMenu();
+                    render();
+                    return;
+                }
+
+                const prev = event.target.closest('#historialLoteContent .app-table-pagination [data-prev]');
+                const next = event.target.closest('#historialLoteContent .app-table-pagination [data-next]');
+                if (prev || next) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const result = getResult();
+                    if (result) {
+                        const current = Number(result.dataset.historyPage || '1') || 1;
+                        result.dataset.historyPage = String(prev ? current - 1 : current + 1);
+                    }
+                    render();
+                    return;
+                }
+
+                if (!event.target.closest('#historialLoteContent .app-table-filter') && !event.target.closest(`.app-table-filter__menu[data-app-table-owner="${ownerId}"]`)) {
+                    closeMenu();
+                }
+            }, true);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeMenu();
+            });
+            window.addEventListener('resize', positionMenu);
+        },
+
         // Init: engancha listeners de pestañas (evita duplicar listeners)
         init: function () {
-            this.setupDynamicForms(document);
-            this.setupAdminLotSelect(document);
-            this.setupAdminLotHistory(document);
+            this.setupAccountMenu();
+
+            if (document.querySelector('form, select, input.form-control, textarea.form-control')) {
+                this.ensureFormModule()
+                    .then(() => this.setupDynamicForms(document))
+                    .catch(error => console.error('No se pudo inicializar formularios:', error));
+            }
 
             document.addEventListener('hidden.bs.modal', () => {
                 window.setTimeout(() => Admin.cleanupModalState(), 0);
@@ -1393,9 +915,17 @@
     window.eliminarLote = Admin.eliminarLote.bind(Admin);
     window.verDetallesFactura = Admin.verDetallesFactura.bind(Admin);
 
-    // Inicializamos cuando DOM esté listo
-    document.addEventListener('DOMContentLoaded', function () {
+    const initAdmin = function () {
+        if (document.body?.dataset.adminInitialized === '1') return;
+        if (document.body) document.body.dataset.adminInitialized = '1';
         Admin.init();
-    });
+    };
+
+    // Inicializamos cuando DOM esté listo, o de inmediato si el script llegó tarde.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdmin);
+    } else {
+        initAdmin();
+    }
     
 })(window, document);

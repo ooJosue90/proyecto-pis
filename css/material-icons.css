@@ -1,0 +1,211 @@
+/*
+ * Google Material Symbols compatibility layer.
+ * Keeps existing fa-* markup rendering while the project uses Google icons.
+ */
+
+.fa,
+.fas,
+.far,
+.fab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Material Symbols Outlined";
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "liga";
+    font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+    speak: never;
+}
+
+.fa::before,
+.fas::before,
+.far::before,
+.fab::before {
+    content: "";
+}
+
+.fa-2x { font-size: 2em; }
+.fa-3x { font-size: 3em; }
+.fa-spin { animation: material-symbol-spin 1s linear infinite; }
+
+@keyframes material-symbol-spin {
+    to { transform: rotate(360deg); }
+}
+
+.fa-address-book::before { content: "contacts"; }
+.fa-arrow-down::before { content: "arrow_downward"; }
+.fa-arrow-left::before { content: "arrow_back"; }
+.fa-arrow-right::before { content: "arrow_forward"; }
+.fa-arrow-right-arrow-left::before,
+.fa-right-left::before { content: "swap_horiz"; }
+.fa-arrow-right-from-bracket::before,
+.fa-sign-out-alt::before { content: "logout"; }
+.fa-arrow-right-to-bracket::before { content: "login"; }
+.fa-arrow-trend-down::before { content: "trending_down"; }
+.fa-arrow-up::before { content: "arrow_upward"; }
+.fa-arrow-up-9-1::before { content: "sort"; }
+.fa-arrows-up-down-left-right::before { content: "open_with"; }
+.fa-award::before,
+.fa-certificate::before { content: "workspace_premium"; }
+.fa-balance-scale::before,
+.fa-scale-balanced::before { content: "balance"; }
+.fa-ban::before { content: "block"; }
+.fa-bars::before { content: "menu"; }
+.fa-box::before,
+.fa-box-archive::before,
+.fa-box-open::before,
+.fa-boxes-packing::before,
+.fa-boxes-stacked::before { content: "inventory_2"; }
+.fa-bug::before { content: "bug_report"; }
+.fa-building::before { content: "business"; }
+.fa-building-circle-check::before { content: "domain_verification"; }
+.fa-building-pen::before { content: "edit_square"; }
+.fa-calculator::before { content: "calculate"; }
+.fa-calendar-alt::before,
+.fa-calendar-day::before,
+.fa-calendar-days::before { content: "calendar_month"; }
+.fa-calendar-check::before { content: "event_available"; }
+.fa-calendar-plus::before { content: "event_upcoming"; }
+.fa-calendar-times::before { content: "event_busy"; }
+.fa-cart-flatbed::before,
+.fa-cart-shopping::before { content: "shopping_cart"; }
+.fa-chart-bar::before,
+.fa-chart-column::before,
+.fa-chart-line::before,
+.fa-chart-pie::before,
+.fa-chart-simple::before { content: "monitoring"; }
+.fa-check::before { content: "check"; }
+.fa-check-circle::before,
+.fa-circle-check::before,
+.fa-file-circle-check::before { content: "check_circle"; }
+.fa-chevron-down::before { content: "expand_more"; }
+.fa-chevron-left::before { content: "chevron_left"; }
+.fa-chevron-right::before { content: "chevron_right"; }
+.fa-circle::before { content: "circle"; }
+.fa-circle-half-stroke::before { content: "contrast"; }
+.fa-circle-info::before,
+.fa-info-circle::before,
+.fa-info::before { content: "info"; }
+.fa-circle-notch::before,
+.fa-spinner::before { content: "progress_activity"; }
+.fa-circle-play::before { content: "play_circle"; }
+.fa-circle-plus::before,
+.fa-plus-circle::before { content: "add_circle"; }
+.fa-circle-xmark::before { content: "cancel"; }
+.fa-clipboard-check::before { content: "assignment_turned_in"; }
+.fa-clipboard-list::before,
+.fa-list::before,
+.fa-list-check::before { content: "checklist"; }
+.fa-clock::before { content: "schedule"; }
+.fa-clock-rotate-left::before { content: "history"; }
+.fa-cogs::before { content: "settings"; }
+.fa-coins::before,
+.fa-dollar-sign::before { content: "payments"; }
+.fa-compass::before { content: "explore"; }
+.fa-droplet::before,
+.fa-tint::before,
+.fa-water::before { content: "water_drop"; }
+.fa-envelope::before { content: "mail"; }
+.fa-eraser::before { content: "ink_eraser"; }
+.fa-exclamation::before,
+.fa-triangle-exclamation::before { content: "warning"; }
+.fa-expand::before,
+.fa-maximize::before { content: "open_in_full"; }
+.fa-eye::before { content: "visibility"; }
+.fa-eye-slash::before { content: "visibility_off"; }
+.fa-facebook-f::before,
+.fa-globe-americas::before { content: "public"; }
+.fa-file-circle-plus::before { content: "note_add"; }
+.fa-file-circle-xmark::before { content: "cancel"; }
+.fa-file-invoice::before,
+.fa-file-invoice-dollar::before,
+.fa-receipt::before { content: "receipt_long"; }
+.fa-filter::before { content: "filter_alt"; }
+.fa-fingerprint::before { content: "fingerprint"; }
+.fa-flask::before,
+.fa-flask-vial::before,
+.fa-vials::before { content: "science"; }
+.fa-floppy-disk::before,
+.fa-save::before { content: "save"; }
+.fa-folder::before { content: "folder"; }
+.fa-folder-open::before { content: "folder_open"; }
+.fa-gauge-high::before { content: "dashboard"; }
+.fa-hand-holding::before { content: "volunteer_activism"; }
+.fa-hashtag::before { content: "tag"; }
+.fa-headset::before { content: "headset_mic"; }
+.fa-hourglass-half::before { content: "hourglass"; }
+.fa-id-card::before { content: "badge"; }
+.fa-instagram::before,
+.fa-linkedin-in::before,
+.fa-youtube::before { content: "alternate_email"; }
+.fa-key::before { content: "key"; }
+.fa-layer-group::before { content: "layers"; }
+.fa-leaf::before,
+.fa-seedling::before { content: "eco"; }
+.fa-link::before { content: "link"; }
+.fa-location-dot::before,
+.fa-map-marker-alt::before { content: "location_on"; }
+.fa-lock::before,
+.fa-shield-alt::before,
+.fa-shield-halved::before,
+.fa-user-shield::before { content: "shield"; }
+.fa-magnifying-glass::before,
+.fa-search::before { content: "search"; }
+.fa-magnifying-glass-chart::before { content: "query_stats"; }
+.fa-map::before,
+.fa-map-location-dot::before { content: "map"; }
+.fa-moon::before { content: "dark_mode"; }
+.fa-note-sticky::before { content: "sticky_note_2"; }
+.fa-notes-medical::before { content: "medical_services"; }
+.fa-palette::before { content: "palette"; }
+.fa-paper-plane::before { content: "send"; }
+.fa-pen::before,
+.fa-pen-to-square::before,
+.fa-user-pen::before { content: "edit"; }
+.fa-people-group::before,
+.fa-users::before,
+.fa-users-gear::before { content: "groups"; }
+.fa-phone::before { content: "call"; }
+.fa-plane-departure::before { content: "flight_takeoff"; }
+.fa-plus::before { content: "add"; }
+.fa-prescription-bottle::before { content: "medication"; }
+.fa-print::before { content: "print"; }
+.fa-recycle::before { content: "recycling"; }
+.fa-rotate::before,
+.fa-rotate-left::before,
+.fa-rotate-right::before { content: "refresh"; }
+.fa-route::before { content: "route"; }
+.fa-ruler-combined::before { content: "straighten"; }
+.fa-satellite-dish::before { content: "settings_input_antenna"; }
+.fa-shield-virus::before { content: "health_and_safety"; }
+.fa-signal::before { content: "signal_cellular_alt"; }
+.fa-sliders::before { content: "tune"; }
+.fa-star::before { content: "star"; }
+.fa-sun::before { content: "light_mode"; }
+.fa-tag::before,
+.fa-tags::before { content: "sell"; }
+.fa-trash::before,
+.fa-trash-can::before { content: "delete"; }
+.fa-truck::before,
+.fa-truck-fast::before,
+.fa-truck-loading::before,
+.fa-truck-ramp-box::before { content: "local_shipping"; }
+.fa-truck-field::before { content: "agriculture"; }
+.fa-user::before,
+.fa-user-tie::before { content: "person"; }
+.fa-user-check::before { content: "person_check"; }
+.fa-user-gear::before { content: "manage_accounts"; }
+.fa-user-xmark::before { content: "person_cancel"; }
+.fa-wand-magic-sparkles::before { content: "auto_fix_high"; }
+.fa-warehouse::before { content: "warehouse"; }
+.fa-wheat-awn::before { content: "grass"; }
+.fa-xmark::before { content: "close"; }

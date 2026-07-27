@@ -1,15 +1,16 @@
 (function (window, document) {
     'use strict';
 
-    const PAGE_SIZE = 10;
-
     const AppUI = {
         init() {
             this.setupMotion();
             this.setupTheme();
             this.setupNotifications();
+            this.setupContextualGuidance();
+            this.setupAccountMenus();
             this.setupShell();
             this.setupSidebarTabs();
+            this.setupAdminMobileNav();
             this.setupModalMotion();
             this.enhanceAll();
             this.observeDynamicContent();
@@ -139,6 +140,7 @@
             this.enhanceViews(root);
             this.enhanceCards(root);
             this.enhanceTables(root);
+            this.enhanceMoneyInputs(root);
             this.enhanceForms(root);
             this.enhanceDateInputs(root);
             this.enhanceButtons(root);
@@ -178,6 +180,25 @@
                 input.setAttribute('aria-haspopup', 'dialog');
                 input.addEventListener('beforeinput', (event) => event.preventDefault());
                 input.addEventListener('paste', (event) => event.preventDefault());
+
+                const validateDateRange = () => {
+                    input.setCustomValidity('');
+                    const previousName = input.dataset.dateNotBefore;
+                    if (!previousName || !input.value) return;
+                    const form = input.form;
+                    const previous = form?.elements.namedItem(previousName);
+                    if (previous instanceof HTMLInputElement && previous.value && input.value < previous.value) {
+                        const previousLabel = previous.dataset.dateLabel || 'la fecha anterior';
+                        input.setCustomValidity(`Esta fecha no puede ser anterior a ${previousLabel}.`);
+                    }
+                };
+                input.addEventListener('change', validateDateRange);
+                const previousName = input.dataset.dateNotBefore;
+                const previous = previousName ? input.form?.elements.namedItem(previousName) : null;
+                if (previous instanceof HTMLInputElement) {
+                    previous.addEventListener('change', validateDateRange);
+                }
+                validateDateRange();
 
                 const open = () => this.openDatePicker(input, trigger);
                 input.addEventListener('click', open);
@@ -377,9 +398,46 @@
             });
         },
 
+        navigateToInterfaceTarget(target) {
+            if (!target.startsWith('#')) return false;
+
+            const bootstrapTrigger = document.querySelector(`[data-bs-target="${target}"]`);
+            const appTrigger = document.querySelector(`[data-app-tab="${target}"]`);
+            const destination = document.querySelector(target);
+            if (!bootstrapTrigger && !appTrigger && !destination) return false;
+
+            if (bootstrapTrigger && window.bootstrap?.Tab) {
+                window.bootstrap.Tab.getOrCreateInstance(bootstrapTrigger).show();
+                window.setTimeout(() => {
+                    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+                return true;
+            }
+            if (appTrigger) {
+                appTrigger.click();
+                window.setTimeout(() => {
+                    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+                return true;
+            }
+
+            destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return true;
+        },
+
         setupNotifications() {
             window.appNotify = (message, type = 'info', options = {}) =>
                 this.notify(message, type, options);
+
+            document.addEventListener('click', (event) => {
+                const action = event.target.closest('[data-app-notification-action]');
+                if (!action) return;
+
+                const target = action.getAttribute('href') || '';
+                if (this.navigateToInterfaceTarget(target)) {
+                    event.preventDefault();
+                }
+            });
 
             window.alert = (message) => {
                 const text = String(message || '');
@@ -393,7 +451,10 @@
                 const pending = JSON.parse(sessionStorage.getItem('appPendingNotifications') || '[]');
                 sessionStorage.removeItem('appPendingNotifications');
                 pending.forEach((notification) => {
-                    this.notify(notification.message, notification.type, { persist: false });
+                    this.notify(notification.message, notification.type, {
+                        ...(notification.options || {}),
+                        persist: false,
+                    });
                 });
             } catch (error) {
                 sessionStorage.removeItem('appPendingNotifications');
@@ -407,6 +468,150 @@
                 url.searchParams.delete('type');
                 window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
             }
+        },
+
+        setupContextualGuidance() {
+            if (document.querySelector('[data-context-guidance]')
+                && document.documentElement.dataset.contextStateRefreshBound !== '1') {
+                document.documentElement.dataset.contextStateRefreshBound = '1';
+                window.addEventListener('pageshow', (event) => {
+                    if (!event.persisted || !document.querySelector('[data-context-guidance]')) return;
+                    window.location.reload();
+                });
+            }
+
+            document.querySelectorAll('[data-context-guidance]').forEach((guidance) => {
+                if (guidance.dataset.contextGuidanceBound === '1') return;
+                guidance.dataset.contextGuidanceBound = '1';
+
+                const user = guidance.dataset.contextUser || 'guest';
+                const storageKey = `pis.context.dismissed.${user}`;
+                let dismissed = [];
+                try {
+                    dismissed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    if (!Array.isArray(dismissed)) dismissed = [];
+                } catch (error) {
+                    dismissed = [];
+                }
+
+                const removeMessage = (message) => {
+                    message.classList.add('app-context-message--closing');
+                    window.setTimeout(() => {
+                        message.remove();
+                        if (!guidance.querySelector('[data-context-message]')) guidance.remove();
+                    }, 220);
+                };
+
+                guidance.querySelectorAll('[data-context-action]').forEach((action) => {
+                    action.addEventListener('click', (event) => {
+                        const target = action.getAttribute('href') || '';
+                        if (this.navigateToInterfaceTarget(target)) event.preventDefault();
+                    });
+                });
+
+                guidance.querySelectorAll('[data-context-message]').forEach((message) => {
+                    const id = message.dataset.contextMessageId;
+                    if (id && dismissed.includes(id)) {
+                        message.remove();
+                        return;
+                    }
+
+                    message.querySelector('[data-context-close]')
+                        ?.addEventListener('click', () => removeMessage(message));
+                    message.querySelector('[data-context-dismiss]')
+                        ?.addEventListener('click', () => {
+                            if (id && !dismissed.includes(id)) {
+                                dismissed.push(id);
+                                try {
+                                    localStorage.setItem(storageKey, JSON.stringify(dismissed.slice(-100)));
+                                } catch (error) {
+                                    // El cierre actual funciona aunque el almacenamiento esté bloqueado.
+                                }
+                            }
+                            removeMessage(message);
+                        });
+                });
+
+                if (!guidance.querySelector('[data-context-message]')) guidance.remove();
+            });
+        },
+
+        setupAccountMenus() {
+            document.querySelectorAll('[data-admin-account-menu]').forEach((menu) => {
+                const trigger = menu.querySelector('[data-admin-account-trigger]');
+                if (!trigger || menu.dataset.adminAccountListener === '1') return;
+
+                menu.dataset.adminAccountListener = '1';
+                const setOpen = (open) => {
+                    menu.classList.toggle('is-open', open);
+                    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                };
+
+                trigger.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setOpen(!menu.classList.contains('is-open'));
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!menu.contains(event.target)) setOpen(false);
+                });
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') setOpen(false);
+                });
+            });
+        },
+
+        enhanceMoneyInputs(root) {
+            const inputs = [];
+            if (root.matches?.('input[data-money]')) inputs.push(root);
+            root.querySelectorAll?.('input[data-money]').forEach((input) => inputs.push(input));
+
+            inputs.forEach((input) => {
+                if (input.dataset.moneyBound === '1') return;
+                input.dataset.moneyBound = '1';
+                input.type = 'text';
+                input.inputMode = 'decimal';
+                input.pattern = '(?:\\d+|\\d{1,3}(?:,\\d{3})+)(?:\\.\\d{1,2})?';
+                input.autocomplete = 'off';
+
+                const rawValue = () => input.value.replace(/,/g, '');
+                const sanitize = () => {
+                    let value = rawValue().replace(/[^\d.]/g, '');
+                    const point = value.indexOf('.');
+                    if (point >= 0) {
+                        value = value.slice(0, point + 1) + value.slice(point + 1).replace(/\./g, '');
+                        value = value.slice(0, point + 3);
+                    }
+                    input.value = value;
+                    input.setCustomValidity('');
+                    if (value !== '' && !/^\d+(?:\.\d{1,2})?$/.test(value)) {
+                        input.setCustomValidity('Ingrese un valor positivo con máximo 2 decimales y use punto decimal.');
+                    } else if (value !== '' && Number(value) < Number(input.getAttribute('min') || 0.01)) {
+                        input.setCustomValidity(`El valor debe ser al menos ${input.getAttribute('min') || '0.01'}.`);
+                    } else if (value !== '' && input.hasAttribute('max') && Number(value) > Number(input.getAttribute('max'))) {
+                        input.setCustomValidity(`El valor no puede superar ${Number(input.getAttribute('max')).toLocaleString('en-US')}.`);
+                    }
+                };
+                const format = () => {
+                    sanitize();
+                    const value = rawValue();
+                    if (value === '' || !/^\d+(?:\.\d{1,2})?$/.test(value)) return;
+                    const [integer, decimals] = value.split('.');
+                    input.value = `${Number(integer).toLocaleString('en-US')}${decimals === undefined ? '' : `.${decimals}`}`;
+                };
+
+                input.addEventListener('input', sanitize);
+                input.addEventListener('focus', () => {
+                    input.value = rawValue();
+                });
+                input.addEventListener('blur', format);
+                input.form?.addEventListener('submit', () => {
+                    input.value = rawValue();
+                    sanitize();
+                });
+                format();
+            });
         },
 
         notificationStack() {
@@ -445,7 +650,17 @@
                 try {
                     const notificationId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
                     const pending = JSON.parse(sessionStorage.getItem('appPendingNotifications') || '[]');
-                    pending.push({ id: notificationId, message: text, type: notificationType });
+                    pending.push({
+                        id: notificationId,
+                        message: text,
+                        type: notificationType,
+                        options: {
+                            title: options.title,
+                            actionLabel: options.actionLabel,
+                            actionUrl: options.actionUrl,
+                            duration: options.duration,
+                        },
+                    });
                     sessionStorage.setItem('appPendingNotifications', JSON.stringify(pending.slice(-4)));
 
                     window.setTimeout(() => {
@@ -469,21 +684,29 @@
             const notification = document.createElement('div');
             notification.className = `app-notification app-notification--${notificationType}`;
             notification.dataset.appNotification = '1';
-            notification.dataset.duration = String(options.duration || 4500);
+            notification.dataset.duration = String(options.duration ?? 4800);
             notification.setAttribute('role', notificationType === 'danger' ? 'alert' : 'status');
             notification.innerHTML = `
                 <span class="app-notification__icon" aria-hidden="true">
                     <i class="fas ${icons[notificationType]}"></i>
                 </span>
                 <span class="app-notification__content">
-                    <strong class="app-notification__title">${titles[notificationType]}</strong>
+                    <strong class="app-notification__title"></strong>
                     <span class="app-notification__message"></span>
+                    ${options.actionLabel && options.actionUrl ? '<a class="app-notification__action"></a>' : ''}
                 </span>
                 <button class="app-notification__close" type="button" data-app-notification-close aria-label="Cerrar notificación">
                     <i class="fas fa-xmark"></i>
                 </button>
             `;
+            notification.querySelector('.app-notification__title').textContent =
+                String(options.title || titles[notificationType]);
             notification.querySelector('.app-notification__message').textContent = text;
+            const action = notification.querySelector('.app-notification__action');
+            if (action) {
+                action.textContent = String(options.actionLabel);
+                action.href = String(options.actionUrl);
+            }
             this.notificationStack().appendChild(notification);
             this.bindNotification(notification);
             return notification;
@@ -499,18 +722,43 @@
             if (notification.dataset.appNotificationBound === '1') return;
             notification.dataset.appNotificationBound = '1';
 
-            const duration = Math.max(1500, Number(notification.dataset.duration || 4500));
+            const duration = Math.max(2600, Number(notification.dataset.duration || 4800));
+            const removalDelay = this.motionQuery?.matches ? 0 : 380;
+            notification.style.setProperty('--notification-duration', `${duration}ms`);
+            let timer = null;
+            let remaining = duration;
+            let startedAt = 0;
             const close = () => {
                 if (notification.dataset.closing === '1') return;
                 notification.dataset.closing = '1';
                 notification.classList.add('app-notification--closing');
-                window.setTimeout(() => notification.remove(), 260);
+                window.setTimeout(() => notification.remove(), removalDelay);
             };
 
             notification.querySelector('[data-app-notification-close]')
                 ?.addEventListener('click', close);
 
-            window.setTimeout(close, duration);
+            const startTimer = () => {
+                window.clearTimeout(timer);
+                if (notification.dataset.closing === '1') return;
+                startedAt = Date.now();
+                timer = window.setTimeout(close, Math.max(0, remaining));
+            };
+            const pauseTimer = () => {
+                if (!timer) return;
+                window.clearTimeout(timer);
+                timer = null;
+                remaining = Math.max(0, remaining - (Date.now() - startedAt));
+            };
+            const resumeTimer = () => {
+                if (notification.matches(':hover') || notification.contains(document.activeElement)) return;
+                startTimer();
+            };
+            notification.addEventListener('mouseenter', pauseTimer);
+            notification.addEventListener('mouseleave', resumeTimer);
+            notification.addEventListener('focusin', pauseTimer);
+            notification.addEventListener('focusout', () => window.setTimeout(resumeTimer, 0));
+            startTimer();
         },
 
         setupShell() {
@@ -521,41 +769,82 @@
 
             const syncSidebarMode = () => {
                 if (mobileSidebarQuery.matches) {
-                    document.body.classList.remove('app-sidebar-collapsed');
+                    document.body.classList.remove('app-sidebar-collapsed', 'app-sidebar-pinned');
                     return;
                 }
 
-                document.body.classList.toggle(
-                    'app-sidebar-collapsed',
-                    localStorage.getItem('appSidebarCollapsed') === '1'
-                );
+                document.body.classList.add('app-sidebar-collapsed');
                 document.body.classList.remove('app-mobile-nav-open');
             };
 
             syncSidebarMode();
             mobileSidebarQuery.addEventListener?.('change', syncSidebarMode);
 
+            const sidebar = document.querySelector('.app-sidebar');
+            if (sidebar && sidebar.dataset.appSidebarHoverBound !== '1') {
+                sidebar.dataset.appSidebarHoverBound = '1';
+
+                sidebar.addEventListener('mouseenter', () => {
+                    if (!mobileSidebarQuery.matches) document.body.classList.add('app-sidebar-hovered');
+                });
+                sidebar.addEventListener('mouseleave', () => {
+                    document.body.classList.remove('app-sidebar-hovered');
+                });
+                sidebar.addEventListener('focusin', () => {
+                    if (!mobileSidebarQuery.matches) document.body.classList.add('app-sidebar-hovered');
+                });
+                sidebar.addEventListener('focusout', (event) => {
+                    if (!sidebar.contains(event.relatedTarget)) {
+                        document.body.classList.remove('app-sidebar-hovered');
+                    }
+                });
+            }
+
             const currentPath = window.location.pathname.split('/').pop() || 'index.html';
             document.querySelectorAll('.app-sidebar-link[href]').forEach((link) => {
                 const linkPath = link.getAttribute('href').split('/').pop();
-                if (linkPath === currentPath) link.classList.add('active');
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                    this.openSidebarGroup(link.closest('[data-app-sidebar-group]'));
+                }
+            });
+
+            document.querySelectorAll('[data-app-sidebar-section]').forEach((button) => {
+                if (button.dataset.appSidebarSectionBound === '1') return;
+                button.dataset.appSidebarSectionBound = '1';
+
+                button.addEventListener('click', () => {
+                    const group = button.closest('[data-app-sidebar-group]');
+                    const open = !group?.classList.contains('is-open');
+
+                    if (open) {
+                        document.querySelectorAll('[data-app-sidebar-group].is-open').forEach((openGroup) => {
+                            if (openGroup !== group) this.setSidebarGroupOpen(openGroup, false);
+                        });
+                    }
+
+                    this.setSidebarGroupOpen(group, open);
+                });
             });
 
             document.querySelectorAll('[data-app-sidebar-toggle]').forEach((button) => {
                 if (button.dataset.appSidebarToggleBound === '1') return;
                 button.dataset.appSidebarToggleBound = '1';
 
-                button.addEventListener('click', () => {
+button.addEventListener('click', () => {
                     if (mobileSidebarQuery.matches) {
                         document.body.classList.toggle('app-mobile-nav-open');
                         return;
                     }
 
-                    document.body.classList.toggle('app-sidebar-collapsed');
-                    localStorage.setItem(
-                        'appSidebarCollapsed',
-                        document.body.classList.contains('app-sidebar-collapsed') ? '1' : '0'
-                    );
+                    const isPinned = document.body.classList.contains('app-sidebar-pinned');
+                    if (isPinned) {
+                        document.body.classList.remove('app-sidebar-pinned');
+                        document.body.classList.add('app-sidebar-collapsed');
+                    } else {
+                        document.body.classList.remove('app-sidebar-collapsed');
+                        document.body.classList.add('app-sidebar-pinned');
+                    }
                 });
             });
 
@@ -640,6 +929,44 @@
 
             group.querySelectorAll('.app-sidebar-link').forEach((item) => item.classList.remove('active'));
             activeItem.classList.add('active');
+            this.openSidebarGroup(activeItem.closest('[data-app-sidebar-group]'));
+        },
+
+        setSidebarGroupOpen(group, open) {
+            if (!group) return;
+            group.classList.toggle('is-open', open);
+            group.querySelector('[data-app-sidebar-section]')
+                ?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        },
+
+        openSidebarGroup(group) {
+            this.setSidebarGroupOpen(group, true);
+        },
+
+        setupAdminMobileNav() {
+            const sidebar = document.querySelector('.admin-tablet-shell > .sidebar');
+            if (!sidebar || document.documentElement.dataset.adminMobileNavBound === '1') return;
+            document.documentElement.dataset.adminMobileNavBound = '1';
+
+            const closeNav = () => document.body.classList.remove('admin-mobile-nav-open');
+
+            document.querySelectorAll('[data-admin-mobile-toggle]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    document.body.classList.toggle('admin-mobile-nav-open');
+                });
+            });
+
+            document.querySelectorAll('[data-admin-mobile-close]').forEach((element) => {
+                element.addEventListener('click', closeNav);
+            });
+
+            sidebar.querySelectorAll('.nav-item').forEach((item) => {
+                item.addEventListener('click', closeNav);
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeNav();
+            });
         },
 
         observeDynamicContent() {
@@ -754,278 +1081,7 @@
         },
 
         enhanceTables(root) {
-            root.querySelectorAll('.table').forEach((table) => {
-                if (table.dataset.appTable === '1') return;
-                if (table.closest('.modal')) return;
-
-                const tbody = table.tBodies[0];
-                if (!tbody || tbody.rows.length < 3) return;
-
-                table.dataset.appTable = '1';
-                const rows = Array.from(tbody.rows);
-                let currentPage = 1;
-                let query = '';
-                let status = '';
-                const normalizeHeading = (value) => String(value || '')
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .trim()
-                    .toLowerCase();
-                const headings = Array.from(table.tHead?.rows[0]?.cells || []);
-                const filterColumnIndex = headings.findIndex((heading) => {
-                    const value = normalizeHeading(heading.textContent);
-                    return value === 'estado' || value === 'rol';
-                });
-                const filterHeading = filterColumnIndex >= 0
-                    ? normalizeHeading(headings[filterColumnIndex].textContent)
-                    : '';
-                const filterAllLabel = filterHeading === 'rol' ? 'Todos los roles' : 'Todos los estados';
-
-                const wrapper = table.closest('.table-responsive') || table.parentElement;
-                const tableOwner = table.closest('[id]')?.id || '';
-                const tableHost = wrapper.parentElement;
-                if (tableOwner) {
-                    tableHost.querySelectorAll(
-                        `:scope > .app-table-tools[data-app-table-owner="${tableOwner}"], ` +
-                        `:scope > .app-table-pagination[data-app-table-owner="${tableOwner}"]`
-                    ).forEach(element => element.remove());
-                    document.querySelectorAll(
-                        `.app-table-filter__menu[data-app-table-owner="${tableOwner}"]`
-                    ).forEach(element => element.remove());
-                }
-                const tools = document.createElement('div');
-                tools.className = 'app-table-tools';
-                if (tableOwner) tools.dataset.appTableOwner = tableOwner;
-                tools.innerHTML = `
-                    <div class="app-table-tools-left">
-                        <div class="input-group app-table-search">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="search" class="form-control" placeholder="Buscar en la tabla">
-                        </div>
-                    </div>
-                    <div class="app-table-tools-right">
-                        <div class="app-table-filter">
-                            <button type="button" class="app-table-filter__button" aria-haspopup="listbox" aria-expanded="false">
-                                <i class="fas fa-filter" aria-hidden="true"></i>
-                                <span>${filterAllLabel}</span>
-                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                            </button>
-                            <div class="app-table-filter__menu" role="listbox" aria-label="Filtrar por ${filterHeading || 'estado'}"></div>
-                        </div>
-                    </div>
-                `;
-
-                wrapper.parentElement.insertBefore(tools, wrapper);
-
-                const pagination = document.createElement('div');
-                pagination.className = 'app-table-pagination';
-                if (tableOwner) pagination.dataset.appTableOwner = tableOwner;
-                pagination.innerHTML = `
-                    <span class="app-table-page-info"></span>
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-prev><i class="fas fa-chevron-left"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-next><i class="fas fa-chevron-right"></i></button>
-                `;
-                wrapper.parentElement.insertBefore(pagination, wrapper.nextSibling);
-
-                const searchInput = tools.querySelector('input[type="search"]');
-                const statusFilter = tools.querySelector('.app-table-filter');
-                const statusButton = tools.querySelector('.app-table-filter__button');
-                const statusLabel = statusButton.querySelector('span');
-                const statusMenu = tools.querySelector('.app-table-filter__menu');
-                if (tableOwner) statusMenu.dataset.appTableOwner = tableOwner;
-                const statusValues = new Set();
-                const statusTone = (value) => {
-                    const normalized = normalizeHeading(value);
-                    if (!normalized) return 'all';
-                    if (/pendiente|espera|revision|cosecha|warning/.test(normalized)) return 'warning';
-                    if (/aprobado|procesando|informacion|administrador/.test(normalized)) return 'info';
-                    if (/entregado|activo|finalizado|completado|agricultor/.test(normalized)) return 'success';
-                    if (/rechazado|error|critico/.test(normalized)) return 'danger';
-                    if (/cancelado|inactivo|bodeguero/.test(normalized)) return 'neutral';
-                    return 'default';
-                };
-                const setCurrentStatus = (value, label) => {
-                    statusLabel.textContent = label;
-                    statusLabel.className = 'app-table-filter__current';
-                };
-                const positionStatusMenu = () => {
-                    const rect = statusButton.getBoundingClientRect();
-                    const viewportGap = 12;
-                    const desiredHeight = Math.min(statusMenu.scrollHeight || 280, 280);
-                    const spaceBelow = window.innerHeight - rect.bottom - viewportGap;
-                    const spaceAbove = rect.top - viewportGap;
-                    const openAbove = spaceBelow < Math.min(desiredHeight, 190) && spaceAbove > spaceBelow;
-                    const availableHeight = Math.max(120, openAbove ? spaceAbove - 8 : spaceBelow - 8);
-                    const width = Math.min(Math.max(rect.width, 270), window.innerWidth - (viewportGap * 2));
-                    const left = Math.min(
-                        Math.max(viewportGap, rect.right - width),
-                        window.innerWidth - width - viewportGap
-                    );
-
-                    statusMenu.style.left = `${Math.round(left)}px`;
-                    statusMenu.style.width = `${Math.round(width)}px`;
-                    statusMenu.style.maxHeight = `${Math.min(280, availableHeight)}px`;
-                    statusMenu.style.top = openAbove
-                        ? `${Math.round(rect.top - Math.min(desiredHeight, availableHeight) - 7)}px`
-                        : `${Math.round(rect.bottom + 7)}px`;
-                    statusMenu.dataset.placement = openAbove ? 'top' : 'bottom';
-                };
-                const closeStatusMenu = () => {
-                    statusFilter.classList.remove('is-open');
-                    statusMenu.classList.remove('is-open');
-                    statusButton.setAttribute('aria-expanded', 'false');
-                };
-                const getRowStatus = (row) => {
-                    if (filterColumnIndex < 0) return '';
-                    const cell = row.cells[filterColumnIndex];
-                    const statusElement = cell?.querySelector('.app-table-status-capsule, .badge');
-                    return (statusElement?.textContent || cell?.textContent || '').trim();
-                };
-
-                rows.forEach((row) => {
-                    const value = getRowStatus(row);
-                    if (filterHeading === 'estado' && value) {
-                        const cell = row.cells[filterColumnIndex];
-                        let capsule = cell.querySelector('.app-table-status-capsule');
-
-                        if (!capsule) {
-                            capsule = document.createElement('span');
-                            cell.replaceChildren(capsule);
-                        }
-
-                        capsule.className = `app-table-status-capsule app-table-status-capsule--${statusTone(value)}`;
-                        capsule.textContent = value;
-                    }
-                    if (value) statusValues.add(value);
-                });
-
-                const addFilterOption = (value, label) => {
-                    const option = document.createElement('button');
-                    const optionLabel = document.createElement('span');
-                    const checkIcon = document.createElement('i');
-                    option.type = 'button';
-                    option.className = 'app-table-filter__option';
-                    option.dataset.value = value;
-                    option.setAttribute('role', 'option');
-                    option.setAttribute('aria-selected', value === '' ? 'true' : 'false');
-                    optionLabel.className = 'app-table-filter__option-label';
-                    optionLabel.textContent = label;
-                    checkIcon.className = 'fas fa-check';
-                    checkIcon.setAttribute('aria-hidden', 'true');
-                    option.append(optionLabel, checkIcon);
-                    statusMenu.appendChild(option);
-                };
-
-                if (filterColumnIndex < 0 || statusValues.size === 0) {
-                    statusFilter.remove();
-                } else {
-                    addFilterOption('', filterAllLabel);
-                    Array.from(statusValues)
-                        .sort((first, second) => first.localeCompare(second, 'es'))
-                        .forEach((value) => addFilterOption(value.toLowerCase(), value));
-                    document.body.appendChild(statusMenu);
-                    setCurrentStatus('', filterAllLabel);
-                }
-
-                const getFilteredRows = () => rows.filter((row) => {
-                    const text = row.textContent.toLowerCase();
-                    const matchesQuery = !query || text.includes(query);
-                    const matchesStatus = !status || getRowStatus(row).toLowerCase() === status;
-                    return matchesQuery && matchesStatus;
-                });
-
-                const render = () => {
-                    const filtered = getFilteredRows();
-                    const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-                    currentPage = Math.min(currentPage, pages);
-                    const start = (currentPage - 1) * PAGE_SIZE;
-                    const visible = new Set(filtered.slice(start, start + PAGE_SIZE));
-
-                    rows.forEach((row) => {
-                        row.style.display = visible.has(row) ? '' : 'none';
-                    });
-
-                    if (this.motionAllowed()) {
-                        Array.from(visible).forEach((row, index) => {
-                            row.classList.remove('app-row-enter');
-                            row.style.setProperty('--app-row-delay', `${Math.min(index * 24, 144)}ms`);
-                            void row.offsetWidth;
-                            row.classList.add('app-row-enter');
-                        });
-                    }
-
-                    pagination.querySelector('.app-table-page-info').textContent =
-                        `${filtered.length} registros · Página ${currentPage} de ${pages}`;
-                    pagination.querySelector('[data-prev]').disabled = currentPage === 1;
-                    pagination.querySelector('[data-next]').disabled = currentPage === pages;
-                };
-
-                searchInput.addEventListener('input', () => {
-                    query = searchInput.value.trim().toLowerCase();
-                    currentPage = 1;
-                    render();
-                });
-
-                if (statusFilter.isConnected) {
-                    statusButton.addEventListener('click', () => {
-                        const willOpen = !statusFilter.classList.contains('is-open');
-                        statusFilter.classList.toggle('is-open', willOpen);
-                        statusMenu.classList.toggle('is-open', willOpen);
-                        statusButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-                        if (willOpen) positionStatusMenu();
-                    });
-
-                    statusMenu.addEventListener('click', (event) => {
-                        const option = event.target.closest('.app-table-filter__option');
-                        if (!option) return;
-
-                        status = option.dataset.value || '';
-                        setCurrentStatus(status, option.querySelector('span').textContent);
-                        statusMenu.querySelectorAll('.app-table-filter__option').forEach(item => {
-                            const isSelected = item === option;
-                            item.classList.toggle('is-selected', isSelected);
-                            item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-                        });
-                        closeStatusMenu();
-                        currentPage = 1;
-                        render();
-                    });
-
-                    const handleFilterEscape = (event) => {
-                        if (event.key === 'Escape') {
-                            closeStatusMenu();
-                            statusButton.focus();
-                        }
-                    };
-                    statusFilter.addEventListener('keydown', handleFilterEscape);
-                    statusMenu.addEventListener('keydown', handleFilterEscape);
-
-                    document.addEventListener('click', (event) => {
-                        if (!statusFilter.contains(event.target) && !statusMenu.contains(event.target)) {
-                            closeStatusMenu();
-                        }
-                    });
-
-                    window.addEventListener('resize', () => {
-                        if (statusFilter.classList.contains('is-open')) positionStatusMenu();
-                    });
-                    window.addEventListener('scroll', () => {
-                        if (statusFilter.classList.contains('is-open')) positionStatusMenu();
-                    }, true);
-                }
-
-                pagination.querySelector('[data-prev]').addEventListener('click', () => {
-                    currentPage = Math.max(1, currentPage - 1);
-                    render();
-                });
-
-                pagination.querySelector('[data-next]').addEventListener('click', () => {
-                    currentPage += 1;
-                    render();
-                });
-
-                render();
-            });
+            window.AppTable?.enhance(root);
         },
 
         enhanceCounters(root) {

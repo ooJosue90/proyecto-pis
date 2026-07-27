@@ -1,0 +1,14 @@
+{
+	"scripts": {
+		"build:css": "node scripts/build-css.mjs",
+		"optimize:images": "node scripts/optimize-images.mjs"
+	},
+	"dependencies": {
+		"@fortawesome/fontawesome-free": "7.0.1",
+		"bootstrap": "5.2.3",
+		"chart.js": "4.4.7"
+	},
+	"devDependencies": {
+		"sharp": "^0.35.2"
+	}
+}

@@ -1,42 +1,79 @@
-# Configuracion privada
+# Entorno local y credenciales
 .env
 .env.*
 !.env.example
+auth.json
+*.pem
+*.key
+*.p12
+*.pfx
+/secrets/
 
-# Dependencias instaladas por Composer
+# Dependencias regenerables
 /vendor/
+/node_modules/
+/.pnpm-store/
+composer.phar
 
-# Respaldos y scripts de base de datos
+# Bases de datos, respaldos y volcados locales
 *.sql
-!migrations/
-!migrations/*.sql
 *.sql.gz
 *.dump
+*.bak
+!migrations/
+!migrations/**/*.sql
 
-# Datos locales y temporales de ejecucion
+# Datos generados durante la ejecucion
 /cookies/
 /storage/*
+!/storage/.htaccess
 !/storage/.gitkeep
 !/storage/sessions/
 /storage/sessions/*
 !/storage/sessions/.gitkeep
+!/storage/logs/
+/storage/logs/*
+!/storage/logs/.gitkeep
+!/storage/exports/
+/storage/exports/*
+!/storage/exports/.gitkeep
+/storage/backups/
+/storage/uploads/
 
-# Logs, cache y archivos temporales
+# Pruebas, cobertura, caches y archivos temporales
+/.phpunit.cache/
+.phpunit.result.cache
+.php-cs-fixer.cache
+.php_cs.cache
+/coverage/
+/tmp/
+/temp/
 *.log
 *.tmp
 *.temp
 *.cache
-.phpunit.cache/
-.phpunit.result.cache
+*.orig
+*.rej
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Editores e IDE
+# Herramientas locales, asistentes, editores e IDE
+/.agents/
+/.codex/
+/.claude/
 /.idea/
 /.vscode/
+*.code-workspace
 *.swp
 *.swo
 *~
 
 # Archivos del sistema operativo
 .DS_Store
+._*
 Thumbs.db
+ehthumbs.db
 Desktop.ini
+$RECYCLE.BIN/

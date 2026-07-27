@@ -1,11 +1,13 @@
 <?php
 
-require_once __DIR__ . '/../config_database.php';
+declare(strict_types=1);
+
+require_once __DIR__ . '/env.php';
 
 return [
-    'app' => [
-        'name' => env_required('APP_NAME'),
-        'environment' => env_required('APP_ENV'),
-    ],
-    'database' => config_database(),
+    'name' => env_value('APP_NAME', 'SembriExport'),
+    'environment' => env_value('APP_ENV', 'production'),
+    'debug' => filter_var(env_value('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOL),
+    'timezone' => env_value('APP_TIMEZONE', 'America/Guayaquil'),
+    'foundation_date' => env_value('APP_FOUNDATION_DATE', '2026-05-18'),
 ];
